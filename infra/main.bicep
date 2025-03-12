@@ -66,24 +66,7 @@ var solutionLocation = resourceGroupLocation
 
 
 @description('Name of App Service plan')
-param HostingPlanName string = guid(resourceGroup().id)
 
-@description('The pricing tier for the App Service plan')
-@allowed([
-  'F1'
-  'D1'
-  'B1'
-  'B2'
-  'B3'
-  'S1'
-  'S2'
-  'S3'
-  'P1'
-  'P2'
-  'P3'
-  'P4'
-])
-param HostingPlanSku string = 'B3'
 
 var ApplicationInsightsName = 'appins-${solutionPrefix}'
 var WorkspaceName = 'worksp-${solutionPrefix}'
@@ -205,18 +188,6 @@ resource keyVault 'Microsoft.KeyVault/vaults@2022-07-01' existing = {
   scope: resourceGroup(resourceGroup().name)
 }
 
-
-resource HostingPlan 'Microsoft.Web/serverfarms@2020-06-01' = {
-  name: HostingPlanName
-  location: resourceGroup().location
-  sku: {
-    name: HostingPlanSku
-  }
-  properties: {
-    reserved: true
-  }
-  kind: 'linux'
-}
 
 // resource Website 'Microsoft.Web/sites@2020-06-01' = {
 //   name: WebsiteName
