@@ -1,9 +1,6 @@
 environment:
-  name: conversation-knowledge-mining
+  name: BYC-Generic-Accelerator
   location: eastus
-name: conversation-knowledge-mining
-metadata:
-  template: conversation-knowledge-mining@1.0
 
 parameters:
   solutionPrefix:
@@ -14,7 +11,7 @@ parameters:
     default: eastus2
   baseUrl:
     type: string
-    default: 'https://raw.githubusercontent.com/microsoft/Conversation-Knowledge-Mining-Solution-Accelerator/'
+    default: 'https://github.com/blessing-sanusi/BYC-Generic-Accelerator'
 
 deployment:
   mode: Incremental
@@ -23,5 +20,3 @@ deployment:
     solutionPrefix: ${parameters.solutionPrefix}
     otherLocation: ${parameters.otherLocation}
     baseUrl: ${parameters.baseUrl}
-
- 
