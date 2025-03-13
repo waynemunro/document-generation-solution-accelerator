@@ -62,10 +62,8 @@ var solutionPrefix = 'dg${padLeft(take(uniqueId, 12), 12, '0')}'
 var resourceGroupLocation = resourceGroup().location
 
 var solutionLocation = resourceGroupLocation
-// var baseUrl = 'https://raw.githubusercontent.com/microsoft/Generic-Build-your-own-copilot-Solution-Accelerator/main/'
+var baseUrl = 'https://raw.githubusercontent.com/microsoft/Generic-Build-your-own-copilot-Solution-Accelerator/dcgn-template/'
 
-
-@description('Name of App Service plan')
 
 
 var ApplicationInsightsName = 'appins-${solutionPrefix}'
@@ -187,6 +185,8 @@ resource keyVault 'Microsoft.KeyVault/vaults@2022-07-01' existing = {
   name: aifoundry.outputs.keyvaultName
   scope: resourceGroup(resourceGroup().name)
 }
+
+
 
 
 // resource Website 'Microsoft.Web/sites@2020-06-01' = {
@@ -428,6 +428,23 @@ module cosmosDBModule 'deploy_cosmos_db.bicep' = {
   }
   scope: resourceGroup(resourceGroup().name)
 }
+
+//========== Deployment script to upload sample data ========== //
+module uploadFiles 'deploy_post_deployment_scripts.bicep' = {
+  name : 'deploy_post_deployment_scripts'
+  params:{
+    solutionName: solutionPrefix
+    solutionLocation: secondaryLocation
+    baseUrl: baseUrl
+    storageAccountName: storageAccount.outputs.storageName
+    containerName: storageAccount.outputs.storageContainer
+    managedIdentityObjectId:managedIdentityModule.outputs.managedIdentityOutput.id
+    managedIdentityClientId:managedIdentityModule.outputs.managedIdentityOutput.clientId
+    keyVaultName:aifoundry.outputs.keyvaultName
+    logAnalyticsWorkspaceResourceName: aifoundry.outputs.logAnalyticsWorkspaceResourceName
+  }
+}
+
 
 // resource CosmosDB 'Microsoft.DocumentDB/databaseAccounts@2023-04-15' = {
 //   name: CosmosDBName

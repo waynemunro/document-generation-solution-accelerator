@@ -2,8 +2,7 @@
 
 # Generic Build your own copilot Solution Accelerator
 
-MENU: [**USER STORY**](#user-story) \| [**ONE-CLICK DEPLOY**](#one-click-deploy)  \| [**SUPPORTING DOCUMENTS**](#supporting-documents) \|
-[**CUSTOMER TRUTH**](#customer-truth)
+MENU: [**USER STORY**](#user-story) \| [**ONE-CLICK DEPLOY**](#one-click-deploy)  \| [**SUPPORTING DOCUMENTS**](#supporting-documents) 
 
 
 <h2><img src="./docs/images/userStory.png" width="64">
@@ -11,100 +10,94 @@ MENU: [**USER STORY**](#user-story) \| [**ONE-CLICK DEPLOY**](#one-click-deploy)
 User story
 </h2>
 
-**Solution accelerator overview**
+### Overview
 
 This solution accelerator is a powerful tool that helps you create your own AI assistant(s). The accelerator can be used by any customer looking for reusable architecture and code snippets to build an AI assistant(s) with their own enterprise data. 
 
-It leverages Azure OpenAI Service and Azure AI Search, to identify relevant documents, summarize unstructured information, and generate Word document templates using your own data. 
+It leverages Azure AI Foundry, Azure OpenAI Service and Azure AI Search, to identify relevant documents, summarize unstructured information, and generate Word document templates using your own data. 
 
-**Scenario**
+### Key features
+
+![Key Features](/docs/images/keyfeatures.png)
+
+Below is an image of the solution. 
+
+![Landing Page](/docs/images/landing_page.png)
+
+### Scenario
 
 This example focuses on a generic use case - chat with your own data, generate a document template using your own data, and exporting the document in a docx format.
 
 The sample data is sourced from generic AI-generated promissory notes.
 The documents are intended for use as sample data only.
 
-<br/>
+### Solution accelerator architecture
+![image](/docs/images/architecture.png)
 
-**Key features**
-
-![Key Features](/docs/images/keyfeatures.png)
-
-<br/>
-
-**Below is an image of the solution accelerator.**
-
-![Landing Page](/docs/images/landing_page.png)
-
-
-<h2><img src="/docs/images//oneClickDeploy.png" width="64">
+<h2><img src="./docs/images/oneClickDeploy.png" width="64">
 <br/>
 One-click deploy
 </h2>
 
+| [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/microsoft/Generic-Build-your-own-copilot-Solution-Accelerator) | [![Open in Dev Containers](https://img.shields.io/static/v1?style=for-the-badge&label=Dev%20Containers&message=Open&color=blue&logo=visualstudiocode)](https://vscode.dev/redirect?url=vscode://ms-vscode-remote.remote-containers/cloneInVolume?url=https://github.com/microsoft/Generic-Build-your-own-copilot-Solution-Accelerator) | [![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fmicrosoft%2FGeneric-Build-your-own-copilot-Solution-Accelerator%2Fmain%2Finfra%2Fmain.json) |
+|---|---|---|
+
 ### Prerequisites
 
-To use this solution accelerator, you will need access to an [Azure subscription](https://azure.microsoft.com/free/) with permission to create resource groups and resources. While not required, a prior understanding of Azure OpenAI and Azure AI Search will be helpful.
+To deploy this solution accelerator, ensure you have access to an [Azure subscription](https://azure.microsoft.com/free/) with the necessary permissions to create **resource groups and resources**. Follow the steps in  [Azure Account Set Up](./docs/AzureAccountSetUp.md) 
 
-For additional training and support, please see:
+Check the [Azure Products by Region](https://azure.microsoft.com/en-us/explore/global-infrastructure/products-by-region/?products=all&regions=all) page and select a **region** where the following services are available:  
 
-1. [Azure OpenAI](https://learn.microsoft.com/en-us/azure/ai-services/openai/) 
-2. [Azure AI Search](https://learn.microsoft.com/en-us/azure/search/) 
-3. [Azure AI Foundry](https://learn.microsoft.com/en-us/azure/ai-studio/) 
+- Azure AI Foundry 
+- Azure OpenAI Services 
+- Azure AI Search
+- Embedding Deployment Capacity  
+- GPT Model Capacity
+- [Azure Semantic Search](./docs/AzureSemanticSearchRegion.md)  
 
-### Solution accelerator architecture
-![image](/docs/images/architecture.png)
 
-<h2><img src="./docs/Images/ReadMe/quickDeploy.png" width="64">
-<br/>
-QUICK DEPLOY
-</h2>
+<!-- Here are some example regions where the services are available: East US, East US2, Australia East, UK South, France Central. -->
 
-[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/microsoft/Generic-Build-your-own-copilot-Solution-Accelerator)
-[![Open in Dev Containers](https://img.shields.io/static/v1?style=for-the-badge&label=Dev%20Containers&message=Open&color=blue&logo=visualstudiocode)](https://vscode.dev/redirect?url=vscode://ms-vscode-remote.remote-containers/cloneInVolume?url=https://github.com/microsoft/Generic-Build-your-own-copilot-Solution-Accelerator)
-[![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fmicrosoft%2FGeneric-Build-your-own-copilot-Solution-Accelerator%2Fmain%2Finfra%2Fmain.json)     
+
 
 
  > Note: Some features contained in this repository are in private preview. Certain features might not be supported or might have constrained capabilities. For more information, see [Supplemental Terms of Use for Microsoft Azure Previews](https://azure.microsoft.com/en-us/support/legal/preview-supplemental-terms).
 
 
-### **How to install/deploy**
+### Configurable Deployment Settings
 
-1. Please check the link [Azure Products by Region](
-https://azure.microsoft.com/en-us/explore/global-infrastructure/products-by-region/?products=all&regions=all) and choose a region where Azure AI Search, Azure OpenAI Service, and Azure AI Foundry are available. If you are using the included sample data set, verify Document Intelligence (Form Recognizer) is available.
+When you start the deployment, most parameters will have **default values**, but you can update the following settings:  
 
-2. Click the following deployment button to create the required resources for this accelerator in your Azure Subscription.
+| **Setting** | **Description** |  **Default value** |
+|------------|----------------|  ------------|
+| **Azure Region** | The region where resources will be created. | East US| 
+| **Environment Name** | A **3-20 character alphanumeric value** used to generate a unique ID to prefix the resources. |  byctemplate |
+| **Secondary Location** | A **less busy** region for **Azure SQL and CosmosDB**, useful in case of availability constraints. |  eastus2 |
+| **Deployment Type** | Select from a drop-down list. |  GlobalStandard |
+| **GPT Model** | Choose from **gpt-4, gpt-4o** | gpt-4o |  
+| **GPT Model Deployment Capacity** | Configure capacity for **GPT models**. | 30k |
+| **Embedding Model** | Default: **text-embedding-ada-002**. |  text-embedding-ada-002 |
+| **Embedding Model Capacity** | Set the capacity for **embedding models**. |  80k |
 
-   [![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fmicrosoft%2FGeneric-Build-your-own-copilot-Solution-Accelerator%2Fmain%2Finfra%2Fmain.json)
 
-3. You will need to select an Azure Subscription, create/select a Resource group, and Region. If your intention is to deploy this solution accelerator and the corresponding sample data set, the default settings will suffice.
+### [Optional] Quota Recommendations  
+By default, the **GPT model capacity** in deployment is set to **30k tokens**.  
+> **We recommend increasing the capacity to 100k tokens for optimal performance.** 
 
-If you are using your own data, the next step is optional.
+To adjust quota settings, follow these [steps](./docs/AzureGPTQuotaSettings.md)  
 
-4. Follow steps in [Sample data guide](./scripts/SAMPLE_DATA.md) to ingest the sample Promissory Note PDFs into the search index.
 
-If you want to enable authentication, you will need to add an identity provider.
+**⚠️ Warning:**  **Insufficient quota can cause deployment errors.** Please ensure you have the recommended capacity or request for additional capacity before deploying this solution.
 
-#### Add an identity provider
-After deployment, you will need to add an identity provider to provide authentication support in your app. See [this tutorial](https://learn.microsoft.com/en-us/azure/app-service/scenario-secure-app-authentication-app-service) for more information.
-
-If you don't add an identity provider, the chat functionality will allow anyone to access the chat functionality of your app. **This is not recommended for production apps.** To enable this restriction, you can add `AUTH_ENABLED=True` to the environment variables. This will enable authentication and prevent unauthorized access to the chat functionality of your app.
-
-To add further access controls, update the logic in `getUserInfoList` in `frontend/src/pages/chat/Chat.tsx`. 
-
-#### Recommended practices
-1. **For enhanced relevance and accuracy**, we recommend implementing [Azure hybrid search](https://learn.microsoft.com/en-us/azure/search/hybrid-search-overview) over full-text search. Azure hybrid search provides superior relevance, accuracy, support for complex queries, improved user experience, scalability, performance, advanced features, and integration with AI services. These advantages make it the ideal choice for modern applications that require robust and intelligent search capabilities.
-2. **Importance of prompt engineering**. Prompt engineering is a critical aspect of working with AI models, especially when leveraging advanced capabilities such as those provided by Azure AI services. Proper prompt engineering ensures that the AI models generate accurate, relevant, and contextually appropriate responses. It involves carefully crafting and refining prompts to guide the model's behavior and output effectively. Neglecting prompt engineering can result in suboptimal performance, irrelevant outputs, and increased frustration for users. Therefore, it is essential to invest time and effort in prompt engineering to fully harness the potential of AI models
-
-### **Options**
+### Deployment Options
 Pick from the options below to see step-by-step instructions for: GitHub Codespaces, VS Code Dev Containers, Local Environments, and Bicep deployments.
 
 <details>
   <summary><b>Deploy in GitHub Codespaces</b></summary>
 
- ### GitHub Codpespaces
+### GitHub Codespaces
 
-You can run this solution accelerator virtually by using GitHub Codespaces. The button will open a web-based VS Code instance in your browser:
+You can run this solution using GitHub Codespaces. The button will open a web-based VS Code instance in your browser:
 
 1. Open the solution accelerator (this may take several minutes):
 
@@ -120,7 +113,7 @@ You can run this solution accelerator virtually by using GitHub Codespaces. The 
 
  ### VS Code Dev Containers
 
-A related option is VS Code Dev Containers, which will open the project in your local VS Code using the [Dev Containers extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers):
+You can run this solution in VS Code Dev Containers, which will open the project in your local VS Code using the [Dev Containers extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers):
 
 1. Start Docker Desktop (install it if not already installed)
 2. Open the project:
@@ -159,23 +152,102 @@ If you're not using one of the above options for opening the project, then you'l
 
 </details>
 
+<details>
+  <summary><b>Deploy with Bicep/ARM template</b></summary>
+
+### Bicep
+ 
+   Click the following deployment button to create the required resources for this solution directly in your Azure Subscription.
+
+   [![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fmicrosoft%2FGeneric-Build-your-own-copilot-Solution-Accelerator%2Fmain%2Finfra%2Fmain.json)          
+
+</details>
+
+
+### Deploying
+
+Once you've opened the project in [Codespaces](#github-codespaces) or in [Dev Containers](#vs-code-dev-containers) or [locally](#local-environment), you can deploy it to Azure following the following steps. 
+
+To change the azd parameters from the default values, follow the steps [here](./docs/CustomizingAzdParameters.md). 
+
+
+1. Login to Azure:
+
+    ```shell
+    azd auth login
+    ```
+
+    #### To authenticate with Azure Developer CLI (`azd`), use the following command with your **Tenant ID**:
+
+    ```sh
+    azd auth login --tenant-id <tenant-id>
+   ```
+
+2. Provision and deploy all the resources:
+
+    ```shell
+    azd up
+    ```
+
+3. Provide an `azd` environment name (like "bycapp")
+4. Select a subscription from your Azure account, and select a location which has quota for all the resources. 
+    * This deployment will take *7-10 minutes* to provision the resources in your account and set up the solution with sample data. 
+    * If you get an error or timeout with deployment, changing the location can help, as there may be availability constraints for the resources.
+
+5. Once the deployment has completed successfully, open the [Azure Portal](https://portal.azure.com/), go to the deployed resource group, find the App Service and get the app URL from `Default domain`.
+
+6. You can now delete the resources by running `azd down`, if you are done trying out the application. 
+<!-- 6. You can now proceed to run the [development server](#development-server) to test the app locally, or if you are done trying out the app, you can delete the resources by running `azd down`. -->
+
+<h2>
+Additional Steps
+</h2>
+
+1. **Add App Authentication**
+   
+    Follow steps in [App Authentication](./docs/AppAuthentication.md) to configure authenitcation in app service.
+
+    Note: Authentication changes can take up to 10 minutes 
+
+2. **Deleting Resources After a Failed Deployment**
+
+     Follow steps in [Delete Resource Group](./docs/DeleteResourceGroup.md) If your deployment fails and you need to clean up the resources.
+
+
+
+<!-- 
+
+### **How to install/deploy**
+
+1. Please check the link [Azure Products by Region](
+https://azure.microsoft.com/en-us/explore/global-infrastructure/products-by-region/?products=all&regions=all) and choose a region where Azure AI Search, Azure OpenAI Service, and Azure AI Foundry are available. If you are using the included sample data set, verify Document Intelligence (Form Recognizer) is available.
+
+2. Click the following deployment button to create the required resources for this accelerator in your Azure Subscription.
+
+   [![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fmicrosoft%2FGeneric-Build-your-own-copilot-Solution-Accelerator%2Fmain%2Finfrastructure%2Fdeployment.json)
+
+3. You will need to select an Azure Subscription, create/select a Resource group, and Region. If your intention is to deploy this solution accelerator and the corresponding sample data set, the default settings will suffice.
+
+If you are using your own data, the next step is optional.
+
+4. Follow steps in [Sample data guide](./scripts/SAMPLE_DATA.md) to ingest the sample Promissory Note PDFs into the search index.
+
+If you want to enable authentication, you will need to add an identity provider.
+
+#### Add an identity provider
+After deployment, you will need to add an identity provider to provide authentication support in your app. See [this tutorial](https://learn.microsoft.com/en-us/azure/app-service/scenario-secure-app-authentication-app-service) for more information.
+
+If you don't add an identity provider, the chat functionality will allow anyone to access the chat functionality of your app. **This is not recommended for production apps.** To enable this restriction, you can add `AUTH_ENABLED=True` to the environment variables. This will enable authentication and prevent unauthorized access to the chat functionality of your app.
+
+To add further access controls, update the logic in `getUserInfoList` in `frontend/src/pages/chat/Chat.tsx`. 
+
+#### Recommended practices
+1. **For enhanced relevance and accuracy**, we recommend implementing [Azure hybrid search](https://learn.microsoft.com/en-us/azure/search/hybrid-search-overview) over full-text search. Azure hybrid search provides superior relevance, accuracy, support for complex queries, improved user experience, scalability, performance, advanced features, and integration with AI services. These advantages make it the ideal choice for modern applications that require robust and intelligent search capabilities.
+2. **Importance of prompt engineering**. Prompt engineering is a critical aspect of working with AI models, especially when leveraging advanced capabilities such as those provided by Azure AI services. Proper prompt engineering ensures that the AI models generate accurate, relevant, and contextually appropriate responses. It involves carefully crafting and refining prompts to guide the model's behavior and output effectively. Neglecting prompt engineering can result in suboptimal performance, irrelevant outputs, and increased frustration for users. Therefore, it is essential to invest time and effort in prompt engineering to fully harness the potential of AI models
+
 ### Local deployment
-Review the local deployment [README](./docs/README_LOCAL.md).
-<br>
-<h2><img src="./docs/images/supportingDocuments.png" width="64">
-<br/>
-Supporting documents
-</h2>
+Review the local deployment [README](./docs/README_LOCAL.md). -->
 
-Supporting documents coming soon.
-<br>
-<h2><img src="./docs/images/customerTruth.png" width="64">
-</br>
-Customer truth
-</h2>
-Customer stories coming soon.
-
-<br/>
 
 
 <h2>
@@ -185,9 +257,51 @@ Responsible AI Transparency FAQ
 
 Please refer to [Transparency FAQ](./docs/TRANSPARENCY_FAQ.md) for responsible AI transparency details of this solution accelerator.
 
-<br/>
-<br/>
----
+<h2>
+Supporting documentation
+</h2>
+
+### Costs
+
+Pricing varies per region and usage, so it isn't possible to predict exact costs for your usage.
+The majority of the Azure resources used in this infrastructure are on usage-based pricing tiers.
+However, Azure Container Registry has a fixed cost per registry per day.
+
+You can try the [Azure pricing calculator](https://azure.microsoft.com/en-us/pricing/calculator) for the resources:
+
+* Azure AI Foundry: Free tier. [Pricing](https://azure.microsoft.com/pricing/details/ai-studio/)
+* Azure AI Search: Standard tier, S1. Pricing is based on the number of documents and operations. [Pricing](https://azure.microsoft.com/pricing/details/search/)
+* Azure Storage Account: Standard tier, LRS. Pricing is based on storage and operations. [Pricing](https://azure.microsoft.com/pricing/details/storage/blobs/)
+* Azure Key Vault: Standard tier. Pricing is based on the number of operations. [Pricing](https://azure.microsoft.com/pricing/details/key-vault/)
+* Azure AI Services: S0 tier, defaults to gpt-4o and text-embedding-ada-002 models. Pricing is based on token count. [Pricing](https://azure.microsoft.com/pricing/details/cognitive-services/)
+* Azure Container App: Consumption tier with 0.5 CPU, 1GiB memory/storage. Pricing is based on resource allocation, and each month allows for a certain amount of free usage. [Pricing](https://azure.microsoft.com/pricing/details/container-apps/)
+* Azure Container Registry: Basic tier. [Pricing](https://azure.microsoft.com/pricing/details/container-registry/)
+* Log analytics: Pay-as-you-go tier. Costs based on data ingested. [Pricing](https://azure.microsoft.com/pricing/details/monitor/)
+* Azure Cosmos DB: [Pricing](https://azure.microsoft.com/en-us/pricing/details/cosmos-db/autoscale-provisioned/)
+* Azure functions: Consumption tier [Pricing](https://azure.microsoft.com/en-us/pricing/details/functions/)
+
+⚠️ To avoid unnecessary costs, remember to take down your app if it's no longer in use,
+either by deleting the resource group in the Portal or running `azd down`.
+
+### Security guidelines
+
+This template uses Azure Key Vault to store all connections to communicate between resources.
+
+This template also uses [Managed Identity](https://learn.microsoft.com/entra/identity/managed-identities-azure-resources/overview) for local development and deployment.
+
+To ensure continued best practices in your own repository, we recommend that anyone creating solutions based on our templates ensure that the [Github secret scanning](https://docs.github.com/code-security/secret-scanning/about-secret-scanning) setting is enabled.
+
+You may want to consider additional security measures, such as:
+
+* Enabling Microsoft Defender for Cloud to [secure your Azure resources](https://learn.microsoft.com/azure/security-center/defender-for-cloud).
+* Protecting the Azure Container Apps instance with a [firewall](https://learn.microsoft.com/azure/container-apps/waf-app-gateway) and/or [Virtual Network](https://learn.microsoft.com/azure/container-apps/networking?tabs=workload-profiles-env%2Cazure-cli).
+
+
+
+### Additional Resources
+1. [Azure OpenAI Service](https://learn.microsoft.com/en-us/azure/ai-services/openai/) 
+2. [Azure AI Search](https://learn.microsoft.com/en-us/azure/search/) 
+3. [Azure AI Foundry](https://learn.microsoft.com/en-us/azure/ai-studio/)
 
 ## Disclaimers
 
