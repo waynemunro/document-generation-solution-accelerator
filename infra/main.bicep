@@ -35,7 +35,7 @@ param deploymentType string = 'GlobalStandard'
 ])
 param gptModelName string = 'gpt-4o'
 
-var gptModelVersion = '2024-02-15-preview'
+var gptModelVersion = '2024-05-01-preview'
 
 @minValue(10)
 @description('Capacity of the GPT deployment:')
