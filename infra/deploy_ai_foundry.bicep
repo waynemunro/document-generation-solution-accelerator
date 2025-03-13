@@ -112,6 +112,7 @@ resource aiServices 'Microsoft.CognitiveServices/accounts@2021-10-01' = {
   }
   kind: 'AIServices'
   properties: {
+    customSubDomainName: aiServicesName
     apiProperties: {
       statisticsEnabled: false
     }

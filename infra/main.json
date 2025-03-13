@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.33.93.31351",
-      "templateHash": "8931514270414510226"
+      "templateHash": "3126173092886008904"
     }
   },
   "parameters": {
@@ -380,7 +380,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.33.93.31351",
-              "templateHash": "6139170564292952532"
+              "templateHash": "14703493169474623961"
             }
           },
           "parameters": {
@@ -563,6 +563,7 @@
               },
               "kind": "AIServices",
               "properties": {
+                "customSubDomainName": "[variables('aiServicesName')]",
                 "apiProperties": {
                   "statisticsEnabled": false
                 }
@@ -1181,7 +1182,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.33.93.31351",
-              "templateHash": "13134513664140996267"
+              "templateHash": "10772344907596853045"
             }
           },
           "parameters": {
@@ -1361,7 +1362,7 @@
                       "value": "[parameters('azureOpenAIApiVersion')]"
                     },
                     {
-                      "name": "AZURE_OPENAI_DEPLOYMENT_NAME",
+                      "name": "AZURE_OPENAI_MODEL",
                       "value": "[parameters('AzureOpenAIModel')]"
                     },
                     {
@@ -1369,7 +1370,7 @@
                       "value": "[parameters('AzureOpenAIEndpoint')]"
                     },
                     {
-                      "name": "AZURE_OPENAI_API_KEY",
+                      "name": "AZURE_OPENAI_KEY",
                       "value": "[parameters('AzureOpenAIKey')]"
                     },
                     {

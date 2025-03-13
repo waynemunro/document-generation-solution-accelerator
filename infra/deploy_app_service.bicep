@@ -101,7 +101,7 @@ resource Website 'Microsoft.Web/sites@2020-06-01' = {
           value: azureOpenAIApiVersion
         }
         {
-          name: 'AZURE_OPENAI_DEPLOYMENT_NAME'
+          name: 'AZURE_OPENAI_MODEL'
           value: AzureOpenAIModel
         }
         {
@@ -109,7 +109,7 @@ resource Website 'Microsoft.Web/sites@2020-06-01' = {
           value: AzureOpenAIEndpoint
         }
         {
-          name: 'AZURE_OPENAI_API_KEY'
+          name: 'AZURE_OPENAI_KEY'
           value: AzureOpenAIKey
         }
         {
