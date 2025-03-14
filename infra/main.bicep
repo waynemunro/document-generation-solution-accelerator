@@ -35,7 +35,7 @@ param deploymentType string = 'GlobalStandard'
 ])
 param gptModelName string = 'gpt-4o'
 
-var gptModelVersion = '2024-02-15-preview'
+var gptModelVersion = '2024-05-01-preview'
 
 @minValue(10)
 @description('Capacity of the GPT deployment:')
@@ -63,8 +63,6 @@ var resourceGroupLocation = resourceGroup().location
 
 var solutionLocation = resourceGroupLocation
 var baseUrl = 'https://raw.githubusercontent.com/microsoft/Generic-Build-your-own-copilot-Solution-Accelerator/dcgn_template/'
-
-
 
 var ApplicationInsightsName = 'appins-${solutionPrefix}'
 var WorkspaceName = 'worksp-${solutionPrefix}'
@@ -442,6 +440,18 @@ module uploadFiles 'deploy_upload_files_script.bicep' = {
   }
 
   // dependsOn:[storageAccount,keyVault]
+}
+
+//========== Deployment script to process and index data ========== //
+module createIndex 'deploy_index_scripts.bicep' = {
+  name : 'deploy_index_scripts'
+  params:{
+    solutionLocation: secondaryLocation
+    identity:managedIdentityModule.outputs.managedIdentityOutput.id
+    baseUrl:baseUrl
+    keyVaultName:aifoundry.outputs.keyvaultName
+  }
+  dependsOn:[keyVault,uploadFiles]
 }
 
 //========== Deployment script to upload sample data ========== //
