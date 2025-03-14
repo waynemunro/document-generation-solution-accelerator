@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.33.93.31351",
-      "templateHash": "3126173092886008904"
+      "templateHash": "7761029633111154178"
     }
   },
   "parameters": {
@@ -84,7 +84,7 @@
     }
   },
   "variables": {
-    "gptModelVersion": "2024-02-15-preview",
+    "gptModelVersion": "2024-05-01-preview",
     "uniqueId": "[toLower(uniqueString(subscription().id, parameters('environmentName'), resourceGroup().location))]",
     "solutionPrefix": "[format('dg{0}', padLeft(take(variables('uniqueId'), 12), 12, '0'))]",
     "resourceGroupLocation": "[resourceGroup().location]",
