@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.33.93.31351",
-      "templateHash": "16171689493622765658"
+      "templateHash": "18225788175018472602"
     }
   },
   "parameters": {
@@ -89,7 +89,7 @@
     "solutionPrefix": "[format('dg{0}', padLeft(take(variables('uniqueId'), 12), 12, '0'))]",
     "resourceGroupLocation": "[resourceGroup().location]",
     "solutionLocation": "[variables('resourceGroupLocation')]",
-    "baseUrl": "https://raw.githubusercontent.com/microsoft/Generic-Build-your-own-copilot-Solution-Accelerator/tree/dcgn-template/",
+    "baseUrl": "https://raw.githubusercontent.com/microsoft/Generic-Build-your-own-copilot-Solution-Accelerator/tree/dcgn_template/",
     "ApplicationInsightsName": "[format('appins-{0}', variables('solutionPrefix'))]",
     "WorkspaceName": "[format('worksp-{0}', variables('solutionPrefix'))]"
   },
