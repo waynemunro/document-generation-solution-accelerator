@@ -1,12 +1,8 @@
 {
-    "name": "Azure Developer CLI",
-    "image": "mcr.microsoft.com/devcontainers/python:3.10",
+    "name": "azd-template",
+    "image": "mcr.microsoft.com/devcontainers/python:3.11-bullseye",
+    "forwardPorts": [50505],
     "features": {
-        "ghcr.io/devcontainers/features/node:1": {
-            "version": "16",
-            "nodeGypDependencies": false
-        },
-        "ghcr.io/devcontainers/features/azure-cli:1.0.8": {},
         "ghcr.io/azure/azure-dev/azd:latest": {}
     },
     "customizations": {
@@ -14,20 +10,15 @@
             "extensions": [
                 "ms-azuretools.azure-dev",
                 "ms-azuretools.vscode-bicep",
-                "ms-python.python"
-            ]
-        },
-        "codespaces": {
-            "openFiles": [
-              "README.md"
+                "ms-python.python",
+                "ms-toolsai.jupyter",
+                "GitHub.vscode-github-actions"
             ]
         }
     },
-    "forwardPorts": [
-        5000
-    ],
+    // "postStartCommand": "git pull origin main && python3 -m pip install -r infra/scripts/index_scripts/requirements.txt",
     "remoteUser": "vscode",
     "hostRequirements": {
-        "memory": "8gb"
+        "memory": "4gb"
     }
 }
