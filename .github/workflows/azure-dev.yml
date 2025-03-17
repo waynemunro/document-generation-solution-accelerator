@@ -1,9 +1,6 @@
 name: Azure Template Validation
 on:
-  push:
-    branches:
-      - dev
-      - main 
+   workflow_dispatch: 
 
 permissions:
   contents: read
@@ -20,20 +17,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # Step 2: Set up Azure CLI
-      - name: Setup Azure CLI
-        uses: azure/cli-action@v1
-
-      # Step 3: Login to Azure using Service Principal
-      - name: Login with Azure using Service Principal
-        uses: azure/login@v1
-        with:
-          client-id: ${{ secrets.AZURE_CLIENT_ID }}
-          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-          client-secret: ${{ secrets.AZURE_CLIENT_SECRET }}
-
-
-      # Step 4: Validate the Azure template using microsoft/template-validation-action
+      # Step 2: Validate the Azure template using microsoft/template-validation-action
       - name: Validate Azure Template
         uses: microsoft/template-validation-action@v0.3.5
         id: validation
@@ -45,6 +29,6 @@ jobs:
           AZURE_LOCATION: ${{ secrets.AZURE_LOCATION }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      # Step 5: Print the result of the validation
+      # Step 3: Print the result of the validation
       - name: Print result
         run: cat ${{ steps.validation.outputs.resultFile }}

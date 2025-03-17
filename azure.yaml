@@ -2,6 +2,10 @@ environment:
   name: Document-generation-solution-accelerator
   location: eastus
 
+name: Document-generation-solution-accelerator
+metadata:
+  template: Document-generation-solution-accelerator@1.0
+
 parameters:
   solutionPrefix:
     type: string
