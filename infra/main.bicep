@@ -376,6 +376,8 @@ module appserviceModule 'deploy_app_service.bicep' = {
     // identity:managedIdentityModule.outputs.managedIdentityOutput.id
     solutionName: solutionPrefix
     // solutionLocation: solutionLocation
+    aiSearchService: aifoundry.outputs.aiSearchService
+    AzureSearchKey: keyVault.getSecret('AZURE-SEARCH-KEY')
     AzureOpenAIEndpoint:aifoundry.outputs.aiServicesTarget
     AzureOpenAIModel: gptModelName //'gpt-4o-mini'
     AzureOpenAIKey:keyVault.getSecret('AZURE-OPENAI-KEY')

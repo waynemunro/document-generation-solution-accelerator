@@ -42,7 +42,10 @@ param azureOpenAIApiVersion string
 param AZURE_OPENAI_RESOURCE string = ''
 param USE_CHAT_HISTORY_ENABLED string = ''
 param aiSearchService string
-param keyvaultName string
+
+@description('Azure Search Key')
+@secure()
+param AzureSearchKey string = ''
 
 @description('Enable Semantic Search in Azure Search')
 param AzureSearchUseSemanticSearch string = ''
@@ -138,7 +141,7 @@ resource Website 'Microsoft.Web/sites@2020-06-01' = {
         }
         {
           name: 'AZURE_SEARCH_KEY'
-          value:keyvaultName
+          value:AzureSearchKey
         }
         {
           name: 'AZURE_SEARCH_USE_SEMANTIC_SEARCH'
