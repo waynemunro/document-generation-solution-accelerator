@@ -1,5 +1,5 @@
 environment:
-  name: BYC-Generic-Accelerator
+  name: Document-generation-solution-accelerator
   location: eastus
 
 parameters:
@@ -11,7 +11,7 @@ parameters:
     default: eastus2
   baseUrl:
     type: string
-    default: 'https://github.com/blessing-sanusi/BYC-Generic-Accelerator'
+    default: 'https://github.com/microsoft/document-generation-solution-accelerator'
 
 deployment:
   mode: Incremental
