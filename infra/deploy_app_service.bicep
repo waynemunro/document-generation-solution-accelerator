@@ -41,9 +41,41 @@ param AzureOpenAIKey string
 param azureOpenAIApiVersion string
 param AZURE_OPENAI_RESOURCE string = ''
 param USE_CHAT_HISTORY_ENABLED string = ''
+param aiSearchService string
+param keyvaultName string
+
+@description('Enable Semantic Search in Azure Search')
+param AzureSearchUseSemanticSearch string = ''
+
+@description('Enable In-Domain Search in Azure Search')
+param AzureSearchEnableInDomain string = ''
+
+@description('Azure Search Top K')
+param AzureSearchTopK string = ''
+
+@description('Azure Search Index Is Prechunked')
+param AzureSearchIndexIsPrechunked string = ''
+
+@description('Azure Search Content Columns')
+param AzureSearchContentColumns string = ''
+
+@description('Azure Search Title Column')
+param AzureSearchTitleColumn string = ''
+
+@description('Azure Search URL Column')
+param AzureSearchUrlColumn string = ''
+
+@description('Azure Search Filename Column')
+param AzureSearchFilenameColumn string = ''
+
+@description('Azure Search Semantic Search Config')
+param AzureSearchSemanticSearchConfig string = ''
 
 @description('Azure Cosmos DB Account')
 param AZURE_COSMOSDB_ACCOUNT string = ''
+
+@description('Azure Search Index')
+param AzureSearchIndex string = ''
 
 @description('Azure Cosmos DB Conversations Container')
 param AZURE_COSMOSDB_CONVERSATIONS_CONTAINER string = ''
@@ -95,6 +127,54 @@ resource Website 'Microsoft.Web/sites@2020-06-01' = {
         {
           name: 'APPINSIGHTS_INSTRUMENTATIONKEY'
           value: reference(applicationInsightsId, '2015-05-01').InstrumentationKey
+        }
+        {
+          name: 'AZURE_SEARCH_SERVICE'
+          value: aiSearchService
+        }
+        {
+          name: 'AZURE_SEARCH_INDEX'
+          value: AzureSearchIndex
+        }
+        {
+          name: 'AZURE_SEARCH_KEY'
+          value:keyvaultName
+        }
+        {
+          name: 'AZURE_SEARCH_USE_SEMANTIC_SEARCH'
+          value: AzureSearchUseSemanticSearch
+        }
+        {
+          name: 'AZURE_SEARCH_SEMANTIC_SEARCH_CONFIG'
+          value: AzureSearchSemanticSearchConfig
+        }
+        {
+          name: 'AZURE_SEARCH_INDEX_IS_PRECHUNKED'
+          value: AzureSearchIndexIsPrechunked
+        }
+        {
+          name: 'AZURE_SEARCH_TOP_K'
+          value: AzureSearchTopK
+        }
+        {
+          name: 'AZURE_SEARCH_ENABLE_IN_DOMAIN'
+          value: AzureSearchEnableInDomain
+        }
+        {
+          name: 'AZURE_SEARCH_CONTENT_COLUMNS'
+          value: AzureSearchContentColumns
+        }
+        {
+          name: 'AZURE_SEARCH_FILENAME_COLUMN'
+          value: AzureSearchFilenameColumn
+        }
+        {
+          name: 'AZURE_SEARCH_TITLE_COLUMN'
+          value: AzureSearchTitleColumn
+        }
+        {
+          name: 'AZURE_SEARCH_URL_COLUMN'
+          value: AzureSearchUrlColumn
         }
         {
           name: 'AZURE_OPENAI_API_VERSION'
