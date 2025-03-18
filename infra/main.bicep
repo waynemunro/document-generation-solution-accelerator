@@ -428,47 +428,47 @@ module cosmosDBModule 'deploy_cosmos_db.bicep' = {
 }
 
 
-//========== Deployment script to upload sample data ========== //
-module uploadFiles 'deploy_upload_files_script.bicep' = {
-  name : 'deploy_upload_files_script'
-  params:{
-    solutionLocation: secondaryLocation
-    baseUrl: baseUrl
-    storageAccountName: storageAccount.outputs.storageName
-    containerName: storageAccount.outputs.storageContainer
-    managedIdentityObjectId:managedIdentityModule.outputs.managedIdentityOutput.id
-  }
-
-  // dependsOn:[storageAccount,keyVault]
-}
-
-//========== Deployment script to process and index data ========== //
-module createIndex 'deploy_index_scripts.bicep' = {
-  name : 'deploy_index_scripts'
-  params:{
-    solutionLocation: secondaryLocation
-    identity:managedIdentityModule.outputs.managedIdentityOutput.id
-    baseUrl:baseUrl
-    keyVaultName:aifoundry.outputs.keyvaultName
-  }
-  dependsOn:[keyVault,uploadFiles]
-}
-
-//========== Deployment script to upload sample data ========== //
-// module uploadFiles 'deploy_post_deployment_scripts.bicep' = {
-//   name : 'deploy_post_deployment_scripts'
+// //========== Deployment script to upload sample data ========== //
+// module uploadFiles 'deploy_upload_files_script.bicep' = {
+//   name : 'deploy_upload_files_script'
 //   params:{
-//     solutionName: solutionPrefix
 //     solutionLocation: secondaryLocation
 //     baseUrl: baseUrl
 //     storageAccountName: storageAccount.outputs.storageName
 //     containerName: storageAccount.outputs.storageContainer
 //     managedIdentityObjectId:managedIdentityModule.outputs.managedIdentityOutput.id
-//     managedIdentityClientId:managedIdentityModule.outputs.managedIdentityOutput.clientId
-//     keyVaultName:aifoundry.outputs.keyvaultName
-//     logAnalyticsWorkspaceResourceName: aifoundry.outputs.logAnalyticsWorkspaceResourceName
 //   }
+
+//   // dependsOn:[storageAccount,keyVault]
 // }
+
+// //========== Deployment script to process and index data ========== //
+// module createIndex 'deploy_index_scripts.bicep' = {
+//   name : 'deploy_index_scripts'
+//   params:{
+//     solutionLocation: secondaryLocation
+//     identity:managedIdentityModule.outputs.managedIdentityOutput.id
+//     baseUrl:baseUrl
+//     keyVaultName:aifoundry.outputs.keyvaultName
+//   }
+//   dependsOn:[keyVault,uploadFiles]
+// }
+
+//========== Deployment script to upload sample data ========== //
+module uploadFiles 'deploy_post_deployment_scripts.bicep' = {
+  name : 'deploy_post_deployment_scripts'
+  params:{
+    solutionName: solutionPrefix
+    solutionLocation: secondaryLocation
+    baseUrl: baseUrl
+    storageAccountName: storageAccount.outputs.storageName
+    containerName: storageAccount.outputs.storageContainer
+    managedIdentityObjectId:managedIdentityModule.outputs.managedIdentityOutput.id
+    managedIdentityClientId:managedIdentityModule.outputs.managedIdentityOutput.clientId
+    keyVaultName:aifoundry.outputs.keyvaultName
+    logAnalyticsWorkspaceResourceName: aifoundry.outputs.logAnalyticsWorkspaceResourceName
+  }
+}
 
 
 // resource CosmosDB 'Microsoft.DocumentDB/databaseAccounts@2023-04-15' = {

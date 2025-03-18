@@ -30,7 +30,9 @@ echo "Download completed"
 
 #Replace key vault name 
 sed -i "s/kv_to-be-replaced/${keyvaultName}/g" "01_create_search_index.py"
+sed -i "s/mici_to-be-replaced/${managedIdentityClientId}/g" "01_create_search_index.py"
 sed -i "s/kv_to-be-replaced/${keyvaultName}/g" "02_process_data.py"
+sed -i "s/mici_to-be-replaced/${managedIdentityClientId}/g" "02_process_data.py"
 
 pip install -r requirements.txt
 
