@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.33.93.31351",
-      "templateHash": "18312205105251543750"
+      "templateHash": "3675676952790021776"
     }
   },
   "parameters": {
@@ -29,7 +29,7 @@
     },
     "deploymentType": {
       "type": "string",
-      "defaultValue": "GlobalStandard",
+      "defaultValue": "Standard",
       "allowedValues": [
         "Standard",
         "GlobalStandard"
@@ -41,7 +41,7 @@
     },
     "gptModelName": {
       "type": "string",
-      "defaultValue": "gpt-4o",
+      "defaultValue": "gpt-4",
       "allowedValues": [
         "gpt-4o",
         "gpt-4"
@@ -51,7 +51,7 @@
         "description": "Name of the GPT model to deploy:"
       }
     },
-    "gptModelVersion": {
+    "azureOpenAIAPIVersion": {
       "type": "string",
       "defaultValue": "2024-05-01-preview"
     },
@@ -92,7 +92,7 @@
     "solutionPrefix": "[format('dg{0}', padLeft(take(variables('uniqueId'), 12), 12, '0'))]",
     "resourceGroupLocation": "[resourceGroup().location]",
     "solutionLocation": "[variables('resourceGroupLocation')]",
-    "baseUrl": "https://raw.githubusercontent.com/microsoft/Generic-Build-your-own-copilot-Solution-Accelerator/dcgn_template/",
+    "baseUrl": "https://raw.githubusercontent.com/microsoft/Generic-Build-your-own-copilot-Solution-Accelerator/dev/",
     "ApplicationInsightsName": "[format('appins-{0}', variables('solutionPrefix'))]",
     "WorkspaceName": "[format('worksp-{0}', variables('solutionPrefix'))]"
   },
@@ -363,7 +363,7 @@
             "value": "[parameters('gptModelName')]"
           },
           "gptModelVersion": {
-            "value": "[parameters('gptModelVersion')]"
+            "value": "[parameters('azureOpenAIAPIVersion')]"
           },
           "gptDeploymentCapacity": {
             "value": "[parameters('gptDeploymentCapacity')]"
@@ -1174,7 +1174,7 @@
             }
           },
           "azureOpenAIApiVersion": {
-            "value": "[parameters('gptModelVersion')]"
+            "value": "[parameters('azureOpenAIAPIVersion')]"
           },
           "AZURE_OPENAI_RESOURCE": {
             "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, resourceGroup().name), 'Microsoft.Resources/deployments', 'deploy_ai_foundry'), '2022-09-01').outputs.aiServicesName.value]"
