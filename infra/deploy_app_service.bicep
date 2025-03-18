@@ -56,8 +56,20 @@ param AzureSearchEnableInDomain string = ''
 @description('Azure Search Top K')
 param AzureSearchTopK string = ''
 
+@description('Azure Search Query Type')
+param AzureSearchQueryType string = ''
+
 @description('Azure Search Index Is Prechunked')
 param AzureSearchIndexIsPrechunked string = ''
+
+@description('Azure Search Vector Fields')
+param AzureSearchVectorFields string = ''
+
+@description('Azure Search Strictness')
+param AzureSearchStrictness string = ''
+
+@description('Azure Search Permitted Groups Field')
+param AzureSearchPermittedGroupsField string = ''
 
 @description('Azure Search Content Columns')
 param AzureSearchContentColumns string = ''
@@ -179,6 +191,23 @@ resource Website 'Microsoft.Web/sites@2020-06-01' = {
           name: 'AZURE_SEARCH_URL_COLUMN'
           value: AzureSearchUrlColumn
         }
+        {
+          name: 'AZURE_SEARCH_QUERY_TYPE'
+          value: AzureSearchQueryType
+        }
+      {
+          name: 'AZURE_SEARCH_VECTOR_COLUMNS'
+          value: AzureSearchVectorFields
+        }
+        {
+          name: 'AZURE_SEARCH_PERMITTED_GROUPS_COLUMN'
+          value: AzureSearchPermittedGroupsField
+        }
+        {
+          name: 'AZURE_SEARCH_STRICTNESS'
+          value: AzureSearchStrictness
+        }
+     
         {
           name: 'AZURE_OPENAI_API_VERSION'
           value: azureOpenAIApiVersion
