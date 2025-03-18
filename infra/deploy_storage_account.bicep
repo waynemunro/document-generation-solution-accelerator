@@ -20,7 +20,6 @@ resource storageAccounts_resource 'Microsoft.Storage/storageAccounts@2022-09-01'
   location: solutionLocation
   sku: {
     name: 'Standard_LRS'
-    tier: 'Standard'
   }
   kind: 'StorageV2'
   properties: {

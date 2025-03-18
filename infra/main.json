@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.33.93.31351",
-      "templateHash": "9426258343087348748"
+      "templateHash": "14986400033314000229"
     }
   },
   "parameters": {
@@ -983,7 +983,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.33.93.31351",
-              "templateHash": "14620142974675285735"
+              "templateHash": "6827407487603246290"
             }
           },
           "parameters": {
@@ -1022,8 +1022,7 @@
               "name": "[parameters('saName')]",
               "location": "[parameters('solutionLocation')]",
               "sku": {
-                "name": "Standard_LRS",
-                "tier": "Standard"
+                "name": "Standard_LRS"
               },
               "kind": "StorageV2",
               "properties": {
