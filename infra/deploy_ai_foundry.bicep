@@ -25,6 +25,7 @@ var aiHubDescription = 'AI Hub'
 var aiProjectName = '${solutionName}-aiproject'
 var aiProjectFriendlyName = aiProjectName
 var aiSearchName = '${solutionName}-search'
+var workspaceName = '${solutionName}-workspace'
 var aiModelDeployments = [
   {
     name: gptModelName
@@ -52,23 +53,50 @@ resource keyVault 'Microsoft.KeyVault/vaults@2022-07-01' existing = {
   name: keyVaultName
 }
 
+resource logAnalytics 'Microsoft.OperationalInsights/workspaces@2023-09-01' = {
+  name: workspaceName
+  location: location
+  tags: {}
+  properties: {
+    retentionInDays: 30
+    sku: {
+      name: 'PerGB2018'
+    }
+  }
+}
+
+// resource applicationInsights 'Microsoft.Insights/components@2020-02-02' = {
+//   name: applicationInsightsName
+//   location: location
+//   kind: 'web'
+//   properties: {
+//     Application_Type: 'web'
+//     DisableIpMasking: false
+//     DisableLocalAuth: false
+//     Flow_Type: 'Bluefield'
+//     ForceCustomerStorageForProfiler: false
+//     ImmediatePurgeDataOn30Days: true
+//     IngestionMode: 'ApplicationInsights'
+//     publicNetworkAccessForIngestion: 'Enabled'
+//     publicNetworkAccessForQuery: 'Disabled'
+//     Request_Source: 'rest'
+//     WorkspaceResourceId: logAnalytics.id
+//   }
+// }
+
+
 resource applicationInsights 'Microsoft.Insights/components@2020-02-02' = {
   name: applicationInsightsName
   location: location
   kind: 'web'
   properties: {
     Application_Type: 'web'
-    DisableIpMasking: false
-    DisableLocalAuth: false
-    Flow_Type: 'Bluefield'
-    ForceCustomerStorageForProfiler: false
-    ImmediatePurgeDataOn30Days: true
-    IngestionMode: 'ApplicationInsights'
     publicNetworkAccessForIngestion: 'Enabled'
     publicNetworkAccessForQuery: 'Disabled'
-    Request_Source: 'rest'
+    WorkspaceResourceId: logAnalytics.id
   }
 }
+
 
 resource containerRegistry 'Microsoft.ContainerRegistry/registries@2021-09-01' = {
   name: containerRegistryNameCleaned
@@ -383,7 +411,7 @@ resource azureSearchIndexEntry 'Microsoft.KeyVault/vaults/secrets@2021-11-01-pre
   parent: keyVault
   name: 'AZURE-SEARCH-INDEX'
   properties: {
-    value: 'transcripts_index'
+    value: 'pdf_index'
   }
 }
 
@@ -449,4 +477,6 @@ output aiSearchService string = aiSearch.name
 output aiProjectName string = aiHubProject.name
 
 output applicationInsightsId string = applicationInsights.id
+output logAnalyticsWorkspaceResourceName string = logAnalytics.name
 output storageAccountName string = storageNameCleaned
+

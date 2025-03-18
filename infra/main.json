@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.33.93.31351",
-      "templateHash": "7761029633111154178"
+      "templateHash": "5902602471296768197"
     }
   },
   "parameters": {
@@ -51,6 +51,10 @@
         "description": "Name of the GPT model to deploy:"
       }
     },
+    "gptModelVersion": {
+      "type": "string",
+      "defaultValue": "2024-05-01-preview"
+    },
     "gptDeploymentCapacity": {
       "type": "int",
       "defaultValue": 30,
@@ -84,11 +88,11 @@
     }
   },
   "variables": {
-    "gptModelVersion": "2024-05-01-preview",
-    "uniqueId": "[toLower(uniqueString(subscription().id, parameters('environmentName'), resourceGroup().location))]",
+    "uniqueId": "[toLower(uniqueString(parameters('environmentName'), subscription().id, resourceGroup().location))]",
     "solutionPrefix": "[format('dg{0}', padLeft(take(variables('uniqueId'), 12), 12, '0'))]",
     "resourceGroupLocation": "[resourceGroup().location]",
     "solutionLocation": "[variables('resourceGroupLocation')]",
+    "baseUrl": "https://raw.githubusercontent.com/microsoft/Generic-Build-your-own-copilot-Solution-Accelerator/dcgn_template/",
     "ApplicationInsightsName": "[format('appins-{0}', variables('solutionPrefix'))]",
     "WorkspaceName": "[format('worksp-{0}', variables('solutionPrefix'))]"
   },
@@ -147,7 +151,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.33.93.31351",
-              "templateHash": "4123789684929590981"
+              "templateHash": "15599520231829365667"
             }
           },
           "parameters": {
@@ -204,6 +208,7 @@
               "value": {
                 "id": "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', parameters('miName'))]",
                 "objectId": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', parameters('miName')), '2023-01-31').principalId]",
+                "clientId": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', parameters('miName')), '2023-01-31').clientId]",
                 "name": "[parameters('miName')]"
               }
             }
@@ -358,7 +363,7 @@
             "value": "[parameters('gptModelName')]"
           },
           "gptModelVersion": {
-            "value": "[variables('gptModelVersion')]"
+            "value": "[parameters('gptModelVersion')]"
           },
           "gptDeploymentCapacity": {
             "value": "[parameters('gptDeploymentCapacity')]"
@@ -380,7 +385,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.33.93.31351",
-              "templateHash": "14703493169474623961"
+              "templateHash": "14521272418759600301"
             }
           },
           "parameters": {
@@ -429,6 +434,7 @@
             "aiProjectName": "[format('{0}-aiproject', parameters('solutionName'))]",
             "aiProjectFriendlyName": "[variables('aiProjectName')]",
             "aiSearchName": "[format('{0}-search', parameters('solutionName'))]",
+            "workspaceName": "[format('{0}-workspace', parameters('solutionName'))]",
             "aiModelDeployments": [
               {
                 "name": "[parameters('gptModelName')]",
@@ -503,6 +509,19 @@
               ]
             },
             {
+              "type": "Microsoft.OperationalInsights/workspaces",
+              "apiVersion": "2023-09-01",
+              "name": "[variables('workspaceName')]",
+              "location": "[variables('location')]",
+              "tags": {},
+              "properties": {
+                "retentionInDays": 30,
+                "sku": {
+                  "name": "PerGB2018"
+                }
+              }
+            },
+            {
               "type": "Microsoft.Insights/components",
               "apiVersion": "2020-02-02",
               "name": "[variables('applicationInsightsName')]",
@@ -510,16 +529,13 @@
               "kind": "web",
               "properties": {
                 "Application_Type": "web",
-                "DisableIpMasking": false,
-                "DisableLocalAuth": false,
-                "Flow_Type": "Bluefield",
-                "ForceCustomerStorageForProfiler": false,
-                "ImmediatePurgeDataOn30Days": true,
-                "IngestionMode": "ApplicationInsights",
                 "publicNetworkAccessForIngestion": "Enabled",
                 "publicNetworkAccessForQuery": "Disabled",
-                "Request_Source": "rest"
-              }
+                "WorkspaceResourceId": "[resourceId('Microsoft.OperationalInsights/workspaces', variables('workspaceName'))]"
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.OperationalInsights/workspaces', variables('workspaceName'))]"
+              ]
             },
             {
               "type": "Microsoft.ContainerRegistry/registries",
@@ -817,7 +833,7 @@
               "apiVersion": "2021-11-01-preview",
               "name": "[format('{0}/{1}', parameters('keyVaultName'), 'AZURE-SEARCH-INDEX')]",
               "properties": {
-                "value": "transcripts_index"
+                "value": "pdf_index"
               }
             },
             {
@@ -919,6 +935,10 @@
             "applicationInsightsId": {
               "type": "string",
               "value": "[resourceId('Microsoft.Insights/components', variables('applicationInsightsName'))]"
+            },
+            "logAnalyticsWorkspaceResourceName": {
+              "type": "string",
+              "value": "[variables('workspaceName')]"
             },
             "storageAccountName": {
               "type": "string",
@@ -1139,6 +1159,17 @@
           "solutionName": {
             "value": "[variables('solutionPrefix')]"
           },
+          "aiSearchService": {
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, resourceGroup().name), 'Microsoft.Resources/deployments', 'deploy_ai_foundry'), '2022-09-01').outputs.aiSearchService.value]"
+          },
+          "AzureSearchKey": {
+            "reference": {
+              "keyVault": {
+                "id": "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, resourceGroup().name), 'Microsoft.KeyVault/vaults', reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, resourceGroup().name), 'Microsoft.Resources/deployments', 'deploy_ai_foundry'), '2022-09-01').outputs.keyvaultName.value)]"
+              },
+              "secretName": "AZURE-SEARCH-KEY"
+            }
+          },
           "AzureOpenAIEndpoint": {
             "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, resourceGroup().name), 'Microsoft.Resources/deployments', 'deploy_ai_foundry'), '2022-09-01').outputs.aiServicesTarget.value]"
           },
@@ -1154,7 +1185,7 @@
             }
           },
           "azureOpenAIApiVersion": {
-            "value": "[variables('gptModelVersion')]"
+            "value": "[parameters('gptModelVersion')]"
           },
           "AZURE_OPENAI_RESOURCE": {
             "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, resourceGroup().name), 'Microsoft.Resources/deployments', 'deploy_ai_foundry'), '2022-09-01').outputs.aiServicesName.value]"
@@ -1182,7 +1213,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.33.93.31351",
-              "templateHash": "10772344907596853045"
+              "templateHash": "3425162160352923460"
             }
           },
           "parameters": {
@@ -1260,11 +1291,91 @@
               "type": "string",
               "defaultValue": ""
             },
+            "aiSearchService": {
+              "type": "string"
+            },
+            "AzureSearchKey": {
+              "type": "securestring",
+              "defaultValue": "",
+              "metadata": {
+                "description": "Azure Search Key"
+              }
+            },
+            "AzureSearchUseSemanticSearch": {
+              "type": "string",
+              "defaultValue": "",
+              "metadata": {
+                "description": "Enable Semantic Search in Azure Search"
+              }
+            },
+            "AzureSearchEnableInDomain": {
+              "type": "string",
+              "defaultValue": "",
+              "metadata": {
+                "description": "Enable In-Domain Search in Azure Search"
+              }
+            },
+            "AzureSearchTopK": {
+              "type": "string",
+              "defaultValue": "",
+              "metadata": {
+                "description": "Azure Search Top K"
+              }
+            },
+            "AzureSearchIndexIsPrechunked": {
+              "type": "string",
+              "defaultValue": "",
+              "metadata": {
+                "description": "Azure Search Index Is Prechunked"
+              }
+            },
+            "AzureSearchContentColumns": {
+              "type": "string",
+              "defaultValue": "",
+              "metadata": {
+                "description": "Azure Search Content Columns"
+              }
+            },
+            "AzureSearchTitleColumn": {
+              "type": "string",
+              "defaultValue": "",
+              "metadata": {
+                "description": "Azure Search Title Column"
+              }
+            },
+            "AzureSearchUrlColumn": {
+              "type": "string",
+              "defaultValue": "",
+              "metadata": {
+                "description": "Azure Search URL Column"
+              }
+            },
+            "AzureSearchFilenameColumn": {
+              "type": "string",
+              "defaultValue": "",
+              "metadata": {
+                "description": "Azure Search Filename Column"
+              }
+            },
+            "AzureSearchSemanticSearchConfig": {
+              "type": "string",
+              "defaultValue": "",
+              "metadata": {
+                "description": "Azure Search Semantic Search Config"
+              }
+            },
             "AZURE_COSMOSDB_ACCOUNT": {
               "type": "string",
               "defaultValue": "",
               "metadata": {
                 "description": "Azure Cosmos DB Account"
+              }
+            },
+            "AzureSearchIndex": {
+              "type": "string",
+              "defaultValue": "",
+              "metadata": {
+                "description": "Azure Search Index"
               }
             },
             "AZURE_COSMOSDB_CONVERSATIONS_CONTAINER": {
@@ -1356,6 +1467,54 @@
                     {
                       "name": "APPINSIGHTS_INSTRUMENTATIONKEY",
                       "value": "[reference(parameters('applicationInsightsId'), '2015-05-01').InstrumentationKey]"
+                    },
+                    {
+                      "name": "AZURE_SEARCH_SERVICE",
+                      "value": "[parameters('aiSearchService')]"
+                    },
+                    {
+                      "name": "AZURE_SEARCH_INDEX",
+                      "value": "[parameters('AzureSearchIndex')]"
+                    },
+                    {
+                      "name": "AZURE_SEARCH_KEY",
+                      "value": "[parameters('AzureSearchKey')]"
+                    },
+                    {
+                      "name": "AZURE_SEARCH_USE_SEMANTIC_SEARCH",
+                      "value": "[parameters('AzureSearchUseSemanticSearch')]"
+                    },
+                    {
+                      "name": "AZURE_SEARCH_SEMANTIC_SEARCH_CONFIG",
+                      "value": "[parameters('AzureSearchSemanticSearchConfig')]"
+                    },
+                    {
+                      "name": "AZURE_SEARCH_INDEX_IS_PRECHUNKED",
+                      "value": "[parameters('AzureSearchIndexIsPrechunked')]"
+                    },
+                    {
+                      "name": "AZURE_SEARCH_TOP_K",
+                      "value": "[parameters('AzureSearchTopK')]"
+                    },
+                    {
+                      "name": "AZURE_SEARCH_ENABLE_IN_DOMAIN",
+                      "value": "[parameters('AzureSearchEnableInDomain')]"
+                    },
+                    {
+                      "name": "AZURE_SEARCH_CONTENT_COLUMNS",
+                      "value": "[parameters('AzureSearchContentColumns')]"
+                    },
+                    {
+                      "name": "AZURE_SEARCH_FILENAME_COLUMN",
+                      "value": "[parameters('AzureSearchFilenameColumn')]"
+                    },
+                    {
+                      "name": "AZURE_SEARCH_TITLE_COLUMN",
+                      "value": "[parameters('AzureSearchTitleColumn')]"
+                    },
+                    {
+                      "name": "AZURE_SEARCH_URL_COLUMN",
+                      "value": "[parameters('AzureSearchUrlColumn')]"
                     },
                     {
                       "name": "AZURE_OPENAI_API_VERSION",
@@ -1672,6 +1831,173 @@
       },
       "dependsOn": [
         "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, resourceGroup().name), 'Microsoft.Resources/deployments', 'deploy_keyvault')]"
+      ]
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2022-09-01",
+      "name": "deploy_upload_files_script",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "solutionLocation": {
+            "value": "[parameters('secondaryLocation')]"
+          },
+          "baseUrl": {
+            "value": "[variables('baseUrl')]"
+          },
+          "storageAccountName": {
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, resourceGroup().name), 'Microsoft.Resources/deployments', 'deploy_storage_account'), '2022-09-01').outputs.storageName.value]"
+          },
+          "containerName": {
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, resourceGroup().name), 'Microsoft.Resources/deployments', 'deploy_storage_account'), '2022-09-01').outputs.storageContainer.value]"
+          },
+          "managedIdentityObjectId": {
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, resourceGroup().name), 'Microsoft.Resources/deployments', 'deploy_managed_identity'), '2022-09-01').outputs.managedIdentityOutput.value.id]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.33.93.31351",
+              "templateHash": "509460209037223451"
+            }
+          },
+          "parameters": {
+            "solutionLocation": {
+              "type": "string",
+              "metadata": {
+                "description": "Specifies the location for resources."
+              }
+            },
+            "baseUrl": {
+              "type": "string"
+            },
+            "managedIdentityObjectId": {
+              "type": "string"
+            },
+            "storageAccountName": {
+              "type": "string"
+            },
+            "containerName": {
+              "type": "string"
+            }
+          },
+          "resources": [
+            {
+              "type": "Microsoft.Resources/deploymentScripts",
+              "apiVersion": "2020-10-01",
+              "name": "copy_demo_Data",
+              "kind": "AzureCLI",
+              "location": "[parameters('solutionLocation')]",
+              "identity": {
+                "type": "UserAssigned",
+                "userAssignedIdentities": {
+                  "[format('{0}', parameters('managedIdentityObjectId'))]": {}
+                }
+              },
+              "properties": {
+                "azCliVersion": "2.50.0",
+                "primaryScriptUri": "[format('{0}infra/scripts/copy_kb_files.sh', parameters('baseUrl'))]",
+                "arguments": "[format('{0} {1} {2}', parameters('storageAccountName'), parameters('containerName'), parameters('baseUrl'))]",
+                "timeout": "PT1H",
+                "retentionInterval": "PT1H",
+                "cleanupPreference": "OnSuccess"
+              }
+            }
+          ]
+        }
+      },
+      "dependsOn": [
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, resourceGroup().name), 'Microsoft.Resources/deployments', 'deploy_managed_identity')]",
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, resourceGroup().name), 'Microsoft.Resources/deployments', 'deploy_storage_account')]"
+      ]
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2022-09-01",
+      "name": "deploy_index_scripts",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "solutionLocation": {
+            "value": "[parameters('secondaryLocation')]"
+          },
+          "identity": {
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, resourceGroup().name), 'Microsoft.Resources/deployments', 'deploy_managed_identity'), '2022-09-01').outputs.managedIdentityOutput.value.id]"
+          },
+          "baseUrl": {
+            "value": "[variables('baseUrl')]"
+          },
+          "keyVaultName": {
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, resourceGroup().name), 'Microsoft.Resources/deployments', 'deploy_ai_foundry'), '2022-09-01').outputs.keyvaultName.value]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.33.93.31351",
+              "templateHash": "16955379019952955448"
+            }
+          },
+          "parameters": {
+            "solutionLocation": {
+              "type": "string",
+              "metadata": {
+                "description": "Specifies the location for resources."
+              }
+            },
+            "baseUrl": {
+              "type": "string"
+            },
+            "keyVaultName": {
+              "type": "string"
+            },
+            "identity": {
+              "type": "string"
+            }
+          },
+          "resources": [
+            {
+              "type": "Microsoft.Resources/deploymentScripts",
+              "apiVersion": "2020-10-01",
+              "name": "create_search_indexes",
+              "kind": "AzureCLI",
+              "location": "[parameters('solutionLocation')]",
+              "identity": {
+                "type": "UserAssigned",
+                "userAssignedIdentities": {
+                  "[format('{0}', parameters('identity'))]": {}
+                }
+              },
+              "properties": {
+                "azCliVersion": "2.52.0",
+                "primaryScriptUri": "[format('{0}infra/scripts/run_create_index_scripts.sh', parameters('baseUrl'))]",
+                "arguments": "[format('{0} {1}', parameters('baseUrl'), parameters('keyVaultName'))]",
+                "timeout": "PT1H",
+                "retentionInterval": "PT1H",
+                "cleanupPreference": "OnSuccess"
+              }
+            }
+          ]
+        }
+      },
+      "dependsOn": [
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, resourceGroup().name), 'Microsoft.Resources/deployments', 'deploy_ai_foundry')]",
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, resourceGroup().name), 'Microsoft.Resources/deployments', 'deploy_managed_identity')]",
+        "[resourceId('Microsoft.Resources/deployments', 'deploy_upload_files_script')]"
       ]
     }
   ],
