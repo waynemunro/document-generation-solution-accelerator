@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.33.93.31351",
-      "templateHash": "7761029633111154178"
+      "templateHash": "5098669417344941046"
     }
   },
   "parameters": {
@@ -1139,6 +1139,17 @@
           "solutionName": {
             "value": "[variables('solutionPrefix')]"
           },
+          "aiSearchService": {
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, resourceGroup().name), 'Microsoft.Resources/deployments', 'deploy_ai_foundry'), '2022-09-01').outputs.aiSearchService.value]"
+          },
+          "AzureSearchKey": {
+            "reference": {
+              "keyVault": {
+                "id": "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, resourceGroup().name), 'Microsoft.KeyVault/vaults', reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, resourceGroup().name), 'Microsoft.Resources/deployments', 'deploy_ai_foundry'), '2022-09-01').outputs.keyvaultName.value)]"
+              },
+              "secretName": "AZURE-SEARCH-KEY"
+            }
+          },
           "AzureOpenAIEndpoint": {
             "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, resourceGroup().name), 'Microsoft.Resources/deployments', 'deploy_ai_foundry'), '2022-09-01').outputs.aiServicesTarget.value]"
           },
@@ -1182,7 +1193,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.33.93.31351",
-              "templateHash": "10772344907596853045"
+              "templateHash": "3425162160352923460"
             }
           },
           "parameters": {
@@ -1260,11 +1271,91 @@
               "type": "string",
               "defaultValue": ""
             },
+            "aiSearchService": {
+              "type": "string"
+            },
+            "AzureSearchKey": {
+              "type": "securestring",
+              "defaultValue": "",
+              "metadata": {
+                "description": "Azure Search Key"
+              }
+            },
+            "AzureSearchUseSemanticSearch": {
+              "type": "string",
+              "defaultValue": "",
+              "metadata": {
+                "description": "Enable Semantic Search in Azure Search"
+              }
+            },
+            "AzureSearchEnableInDomain": {
+              "type": "string",
+              "defaultValue": "",
+              "metadata": {
+                "description": "Enable In-Domain Search in Azure Search"
+              }
+            },
+            "AzureSearchTopK": {
+              "type": "string",
+              "defaultValue": "",
+              "metadata": {
+                "description": "Azure Search Top K"
+              }
+            },
+            "AzureSearchIndexIsPrechunked": {
+              "type": "string",
+              "defaultValue": "",
+              "metadata": {
+                "description": "Azure Search Index Is Prechunked"
+              }
+            },
+            "AzureSearchContentColumns": {
+              "type": "string",
+              "defaultValue": "",
+              "metadata": {
+                "description": "Azure Search Content Columns"
+              }
+            },
+            "AzureSearchTitleColumn": {
+              "type": "string",
+              "defaultValue": "",
+              "metadata": {
+                "description": "Azure Search Title Column"
+              }
+            },
+            "AzureSearchUrlColumn": {
+              "type": "string",
+              "defaultValue": "",
+              "metadata": {
+                "description": "Azure Search URL Column"
+              }
+            },
+            "AzureSearchFilenameColumn": {
+              "type": "string",
+              "defaultValue": "",
+              "metadata": {
+                "description": "Azure Search Filename Column"
+              }
+            },
+            "AzureSearchSemanticSearchConfig": {
+              "type": "string",
+              "defaultValue": "",
+              "metadata": {
+                "description": "Azure Search Semantic Search Config"
+              }
+            },
             "AZURE_COSMOSDB_ACCOUNT": {
               "type": "string",
               "defaultValue": "",
               "metadata": {
                 "description": "Azure Cosmos DB Account"
+              }
+            },
+            "AzureSearchIndex": {
+              "type": "string",
+              "defaultValue": "",
+              "metadata": {
+                "description": "Azure Search Index"
               }
             },
             "AZURE_COSMOSDB_CONVERSATIONS_CONTAINER": {
@@ -1356,6 +1447,54 @@
                     {
                       "name": "APPINSIGHTS_INSTRUMENTATIONKEY",
                       "value": "[reference(parameters('applicationInsightsId'), '2015-05-01').InstrumentationKey]"
+                    },
+                    {
+                      "name": "AZURE_SEARCH_SERVICE",
+                      "value": "[parameters('aiSearchService')]"
+                    },
+                    {
+                      "name": "AZURE_SEARCH_INDEX",
+                      "value": "[parameters('AzureSearchIndex')]"
+                    },
+                    {
+                      "name": "AZURE_SEARCH_KEY",
+                      "value": "[parameters('AzureSearchKey')]"
+                    },
+                    {
+                      "name": "AZURE_SEARCH_USE_SEMANTIC_SEARCH",
+                      "value": "[parameters('AzureSearchUseSemanticSearch')]"
+                    },
+                    {
+                      "name": "AZURE_SEARCH_SEMANTIC_SEARCH_CONFIG",
+                      "value": "[parameters('AzureSearchSemanticSearchConfig')]"
+                    },
+                    {
+                      "name": "AZURE_SEARCH_INDEX_IS_PRECHUNKED",
+                      "value": "[parameters('AzureSearchIndexIsPrechunked')]"
+                    },
+                    {
+                      "name": "AZURE_SEARCH_TOP_K",
+                      "value": "[parameters('AzureSearchTopK')]"
+                    },
+                    {
+                      "name": "AZURE_SEARCH_ENABLE_IN_DOMAIN",
+                      "value": "[parameters('AzureSearchEnableInDomain')]"
+                    },
+                    {
+                      "name": "AZURE_SEARCH_CONTENT_COLUMNS",
+                      "value": "[parameters('AzureSearchContentColumns')]"
+                    },
+                    {
+                      "name": "AZURE_SEARCH_FILENAME_COLUMN",
+                      "value": "[parameters('AzureSearchFilenameColumn')]"
+                    },
+                    {
+                      "name": "AZURE_SEARCH_TITLE_COLUMN",
+                      "value": "[parameters('AzureSearchTitleColumn')]"
+                    },
+                    {
+                      "name": "AZURE_SEARCH_URL_COLUMN",
+                      "value": "[parameters('AzureSearchUrlColumn')]"
                     },
                     {
                       "name": "AZURE_OPENAI_API_VERSION",
@@ -1496,7 +1635,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.33.93.31351",
-              "templateHash": "3100365088410602500"
+              "templateHash": "3309828108890144070"
             }
           },
           "parameters": {
@@ -1548,7 +1687,7 @@
               },
               "type": "Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers",
               "apiVersion": "2022-05-15",
-              "name": "[format('{0}/{1}/{2}', split(format('{0}/{1}', variables('accountName'), variables('databaseName')), '/')[0], split(format('{0}/{1}', variables('accountName'), variables('databaseName')), '/')[1], variables('containers')[copyIndex()].name)]",
+              "name": "[format('{0}/{1}/{2}', variables('accountName'), variables('databaseName'), variables('containers')[copyIndex()].name)]",
               "properties": {
                 "resource": {
                   "id": "[variables('containers')[copyIndex()].id]",
@@ -1561,7 +1700,7 @@
                 "options": {}
               },
               "dependsOn": [
-                "[resourceId('Microsoft.DocumentDB/databaseAccounts/sqlDatabases', split(format('{0}/{1}', variables('accountName'), variables('databaseName')), '/')[0], split(format('{0}/{1}', variables('accountName'), variables('databaseName')), '/')[1])]"
+                "[resourceId('Microsoft.DocumentDB/databaseAccounts/sqlDatabases', variables('accountName'), variables('databaseName'))]"
               ]
             },
             {
