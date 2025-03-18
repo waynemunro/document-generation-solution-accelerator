@@ -47,7 +47,8 @@ resource cosmos 'Microsoft.DocumentDB/databaseAccounts@2022-08-15' = {
 
 
 resource database 'Microsoft.DocumentDB/databaseAccounts/sqlDatabases@2022-05-15' = {
-  name: '${accountName}/${databaseName}'
+  parent: cosmos
+  name: databaseName
   properties: {
     resource: { id: databaseName }
   }
@@ -62,10 +63,6 @@ resource database 'Microsoft.DocumentDB/databaseAccounts/sqlDatabases@2022-05-15
       options: {}
     }
   }]
-
-  dependsOn: [
-    cosmos
-  ]
 }
 
 resource keyVault 'Microsoft.KeyVault/vaults@2022-07-01' existing = {
