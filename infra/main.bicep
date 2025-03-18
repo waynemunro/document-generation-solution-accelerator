@@ -25,7 +25,7 @@ param secondaryLocation string
   'Standard'
   'GlobalStandard'
 ])
-param deploymentType string = 'Standard'
+param deploymentType string = 'GlobalStandard'
 
 @minLength(1)
 @description('Name of the GPT model to deploy:')
@@ -33,9 +33,9 @@ param deploymentType string = 'Standard'
   'gpt-4o'
   'gpt-4'
 ])
-param gptModelName string = 'gpt-4'
+param gptModelName string = 'gpt-4o'
 
-param azureOpenAIAPIVersion string = '2024-05-01-preview'
+param gptModelVersion string = '2024-05-01-preview'
 
 @minValue(10)
 @description('Capacity of the GPT deployment:')
@@ -62,7 +62,7 @@ var solutionPrefix = 'dg${padLeft(take(uniqueId, 12), 12, '0')}'
 var resourceGroupLocation = resourceGroup().location
 
 var solutionLocation = resourceGroupLocation
-var baseUrl = 'https://raw.githubusercontent.com/microsoft/Generic-Build-your-own-copilot-Solution-Accelerator/dev/'
+var baseUrl = 'https://raw.githubusercontent.com/microsoft/Generic-Build-your-own-copilot-Solution-Accelerator/dcgn_template/'
 
 var ApplicationInsightsName = 'appins-${solutionPrefix}'
 var WorkspaceName = 'worksp-${solutionPrefix}'
@@ -97,7 +97,7 @@ module aifoundry 'deploy_ai_foundry.bicep' = {
     keyVaultName: kvault.outputs.keyvaultName
     deploymentType: deploymentType
     gptModelName: gptModelName
-    gptModelVersion: azureOpenAIAPIVersion
+    gptModelVersion: gptModelVersion
     gptDeploymentCapacity: gptDeploymentCapacity
     embeddingModel: embeddingModel
     embeddingDeploymentCapacity: embeddingDeploymentCapacity
@@ -377,7 +377,7 @@ module appserviceModule 'deploy_app_service.bicep' = {
     AzureOpenAIEndpoint:aifoundry.outputs.aiServicesTarget
     AzureOpenAIModel: gptModelName //'gpt-4o-mini'
     AzureOpenAIKey:keyVault.getSecret('AZURE-OPENAI-KEY')
-    azureOpenAIApiVersion: azureOpenAIAPIVersion //'2024-02-15-preview'
+    azureOpenAIApiVersion: gptModelVersion //'2024-02-15-preview'
     AZURE_OPENAI_RESOURCE:aifoundry.outputs.aiServicesName
     USE_CHAT_HISTORY_ENABLED:'True'
     AZURE_COSMOSDB_ACCOUNT: cosmosDBModule.outputs.cosmosAccountName
