@@ -422,6 +422,9 @@ const Chat = ({ type = ChatType.Browse }: Props) => {
     let conversation
     if (conversationId) {
       conversation = appStateContext?.state?.chatHistory?.find(conv => conv.id === conversationId)
+      if(!conversation){
+        conversation = appStateContext?.state?.currentChat
+      }
       if (!conversation) {
         console.error('Conversation not found.')
         setIsLoading(false)
@@ -460,6 +463,9 @@ const Chat = ({ type = ChatType.Browse }: Props) => {
         let resultConversation
         if (conversationId) {
           resultConversation = appStateContext?.state?.chatHistory?.find(conv => conv.id === conversationId)
+          if(!resultConversation){
+            resultConversation = appStateContext?.state?.currentChat
+          }
           if (!resultConversation) {
             console.error('Conversation not found.')
             setIsLoading(false)
@@ -530,6 +536,9 @@ const Chat = ({ type = ChatType.Browse }: Props) => {
         let resultConversation
         if (conversationId) {
           resultConversation = appStateContext?.state?.chatHistory?.find(conv => conv.id === conversationId)
+          if(!resultConversation){
+            resultConversation = appStateContext?.state?.currentChat
+          }
           if (!resultConversation) {
             console.error('Conversation not found.')
             setIsLoading(false)
@@ -585,6 +594,9 @@ const Chat = ({ type = ChatType.Browse }: Props) => {
         let resultConversation
         if (conversationId) {
           resultConversation = appStateContext?.state?.chatHistory?.find(conv => conv.id === conversationId)
+          if(!resultConversation){
+            resultConversation = appStateContext?.state?.currentChat
+          }
           if (!resultConversation) {
             console.error('Conversation not found.')
             setIsLoading(false)
