@@ -25,7 +25,7 @@ param secondaryLocation string
   'Standard'
   'GlobalStandard'
 ])
-param deploymentType string = 'GlobalStandard'
+param deploymentType string = 'Standard'
 
 @minLength(1)
 @description('Name of the GPT model to deploy:')
@@ -33,9 +33,9 @@ param deploymentType string = 'GlobalStandard'
   'gpt-4o'
   'gpt-4'
 ])
-param gptModelName string = 'gpt-4o'
+param gptModelName string = 'gpt-4'
 
-var gptModelVersion = '2024-05-01-preview'
+param azureOpenAIAPIVersion string = '2024-05-01-preview'
 
 @minValue(10)
 @description('Capacity of the GPT deployment:')
@@ -57,16 +57,12 @@ param embeddingDeploymentCapacity int = 80
 
 param imageTag string = 'dev'
 
-var uniqueId = toLower(uniqueString(subscription().id, environmentName, resourceGroup().location))
+var uniqueId = toLower(uniqueString(environmentName, subscription().id, resourceGroup().location))
 var solutionPrefix = 'dg${padLeft(take(uniqueId, 12), 12, '0')}'
 var resourceGroupLocation = resourceGroup().location
 
 var solutionLocation = resourceGroupLocation
-// var baseUrl = 'https://raw.githubusercontent.com/microsoft/Generic-Build-your-own-copilot-Solution-Accelerator/main/'
-
-
-@description('Name of App Service plan')
-
+var baseUrl = 'https://raw.githubusercontent.com/microsoft/Generic-Build-your-own-copilot-Solution-Accelerator/dev/'
 
 var ApplicationInsightsName = 'appins-${solutionPrefix}'
 var WorkspaceName = 'worksp-${solutionPrefix}'
@@ -101,7 +97,7 @@ module aifoundry 'deploy_ai_foundry.bicep' = {
     keyVaultName: kvault.outputs.keyvaultName
     deploymentType: deploymentType
     gptModelName: gptModelName
-    gptModelVersion: gptModelVersion
+    gptModelVersion: azureOpenAIAPIVersion
     gptDeploymentCapacity: gptDeploymentCapacity
     embeddingModel: embeddingModel
     embeddingDeploymentCapacity: embeddingDeploymentCapacity
@@ -381,7 +377,7 @@ module appserviceModule 'deploy_app_service.bicep' = {
     AzureOpenAIEndpoint:aifoundry.outputs.aiServicesTarget
     AzureOpenAIModel: gptModelName //'gpt-4o-mini'
     AzureOpenAIKey:keyVault.getSecret('AZURE-OPENAI-KEY')
-    azureOpenAIApiVersion: gptModelVersion //'2024-02-15-preview'
+    azureOpenAIApiVersion: azureOpenAIAPIVersion //'2024-02-15-preview'
     AZURE_OPENAI_RESOURCE:aifoundry.outputs.aiServicesName
     USE_CHAT_HISTORY_ENABLED:'True'
     AZURE_COSMOSDB_ACCOUNT: cosmosDBModule.outputs.cosmosAccountName
@@ -430,6 +426,50 @@ module cosmosDBModule 'deploy_cosmos_db.bicep' = {
   }
   scope: resourceGroup(resourceGroup().name)
 }
+
+
+//========== Deployment script to upload sample data ========== //
+module uploadFiles 'deploy_upload_files_script.bicep' = {
+  name : 'deploy_upload_files_script'
+  params:{
+    solutionLocation: secondaryLocation
+    baseUrl: baseUrl
+    storageAccountName: storageAccount.outputs.storageName
+    containerName: storageAccount.outputs.storageContainer
+    managedIdentityObjectId:managedIdentityModule.outputs.managedIdentityOutput.id
+  }
+
+  // dependsOn:[storageAccount,keyVault]
+}
+
+//========== Deployment script to process and index data ========== //
+module createIndex 'deploy_index_scripts.bicep' = {
+  name : 'deploy_index_scripts'
+  params:{
+    solutionLocation: secondaryLocation
+    identity:managedIdentityModule.outputs.managedIdentityOutput.id
+    baseUrl:baseUrl
+    keyVaultName:aifoundry.outputs.keyvaultName
+  }
+  dependsOn:[keyVault,uploadFiles]
+}
+
+//========== Deployment script to upload sample data ========== //
+// module uploadFiles 'deploy_post_deployment_scripts.bicep' = {
+//   name : 'deploy_post_deployment_scripts'
+//   params:{
+//     solutionName: solutionPrefix
+//     solutionLocation: secondaryLocation
+//     baseUrl: baseUrl
+//     storageAccountName: storageAccount.outputs.storageName
+//     containerName: storageAccount.outputs.storageContainer
+//     managedIdentityObjectId:managedIdentityModule.outputs.managedIdentityOutput.id
+//     managedIdentityClientId:managedIdentityModule.outputs.managedIdentityOutput.clientId
+//     keyVaultName:aifoundry.outputs.keyvaultName
+//     logAnalyticsWorkspaceResourceName: aifoundry.outputs.logAnalyticsWorkspaceResourceName
+//   }
+// }
+
 
 // resource CosmosDB 'Microsoft.DocumentDB/databaseAccounts@2023-04-15' = {
 //   name: CosmosDBName
