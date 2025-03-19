@@ -52,6 +52,9 @@ const mockState = {
   draftedDocumentTitle: 'Some Title',
   isGenerating: false,
   isRequestInitiated: false,
+  failedSections : [],
+  isFailedReqInitiated : false,
+  isLoading : false,
 };
  
 const mockDispatch = jest.fn();

@@ -39,7 +39,7 @@ const Document = (): JSX.Element => {
       {isLoading ? ( // Step 4
         <p>Loading...</p>
       ) : document ? (
-        <p>{document.full_content}</p>
+        <p>{document.content}</p>
       ) : (
         <h1>Document not found. Please try again.</h1>
       )}

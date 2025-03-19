@@ -3,7 +3,7 @@ import { Link, Outlet, useLocation } from 'react-router-dom'
 import { Dialog, Stack, TextField } from '@fluentui/react'
 import { CopyRegular } from '@fluentui/react-icons'
 
-import { CosmosDBStatus } from '../../api'
+import { CosmosDBStatus, Conversation, historyList, ChatHistoryLoadingState } from '../../api'
 import Contoso from '../../assets/Contoso.svg'
 import { HistoryButton, ShareButton } from '../../components/common/Button'
 import { AppStateContext } from '../../state/AppProvider'
@@ -39,6 +39,49 @@ const Layout = () => {
 
   const handleHistoryClick = () => {
     appStateContext?.dispatch({ type: 'TOGGLE_CHAT_HISTORY' })
+    
+    // Fetch chat history if it's not already loaded
+    if(!appStateContext?.state.chatHistory) {
+      appStateContext?.dispatch({ type: 'UPDATE_CHAT_HISTORY_LOADING_STATE', payload: ChatHistoryLoadingState.Loading })    
+      fetchChatHistory()
+        .then(res => {
+          if (res) {
+            appStateContext?.dispatch({ type: 'UPDATE_CHAT_HISTORY_LOADING_STATE', payload: ChatHistoryLoadingState.Success })
+          } else {
+            appStateContext?.dispatch({ type: 'UPDATE_CHAT_HISTORY_LOADING_STATE', payload: ChatHistoryLoadingState.Fail })
+            appStateContext?.dispatch({
+              type: 'SET_COSMOSDB_STATUS',
+              payload: { cosmosDB: false, status: CosmosDBStatus.NotWorking }
+            })
+          }
+        })
+        .catch(_err => {
+          appStateContext?.dispatch({ type: 'UPDATE_CHAT_HISTORY_LOADING_STATE', payload: ChatHistoryLoadingState.Fail })
+          appStateContext?.dispatch({
+            type: 'SET_COSMOSDB_STATUS',
+            payload: { cosmosDB: false, status: CosmosDBStatus.NotWorking }
+          })
+        })
+    }
+  }
+
+  const fetchChatHistory = async (offset = 0): Promise<Conversation[] | null> => {
+    const result = await historyList(offset)
+      .then(response => {
+        if (response) {
+          appStateContext?.dispatch({ type: 'FETCH_CHAT_HISTORY', payload: response })
+        } else {
+          appStateContext?.dispatch({ type: 'FETCH_CHAT_HISTORY', payload: null })
+        }
+        return response
+      })
+      .catch(_err => {
+        appStateContext?.dispatch({ type: 'UPDATE_CHAT_HISTORY_LOADING_STATE', payload: ChatHistoryLoadingState.Fail })
+        appStateContext?.dispatch({ type: 'FETCH_CHAT_HISTORY', payload: null })
+        console.error('There was an issue fetching your data.')
+        return null
+      })
+    return result
   }
 
   useEffect(() => {

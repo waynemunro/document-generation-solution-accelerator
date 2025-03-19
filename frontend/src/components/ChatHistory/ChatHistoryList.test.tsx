@@ -25,6 +25,9 @@ const mockState = {
   draftedDocumentTitle: '',
   isGenerating: false,
   isRequestInitiated: false,
+  failedSections : [],
+  isFailedReqInitiated : false,
+  isLoading : false,
 };
 
 const renderChatHistoryList = (stateOverride = {}) => {

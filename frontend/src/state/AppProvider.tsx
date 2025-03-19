@@ -30,7 +30,10 @@ export interface AppState {
   draftedDocument: DraftedDocument | null
   draftedDocumentTitle: string
   isGenerating: boolean
-  isRequestInitiated : boolean
+  isRequestInitiated : boolean,
+  failedSections : Section[],
+  isFailedReqInitiated : boolean,
+  isLoading: boolean,
 }
 
 export type Action =
@@ -59,6 +62,11 @@ export type Action =
   | { type: 'GENERATE_ISLODING'; payload: boolean }
   | { type: 'SET_IS_REQUEST_INITIATED'; payload: boolean }
 
+  | { type: 'ADD_FAILED_SECTION'; payload: Section }
+  | { type: 'REMOVED_FAILED_SECTION'; payload: {section : Section} }
+  | { type: 'UPDATE_SECTION_API_REQ_STATUS'; payload: boolean }
+  | { type: 'SET_LOADING'; payload: boolean }
+
 const initialState: AppState = {
   isChatHistoryOpen: false,
   chatHistoryLoadingState: ChatHistoryLoadingState.Loading,
@@ -77,6 +85,9 @@ const initialState: AppState = {
   draftedDocumentTitle: '',
   isGenerating: false,
   isRequestInitiated: false,
+  failedSections : [],
+  isFailedReqInitiated : false,
+  isLoading: false,
 }
 
 export const AppStateContext = createContext<
@@ -95,51 +106,13 @@ export const AppStateProvider: React.FC<AppStateProviderProps> = ({ children }) 
   const [state, dispatch] = useReducer(appStateReducer, initialState)
 
   useEffect(() => {
-    // Check for cosmosdb config and fetch initial data here
-    const fetchChatHistory = async (offset = 0): Promise<Conversation[] | null> => {
-      const result = await historyList(offset)
-        .then(response => {
-          if (response) {
-            dispatch({ type: 'FETCH_CHAT_HISTORY', payload: response })
-          } else {
-            dispatch({ type: 'FETCH_CHAT_HISTORY', payload: null })
-          }
-          return response
-        })
-        .catch(_err => {
-          dispatch({ type: 'UPDATE_CHAT_HISTORY_LOADING_STATE', payload: ChatHistoryLoadingState.Fail })
-          dispatch({ type: 'FETCH_CHAT_HISTORY', payload: null })
-          console.error('There was an issue fetching your data.')
-          return null
-        })
-      return result
-    }
-
     const getHistoryEnsure = async () => {
       dispatch({ type: 'UPDATE_CHAT_HISTORY_LOADING_STATE', payload: ChatHistoryLoadingState.Loading })
       historyEnsure()
         .then(response => {
           if (response?.cosmosDB) {
-            fetchChatHistory()
-              .then(res => {
-                if (res) {
-                  dispatch({ type: 'UPDATE_CHAT_HISTORY_LOADING_STATE', payload: ChatHistoryLoadingState.Success })
-                  dispatch({ type: 'SET_COSMOSDB_STATUS', payload: response })
-                } else {
-                  dispatch({ type: 'UPDATE_CHAT_HISTORY_LOADING_STATE', payload: ChatHistoryLoadingState.Fail })
-                  dispatch({
-                    type: 'SET_COSMOSDB_STATUS',
-                    payload: { cosmosDB: false, status: CosmosDBStatus.NotWorking }
-                  })
-                }
-              })
-              .catch(_err => {
-                dispatch({ type: 'UPDATE_CHAT_HISTORY_LOADING_STATE', payload: ChatHistoryLoadingState.Fail })
-                dispatch({
-                  type: 'SET_COSMOSDB_STATUS',
-                  payload: { cosmosDB: false, status: CosmosDBStatus.NotWorking }
-                })
-              })
+            dispatch({ type: 'SET_COSMOSDB_STATUS', payload: response })
+            dispatch({ type: 'UPDATE_CHAT_HISTORY_LOADING_STATE', payload: ChatHistoryLoadingState.Success })
           } else {
             dispatch({ type: 'UPDATE_CHAT_HISTORY_LOADING_STATE', payload: ChatHistoryLoadingState.Fail })
             dispatch({ type: 'SET_COSMOSDB_STATUS', payload: response })

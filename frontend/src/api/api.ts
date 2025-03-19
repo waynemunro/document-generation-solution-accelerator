@@ -50,44 +50,40 @@ export const fetchChatHistoryInit = (): Conversation[] | null => {
 }
 
 export const historyList = async (offset = 0): Promise<Conversation[] | null> => {
-  const response = await fetch(`/history/list?offset=${offset}`, {
-    method: 'GET'
-  })
-    .then(async res => {
-      const payload = await res.json()
-      if (!Array.isArray(payload)) {
-        console.error('There was an issue fetching your data.')
-        return null
-      }
-      const conversations: Conversation[] = await Promise.all(
-        payload.map(async (conv: any) => {
-          let convMessages: ChatMessage[] = []
-          convMessages = await historyRead(conv.id)
-            .then(res => {
-              return res
-            })
-            .catch(err => {
-              console.error('error fetching messages: ', err)
-              return []
-            })
-          const conversation: Conversation = {
-            id: conv.id,
-            title: conv.title,
-            date: conv.createdAt,
-            messages: convMessages
-          }
-          return conversation
-        })
-      )
-      return conversations
-    })
-    .catch(_err => {
-      console.error('There was an issue fetching your data.')
-      return null
-    })
+  try {
+    const res = await fetch(`/history/list?offset=${offset}`, { method: 'GET' });
+    const payload = await res.json();
 
-  return response
-}
+    if (!Array.isArray(payload)) {
+      console.error('There was an issue fetching your data.');
+      return null;
+    }
+
+    const conversations: Conversation[] = await Promise.all(
+      payload.map(async (conv: any) => {
+        let convMessages: ChatMessage[] = [];
+        
+        // try {
+        //   convMessages = await historyRead(conv.id);
+        // } catch (err) {
+        //   console.error('Error fetching messages:', err);
+        // }
+
+        return {
+          id: conv.id,
+          title: conv.title,
+          date: conv.createdAt,
+          messages: convMessages,
+        };
+      })
+    );
+
+    return conversations;
+  } catch (err) {
+    console.error('There was an issue fetching your data.', err);
+    return null;
+  }
+};
 
 export const historyRead = async (convId: string): Promise<ChatMessage[]> => {
   const response = await fetch('/history/read', {
@@ -372,14 +368,6 @@ export const historyMessageFeedback = async (messageId: string, feedback: string
 }
 
 export const sectionGenerate = async (options: SectionGenerateRequest): Promise<Response> => {
-  // set timeout to 10 seconds
-  const abortController = new AbortController()
-  const abortSignal = abortController.signal
-
-  const timeout = setTimeout(() => {
-    abortController.abort()
-  }, 10000)
-
   let body = JSON.stringify({
     sectionTitle: options.sectionTitle,
     sectionDescription: options.sectionDescription
@@ -390,15 +378,12 @@ export const sectionGenerate = async (options: SectionGenerateRequest): Promise<
     headers: {
       'Content-Type': 'application/json'
     },
-    body: body,
-    signal: abortSignal
+    body: body
   })
     .then(res => {
-      clearTimeout(timeout)
       return res
     })
     .catch(_err => {
-      clearTimeout(timeout)
       console.error('There was an issue fetching your data.')
       return new Response(
         JSON.stringify({ section_content: 'There was an issue fetching your data. Please try again.' })

@@ -53,7 +53,10 @@ const mockState = {
   draftedDocumentTitle: '',
 
   isGenerating: false,
-  isRequestInitiated: false
+  isRequestInitiated: false,
+  failedSections : [],
+  isFailedReqInitiated : false,
+  isLoading : false,
 }
 
 const renderWithContext = (idx = 0) =>

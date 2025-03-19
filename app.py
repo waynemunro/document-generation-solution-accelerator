@@ -912,7 +912,7 @@ async def get_section_content(request_body, request_headers):
 def retrieve_document(filepath):
     try:
         search_client = init_ai_search_client()
-        search_query = f"filepath eq '{filepath}'"
+        search_query = f"sourceurl eq '{filepath}'"
         # Execute the search query
         results = search_client.search(search_query)
 

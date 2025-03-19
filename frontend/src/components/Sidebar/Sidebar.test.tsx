@@ -52,6 +52,9 @@ const mockState = {
   draftedDocumentTitle: '',
   isGenerating: false,
   isRequestInitiated: false,
+  failedSections : [],
+  isFailedReqInitiated : false,
+  isLoading : false,
 };
 const mockState2 = {
   isChatHistoryOpen: false,

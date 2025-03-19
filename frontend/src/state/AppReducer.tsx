@@ -3,10 +3,12 @@ import { Action, AppState } from './AppProvider'
 // Define the reducer function
 export const appStateReducer = (state: AppState, action: Action): AppState => {
   switch (action.type) {
+    case 'SET_LOADING':
+      return { ...state, isLoading: action.payload }
     case 'TOGGLE_CHAT_HISTORY':
       return { ...state, isChatHistoryOpen: !state.isChatHistoryOpen }
     case 'UPDATE_CURRENT_CHAT':
-      return { ...state, currentChat: action.payload }
+      return { ...state, currentChat: action.payload, isLoading: false }
     case 'UPDATE_CHAT_HISTORY_LOADING_STATE':
       return { ...state, chatHistoryLoadingState: action.payload }
     case 'UPDATE_CHAT_HISTORY':
@@ -105,6 +107,19 @@ export const appStateReducer = (state: AppState, action: Action): AppState => {
       return { ...state, isGenerating: action.payload }
       case 'SET_IS_REQUEST_INITIATED' : 
       return {...state, isRequestInitiated : action.payload}
+    case 'ADD_FAILED_SECTION':
+       var tempFailedSections = [...state.failedSections];
+       const exists = tempFailedSections.some((item) => item.title === action.payload.title);
+       if (!exists) 
+        tempFailedSections.push(action.payload);
+        return { ...state , failedSections : [...tempFailedSections]  }
+     case 'REMOVED_FAILED_SECTION' : 
+      var tempFailedSections = [...state.failedSections];
+      tempFailedSections = state.failedSections.filter((item) => item.title !== action.payload.section.title);
+      return { ...state , failedSections : [...tempFailedSections] }
+    case 'UPDATE_SECTION_API_REQ_STATUS' : 
+      return {...state, isFailedReqInitiated : action.payload}
+
     default:
       return state
   }
