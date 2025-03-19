@@ -20,7 +20,8 @@ const defaultMockState = {
   isGenerating: false,
   isRequestInitiated: false,
   failedSections : [],
-  isFailedReqInitiated : false
+  isFailedReqInitiated : false,
+  isLoading : false,
 };
 
 // Create a custom render function

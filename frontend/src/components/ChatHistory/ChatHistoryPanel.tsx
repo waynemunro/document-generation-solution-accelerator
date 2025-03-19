@@ -73,7 +73,7 @@ export function ChatHistoryPanel(_props: ChatHistoryPanelProps) {
   const handleHistoryClick = () => {
     appStateContext?.dispatch({ type: 'TOGGLE_CHAT_HISTORY' })
   }
- 
+
   const onShowContextualMenu = React.useCallback((ev: React.MouseEvent<HTMLElement>) => {
     ev.preventDefault() // don't navigate
     setShowContextualMenu(true)

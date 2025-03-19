@@ -3,10 +3,12 @@ import { Action, AppState } from './AppProvider'
 // Define the reducer function
 export const appStateReducer = (state: AppState, action: Action): AppState => {
   switch (action.type) {
+    case 'SET_LOADING':
+      return { ...state, isLoading: action.payload }
     case 'TOGGLE_CHAT_HISTORY':
       return { ...state, isChatHistoryOpen: !state.isChatHistoryOpen }
     case 'UPDATE_CURRENT_CHAT':
-      return { ...state, currentChat: action.payload }
+      return { ...state, currentChat: action.payload, isLoading: false }
     case 'UPDATE_CHAT_HISTORY_LOADING_STATE':
       return { ...state, chatHistoryLoadingState: action.payload }
     case 'UPDATE_CHAT_HISTORY':

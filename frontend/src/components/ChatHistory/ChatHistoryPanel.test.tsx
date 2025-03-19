@@ -53,7 +53,8 @@ const mockState = {
   isGenerating: false,
   isRequestInitiated: false,
   failedSections : [],
-  isFailedReqInitiated : false
+  isFailedReqInitiated : false,
+  isLoading : false,
 };
  
 const mockDispatch = jest.fn();
