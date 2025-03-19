@@ -18,7 +18,7 @@ import {
 } from '@fluentui/react'
 import { useBoolean } from '@fluentui/react-hooks'
 
-import { historyDelete, historyList, historyRename } from '../../api'
+import { historyDelete, historyList, historyRead, historyRename } from '../../api'
 import { Conversation } from '../../api/models'
 import { AppStateContext } from '../../state/AppProvider'
 
@@ -121,9 +121,28 @@ export const ChatHistoryListItemCell: React.FC<ChatHistoryListItemCellProps> = (
     setEditTitle(item?.title)
   }
 
-  const handleSelectItem = () => {
-    onSelect(item)
-    appStateContext?.dispatch({ type: 'UPDATE_CURRENT_CHAT', payload: item })
+  const handleSelectItem = async () => {
+    if (!item) return;
+
+    appStateContext?.dispatch({ type: 'SET_LOADING', payload: true });
+    try {
+      // Fetch messages for the selected chat
+      const messages = await historyRead(item.id);
+      
+      // Update the global state with the selected chat and its messages
+      appStateContext?.dispatch({ 
+        type: 'UPDATE_CURRENT_CHAT', 
+        payload: { ...item, messages } 
+      });
+    
+      // Call the onSelect function with updated chat data
+      onSelect({ ...item, messages });
+    } catch (error) {
+      console.error('Error fetching messages:', error);
+    } finally {
+      // Stop loading after messages are fetched
+      appStateContext?.dispatch({ type: 'SET_LOADING', payload: false });
+    }
   }
 
   const truncatedTitle = item?.title?.length > 28 ? `${item.title.substring(0, 28)} ...` : item.title

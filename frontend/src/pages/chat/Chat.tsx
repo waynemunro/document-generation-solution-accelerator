@@ -10,7 +10,9 @@ import {
   IStackTokens,
   mergeStyleSets,
   IModalStyles,
-  PrimaryButton
+  PrimaryButton,
+  Spinner,
+  SpinnerSize
 } from '@fluentui/react'
 import { SquareRegular, ShieldLockRegular, ErrorCircleRegular } from '@fluentui/react-icons'
 
@@ -45,6 +47,7 @@ import { CitationPanel } from './Components/CitationPanel'
 import { AuthNotConfigure } from './Components/AuthNotConfigure'
 import { ChatMessageContainer } from './Components/ChatMessageContainer';
 import { parseErrorMessage, cleanJSON } from '../../helpers/helpers';
+
 
 const enum messageStatus {
   NotRunning = 'Not Running',
@@ -119,6 +122,11 @@ const Chat = ({ type = ChatType.Browse }: Props) => {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [modalUrl, setModalUrl] = useState('');
   const [finalMessages, setFinalMessages] = useState<ChatMessage[]>([])
+  if (!appStateContext || !appStateContext.state) {
+    console.error("AppStateContext is undefined. Ensure AppProvider wraps this component.");
+    return null; // Prevents execution if context is missing
+  }
+  const { currentChat } = appStateContext?.state;
 
   const errorDialogContentProps = {
     type: DialogType.close,
@@ -829,19 +837,23 @@ const Chat = ({ type = ChatType.Browse }: Props) => {
       ) : (
         <Stack horizontal className={styles.chatRoot}>
           <div className={styles.chatContainer}>
-            {!messages || messages.length < 1 ? (
+            { appStateContext.state.isLoading ? (
+              <Stack horizontalAlign="center" verticalAlign="center" className={styles.chatLoadingState} style={{padding: 250, paddingBottom: 150}}>
+                <Spinner label="Loading your chat..." size={SpinnerSize.large} />
+              </Stack>
+            ): currentChat?.messages && currentChat.messages.length > 0 ? (
+              <ChatMessageContainer
+                messages={currentChat.messages}
+                isLoading={isLoading}
+                type={type}
+                onShowCitation={onShowCitation}
+                showLoadingMessage={showLoadingMessage}
+                ref={chatMessageStreamEnd}
+              />
+            ) : (
               <Stack className={styles.chatEmptyState}>
                 <h1 className={styles.chatEmptyStateTitle}>{ui?.chat_title}</h1>
               </Stack>
-            ) : (
-                <ChatMessageContainer
-                messages={messages}
-                  isLoading={isLoading}
-                  type={type}
-                  onShowCitation={onShowCitation}
-                  showLoadingMessage={showLoadingMessage}
-                  ref = {chatMessageStreamEnd}
-                />
             )}
 
             <Stack horizontal className={styles.chatInput}>
