@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.33.93.31351",
-      "templateHash": "4863966964832108128"
+      "templateHash": "12213473806385436916"
     }
   },
   "parameters": {
@@ -92,7 +92,7 @@
     "solutionPrefix": "[format('dg{0}', padLeft(take(variables('uniqueId'), 12), 12, '0'))]",
     "resourceGroupLocation": "[resourceGroup().location]",
     "solutionLocation": "[variables('resourceGroupLocation')]",
-    "baseUrl": "https://raw.githubusercontent.com/microsoft/Generic-Build-your-own-copilot-Solution-Accelerator/dev/",
+    "baseUrl": "https://raw.githubusercontent.com/microsoft/Generic-Build-your-own-copilot-Solution-Accelerator/add-appser-envvar-values/",
     "ApplicationInsightsName": "[format('appins-{0}', variables('solutionPrefix'))]",
     "WorkspaceName": "[format('worksp-{0}', variables('solutionPrefix'))]"
   },
