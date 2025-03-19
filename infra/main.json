@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.33.93.31351",
-      "templateHash": "15591172735460382570"
+      "templateHash": "4863966964832108128"
     }
   },
   "parameters": {
@@ -51,7 +51,7 @@
         "description": "Name of the GPT model to deploy:"
       }
     },
-    "azureOpenAIAPIVersion": {
+    "azureOpenaiAPIVersion": {
       "type": "string",
       "defaultValue": "2024-05-01-preview"
     },
@@ -362,7 +362,7 @@
             "value": "[parameters('gptModelName')]"
           },
           "gptModelVersion": {
-            "value": "[parameters('azureOpenAIAPIVersion')]"
+            "value": "[parameters('azureOpenaiAPIVersion')]"
           },
           "gptDeploymentCapacity": {
             "value": "[parameters('gptDeploymentCapacity')]"
@@ -1183,7 +1183,7 @@
             }
           },
           "azureOpenAIApiVersion": {
-            "value": "[parameters('azureOpenAIAPIVersion')]"
+            "value": "[parameters('azureOpenaiAPIVersion')]"
           },
           "AZURE_OPENAI_RESOURCE": {
             "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, resourceGroup().name), 'Microsoft.Resources/deployments', 'deploy_ai_foundry'), '2022-09-01').outputs.aiServicesName.value]"
@@ -1211,7 +1211,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.33.93.31351",
-              "templateHash": "363244865426099616"
+              "templateHash": "15057452249812707948"
             }
           },
           "parameters": {
@@ -1301,49 +1301,49 @@
             },
             "AzureSearchUseSemanticSearch": {
               "type": "string",
-              "defaultValue": "",
+              "defaultValue": "False",
               "metadata": {
                 "description": "Enable Semantic Search in Azure Search"
               }
             },
             "AzureSearchEnableInDomain": {
               "type": "string",
-              "defaultValue": "",
+              "defaultValue": "True",
               "metadata": {
                 "description": "Enable In-Domain Search in Azure Search"
               }
             },
             "AzureSearchTopK": {
               "type": "string",
-              "defaultValue": "",
+              "defaultValue": "5",
               "metadata": {
                 "description": "Azure Search Top K"
               }
             },
             "AzureSearchQueryType": {
               "type": "string",
-              "defaultValue": "",
+              "defaultValue": "simple",
               "metadata": {
                 "description": "Azure Search Query Type"
               }
             },
             "AzureSearchIndexIsPrechunked": {
               "type": "string",
-              "defaultValue": "",
+              "defaultValue": "True",
               "metadata": {
                 "description": "Azure Search Index Is Prechunked"
               }
             },
             "AzureSearchVectorFields": {
               "type": "string",
-              "defaultValue": "",
+              "defaultValue": "contentVector",
               "metadata": {
                 "description": "Azure Search Vector Fields"
               }
             },
             "AzureSearchStrictness": {
               "type": "string",
-              "defaultValue": "",
+              "defaultValue": "3",
               "metadata": {
                 "description": "Azure Search Strictness"
               }
@@ -1357,7 +1357,7 @@
             },
             "AzureSearchContentColumns": {
               "type": "string",
-              "defaultValue": "",
+              "defaultValue": "content",
               "metadata": {
                 "description": "Azure Search Content Columns"
               }
@@ -1378,14 +1378,14 @@
             },
             "AzureSearchFilenameColumn": {
               "type": "string",
-              "defaultValue": "",
+              "defaultValue": "sourceurl",
               "metadata": {
                 "description": "Azure Search Filename Column"
               }
             },
             "AzureSearchSemanticSearchConfig": {
               "type": "string",
-              "defaultValue": "",
+              "defaultValue": "my-semantic-config",
               "metadata": {
                 "description": "Azure Search Semantic Search Config"
               }
@@ -1399,7 +1399,7 @@
             },
             "AzureSearchIndex": {
               "type": "string",
-              "defaultValue": "",
+              "defaultValue": "pdf_index",
               "metadata": {
                 "description": "Azure Search Index"
               }
