@@ -48,31 +48,31 @@ param aiSearchService string
 param AzureSearchKey string = ''
 
 @description('Enable Semantic Search in Azure Search')
-param AzureSearchUseSemanticSearch string = ''
+param AzureSearchUseSemanticSearch string = 'False'
 
 @description('Enable In-Domain Search in Azure Search')
-param AzureSearchEnableInDomain string = ''
+param AzureSearchEnableInDomain string = 'True'
 
 @description('Azure Search Top K')
-param AzureSearchTopK string = ''
+param AzureSearchTopK string = '5'
 
 @description('Azure Search Query Type')
-param AzureSearchQueryType string = ''
+param AzureSearchQueryType string = 'simple'
 
 @description('Azure Search Index Is Prechunked')
-param AzureSearchIndexIsPrechunked string = ''
+param AzureSearchIndexIsPrechunked string = 'True'
 
 @description('Azure Search Vector Fields')
-param AzureSearchVectorFields string = ''
+param AzureSearchVectorFields string = 'contentVector'
 
 @description('Azure Search Strictness')
-param AzureSearchStrictness string = ''
+param AzureSearchStrictness string = '3'
 
 @description('Azure Search Permitted Groups Field')
 param AzureSearchPermittedGroupsField string = ''
 
 @description('Azure Search Content Columns')
-param AzureSearchContentColumns string = ''
+param AzureSearchContentColumns string = 'content'
 
 @description('Azure Search Title Column')
 param AzureSearchTitleColumn string = ''
@@ -81,16 +81,16 @@ param AzureSearchTitleColumn string = ''
 param AzureSearchUrlColumn string = ''
 
 @description('Azure Search Filename Column')
-param AzureSearchFilenameColumn string = ''
+param AzureSearchFilenameColumn string = 'sourceurl'
 
 @description('Azure Search Semantic Search Config')
-param AzureSearchSemanticSearchConfig string = ''
+param AzureSearchSemanticSearchConfig string = 'my-semantic-config'
 
 @description('Azure Cosmos DB Account')
 param AZURE_COSMOSDB_ACCOUNT string = ''
 
 @description('Azure Search Index')
-param AzureSearchIndex string = ''
+param AzureSearchIndex string = 'pdf_index'
 
 @description('Azure Cosmos DB Conversations Container')
 param AZURE_COSMOSDB_CONVERSATIONS_CONTAINER string = ''

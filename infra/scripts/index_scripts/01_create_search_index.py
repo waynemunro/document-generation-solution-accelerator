@@ -57,7 +57,7 @@ def create_search_index():
         SimpleField(name="id", type=SearchFieldDataType.String, key=True),
         SimpleField(name="chunk_id", type=SearchFieldDataType.String),
         SearchField(name="content", type=SearchFieldDataType.String),
-        SimpleField(name="sourceurl", type=SearchFieldDataType.String),
+        SearchableField(name="sourceurl", type=SearchFieldDataType.String),
         SearchField(name="contentVector", type=SearchFieldDataType.Collection(SearchFieldDataType.Single), \
         vector_search_dimensions=1536,vector_search_profile_name="myHnswProfile"
         )

@@ -35,7 +35,7 @@ param deploymentType string = 'Standard'
 ])
 param gptModelName string = 'gpt-4'
 
-param azureOpenAIAPIVersion string = '2024-05-01-preview'
+param azureOpenaiAPIVersion string = '2024-05-01-preview'
 
 @minValue(10)
 @description('Capacity of the GPT deployment:')
@@ -97,7 +97,7 @@ module aifoundry 'deploy_ai_foundry.bicep' = {
     keyVaultName: kvault.outputs.keyvaultName
     deploymentType: deploymentType
     gptModelName: gptModelName
-    gptModelVersion: azureOpenAIAPIVersion
+    gptModelVersion: azureOpenaiAPIVersion
     gptDeploymentCapacity: gptDeploymentCapacity
     embeddingModel: embeddingModel
     embeddingDeploymentCapacity: embeddingDeploymentCapacity
@@ -377,7 +377,7 @@ module appserviceModule 'deploy_app_service.bicep' = {
     AzureOpenAIEndpoint:aifoundry.outputs.aiServicesTarget
     AzureOpenAIModel: gptModelName //'gpt-4o-mini'
     AzureOpenAIKey:keyVault.getSecret('AZURE-OPENAI-KEY')
-    azureOpenAIApiVersion: azureOpenAIAPIVersion //'2024-02-15-preview'
+    azureOpenAIApiVersion: azureOpenaiAPIVersion //'2024-02-15-preview'
     AZURE_OPENAI_RESOURCE:aifoundry.outputs.aiServicesName
     USE_CHAT_HISTORY_ENABLED:'True'
     AZURE_COSMOSDB_ACCOUNT: cosmosDBModule.outputs.cosmosAccountName
