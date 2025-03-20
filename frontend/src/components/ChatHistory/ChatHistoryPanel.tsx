@@ -199,17 +199,18 @@ export function ChatHistoryPanel(_props: ChatHistoryPanelProps) {
                   horizontal
                   horizontalAlign="center"
                   verticalAlign="center"
-                  style={{ width: '100%', marginTop: 10 }}>
-                  <StackItem style={{ justifyContent: 'center', alignItems: 'center' }}>
-                    <Spinner
-                      style={{ alignSelf: 'flex-start', height: '100%', marginRight: '5px' }}
-                      size={SpinnerSize.medium}
-                    />
-                  </StackItem>
+                  style={{ width: '100%', height: '80vh' }} // Ensure it takes full height
+                >
                   <StackItem>
-                    <Text style={{ alignSelf: 'center', fontWeight: '400', fontSize: 14 }}>
-                      <span style={{ whiteSpace: 'pre-wrap' }}>Loading chat history</span>
-                    </Text>
+                    <Stack horizontal verticalAlign="center">
+                      <Spinner
+                        style={{ marginRight: '5px' }}
+                        size={SpinnerSize.medium}
+                      />
+                      <Text style={{ fontWeight: '400', fontSize: 14 }}>
+                        <span style={{ whiteSpace: 'pre-wrap' }}>Loading chat history</span>
+                      </Text>
+                    </Stack>
                   </StackItem>
                 </Stack>
               </Stack>

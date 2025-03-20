@@ -126,6 +126,7 @@ const Chat = ({ type = ChatType.Browse }: Props) => {
     console.error("AppStateContext is undefined. Ensure AppProvider wraps this component.");
     return null; // Prevents execution if context is missing
   }
+  const [loadingState, setLoadingState] = useState(appStateContext.state.isLoading);
   const { currentChat } = appStateContext?.state;
 
   const errorDialogContentProps = {
@@ -157,6 +158,10 @@ const Chat = ({ type = ChatType.Browse }: Props) => {
   useEffect(() => {
     appStateContext?.dispatch({ type: 'GENERATE_ISLODING', payload: appStateContext?.state.isGenerating })
   }, [isLoading])
+
+  useEffect(() => {
+    setLoadingState(appStateContext.state.isLoading)
+  }, [appStateContext.state.isLoading])
 
   useEffect(() => {
     if (
@@ -837,23 +842,24 @@ const Chat = ({ type = ChatType.Browse }: Props) => {
       ) : (
         <Stack horizontal className={styles.chatRoot}>
           <div className={styles.chatContainer}>
-            { appStateContext.state.isLoading ? (
-              <Stack horizontalAlign="center" verticalAlign="center" className={styles.chatLoadingState} style={{padding: 250, paddingBottom: 150}}>
-                <Spinner label="Loading your chat..." size={SpinnerSize.large} />
-              </Stack>
-            ): currentChat?.messages && currentChat.messages.length > 0 ? (
+            { loadingState ? (
+                <Stack horizontalAlign="center" verticalAlign="center" className={styles.chatLoadingState} style={{padding: 250, paddingBottom: 150}}>
+                  <Spinner label="Loading your chat..." size={SpinnerSize.large} />
+                </Stack>
+              ) : !messages || messages.length < 1 ? (
+                <Stack className={styles.chatEmptyState}>
+                  <h1 className={styles.chatEmptyStateTitle}>{ui?.chat_title}</h1>
+                </Stack>
+              ) : (
+              // Show chat messages while loading continues in the background
               <ChatMessageContainer
-                messages={currentChat.messages}
-                isLoading={isLoading}
+                messages={messages}
+                isLoading={isLoading}  // Keep isLoading for progressive updates
                 type={type}
                 onShowCitation={onShowCitation}
                 showLoadingMessage={showLoadingMessage}
                 ref={chatMessageStreamEnd}
               />
-            ) : (
-              <Stack className={styles.chatEmptyState}>
-                <h1 className={styles.chatEmptyStateTitle}>{ui?.chat_title}</h1>
-              </Stack>
             )}
 
             <Stack horizontal className={styles.chatInput}>
