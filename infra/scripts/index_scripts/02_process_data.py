@@ -17,8 +17,9 @@ directory = 'pdf'
 
 
 def get_secrets_from_kv(kv_name, secret_name):
+    key_vault_name = kv_name
     credential = DefaultAzureCredential(managed_identity_client_id=managed_identity_client_id)
-    secret_client = SecretClient(vault_url=f"https://{kv_name}.vault.azure.net/", credential=credential)
+    secret_client = SecretClient(vault_url=f"https://{key_vault_name}.vault.azure.net/", credential=credential)
     return secret_client.get_secret(secret_name).value
 
 
