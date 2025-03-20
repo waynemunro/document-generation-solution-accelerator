@@ -16,7 +16,7 @@ Use one of the following scripts based on your needs:
    **To check quota for a specific model and capacity:**  
 
     ```sh
-    curl -L -o quota_check_params.sh "https://raw.githubusercontent.com/microsoft/Conversation-Knowledge-Mining-Solution-Accelerator/main/infra/scripts/quota_check_params.sh"
+    curl -L -o quota_check_params.sh "https://raw.githubusercontent.com/microsoft/document-generation-solution-accelerator/main/scripts/quota_check_params.sh"
     chmod +x quota_check_params.sh
     ./quota_check_params.sh <model_name:capacity> [<model_region>] (e.g., gpt-4o-mini:30,text-embedding-ada-002:20 eastus)
     ```
@@ -24,7 +24,7 @@ Use one of the following scripts based on your needs:
    **To check available quota across all regions for supported models:**  
 
     ```sh
-    curl -L -o quota_check_all_regions.sh "https://raw.githubusercontent.com/microsoft/Conversation-Knowledge-Mining-Solution-Accelerator/main/infra/scripts/quota_check_all_regions.sh"
+    curl -L -o quota_check_all_regions.sh "https://raw.githubusercontent.com/microsoft/document-generation-solution-accelerator/main/scripts/quota_check_all_regions.sh"
     chmod +x quota_check_all_regions.sh
     ./quota_check_all_regions.sh
     ```
