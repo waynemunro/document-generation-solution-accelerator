@@ -111,16 +111,17 @@ jobs:
           set -e
           az deployment group create \
             --resource-group ${{ env.RESOURCE_GROUP_NAME }} \
-            --template-file infrastructure/deployment.json \
+            --template-file infra/main.json \
             --parameters \
-                HostingPlanName="${{ env.SOLUTION_PREFIX }}-plan" \
-                ApplicationInsightsName="appins-${{ env.SOLUTION_PREFIX }}" \
-                WebsiteName="webapp-${{ env.SOLUTION_PREFIX }}" \
-                CosmosDBName="db-cosmos-${{ env.SOLUTION_PREFIX }}" \
-                CosmosDBRegion="${{ env.AZURE_LOCATION }}" \
-                AzureSearchService="search-${{ env.SOLUTION_PREFIX }}" \
-                AzureOpenAIResource="aoai-${{ env.SOLUTION_PREFIX }}" \
-                WorkspaceName="worksp-${{ env.SOLUTION_PREFIX }}" 
+                environmentName="${{ env.SOLUTION_PREFIX }}" \
+                secondaryLocation="eastus2" \
+                deploymentType="Standard" \
+                gptModelName="gpt-4" \
+                azureOpenaiAPIVersion="2024-05-01-preview" \
+                gptDeploymentCapacity="10" \
+                embeddingModel="text-embedding-ada-002" \
+                embeddingDeploymentCapacity="30" \
+                imageTag="latest"
       
       - name: Delete Bicep Deployment
         if: success()
