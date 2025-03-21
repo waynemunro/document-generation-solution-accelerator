@@ -122,6 +122,7 @@ for REGION in "${REGIONS[@]}"; do
         # Check if quota is sufficient
         if [ "$AVAILABLE" -lt "$REQUIRED_CAPACITY" ]; then
             echo "❌ ERROR: 'OpenAI.Standard.$MODEL_NAME' in $REGION has insufficient quota. Required: $REQUIRED_CAPACITY, Available: $AVAILABLE"
+            echo "➡️  To request a quota increase, visit: https://aka.ms/oai/stuquotarequest"
             BOTH_MODELS_AVAILABLE=false
             break
         fi
