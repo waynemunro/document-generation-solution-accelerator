@@ -88,4 +88,5 @@ for ROW in "${TABLE_ROWS[@]}"; do
 done
 
 echo "----------------------------------------------------------------------------------------------------------"
+echo "➡️  To request a quota increase, visit: https://aka.ms/oai/stuquotarequest"
 echo "✅ Script completed."
