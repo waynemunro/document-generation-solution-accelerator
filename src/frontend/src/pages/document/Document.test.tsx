@@ -34,11 +34,11 @@ describe('Document Component', () => {
     (documentRead as jest.Mock).mockResolvedValue({
       json: jest.fn().mockResolvedValue(mockDocumentData),
     });
-
+  
     render(<Document />);
-
+  
     await waitFor(() => {
-      expect(screen.getByText(mockDocumentData.full_content)).toBeInTheDocument();
+      expect(screen.getByText(mockDocumentData.content)).toBeInTheDocument(); // Use `content`
     });
   });
 
