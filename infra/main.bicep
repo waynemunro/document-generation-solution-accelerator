@@ -25,7 +25,7 @@ param secondaryLocation string
   'Standard'
   'GlobalStandard'
 ])
-param deploymentType string = 'Standard'
+param deploymentType string = 'GlobalStandard'
 
 @minLength(1)
 @description('Name of the GPT model to deploy:')

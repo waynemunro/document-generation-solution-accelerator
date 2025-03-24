@@ -115,7 +115,7 @@ jobs:
             --parameters \
                 environmentName="${{ env.SOLUTION_PREFIX }}" \
                 secondaryLocation="eastus2" \
-                deploymentType="Standard" \
+                deploymentType="GlobalStandard" \
                 gptModelName="gpt-4o" \
                 azureOpenaiAPIVersion="2024-05-01-preview" \
                 gptDeploymentCapacity="10" \
