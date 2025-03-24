@@ -43,13 +43,10 @@ QUICK DEPLOY
 
 To deploy this solution accelerator, ensure you have access to an [Azure subscription](https://azure.microsoft.com/free/) with the necessary permissions to create **resource groups and resources**. Follow the steps in  [Azure Account Set Up](./docs/AzureAccountSetUp.md) 
 
-Check the [Azure Products by Region](https://azure.microsoft.com/en-us/explore/global-infrastructure/products-by-region/?products=all&regions=all) page and select a **region** where the following services are available:  
+Check the [Azure Products by Region](https://azure.microsoft.com/en-us/explore/global-infrastructure/products-by-region/table) page and select a **region** where the following services are available:  
 
-- Azure AI Foundry 
 - Azure OpenAI Service
 - Azure AI Search
-- Embedding Model Capacity  
-- GPT Model Capacity
 - [Azure Semantic Search](./docs/AzureSemanticSearchRegion.md)  
 
 Here are some example regions where the services are available: East US, East US2, Australia East, UK South, France Central.
@@ -85,9 +82,9 @@ When you start the deployment, most parameters will have **default values**, but
 
 ### [Optional] Quota Recommendations  
 By default, the **Gpt-4o model capacity** in deployment is set to **30k tokens**, so we recommend
-> **For GPT-4o, the capacity to at least 150k tokens post-deployment for optimal performance.**
+> **For Global Standard | GPT-4o - the capacity to at least 150k tokens post-deployment for optimal performance.**
 
-> **For GPT-4, ensure a minimum of 30k–40k tokens for best results.**
+> **For Standard | GPT-4 - ensure a minimum of 30k–40k tokens for best results.**
 
 To adjust quota settings, follow these [steps](./docs/AzureGPTQuotaSettings.md)  
 
