@@ -116,7 +116,7 @@ jobs:
                 environmentName="${{ env.SOLUTION_PREFIX }}" \
                 secondaryLocation="eastus2" \
                 deploymentType="Standard" \
-                gptModelName="gpt-4" \
+                gptModelName="gpt-4o" \
                 azureOpenaiAPIVersion="2024-05-01-preview" \
                 gptDeploymentCapacity="10" \
                 embeddingModel="text-embedding-ada-002" \

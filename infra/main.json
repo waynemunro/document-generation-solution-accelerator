@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.33.93.31351",
-      "templateHash": "15906054451527240113"
+      "templateHash": "1032022147181821826"
     }
   },
   "parameters": {
@@ -41,7 +41,7 @@
     },
     "gptModelName": {
       "type": "string",
-      "defaultValue": "gpt-4",
+      "defaultValue": "gpt-4o",
       "allowedValues": [
         "gpt-4o",
         "gpt-4"

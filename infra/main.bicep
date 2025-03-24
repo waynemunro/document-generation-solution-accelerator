@@ -33,7 +33,7 @@ param deploymentType string = 'Standard'
   'gpt-4o'
   'gpt-4'
 ])
-param gptModelName string = 'gpt-4'
+param gptModelName string = 'gpt-4o'
 
 param azureOpenaiAPIVersion string = '2024-05-01-preview'
 
