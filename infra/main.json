@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.34.1.11899",
-      "templateHash": "498892376344234261"
+      "templateHash": "3385834780038216651"
     }
   },
   "parameters": {
@@ -92,7 +92,7 @@
     "solutionPrefix": "[format('dg{0}', padLeft(take(variables('uniqueId'), 12), 12, '0'))]",
     "resourceGroupLocation": "[resourceGroup().location]",
     "solutionLocation": "[variables('resourceGroupLocation')]",
-    "baseUrl": "https://raw.githubusercontent.com/microsoft/Generic-Build-your-own-copilot-Solution-Accelerator/main/",
+    "baseUrl": "https://raw.githubusercontent.com/microsoft/document-generation-solution-accelerator/main/",
     "ApplicationInsightsName": "[format('appins-{0}', variables('solutionPrefix'))]",
     "WorkspaceName": "[format('worksp-{0}', variables('solutionPrefix'))]"
   },
