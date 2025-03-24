@@ -1,7 +1,7 @@
 import { renderWithContext, screen, waitFor, fireEvent, act, findByText, render } from '../../test/test.utils'
 import { ChatHistoryListItemCell, ChatHistoryListItemGroups } from './ChatHistoryListItem'
 import { Conversation } from '../../api/models'
-import { historyRename, historyDelete, historyList } from '../../api'
+import { historyRename, historyDelete, historyList, historyRead } from '../../api'
 import React, { useEffect } from 'react'
 import userEvent from '@testing-library/user-event'
 import { AppStateContext } from '../../state/AppProvider'
@@ -11,6 +11,7 @@ jest.mock('../../api/api', () => ({
   historyRename: jest.fn(),
   historyDelete: jest.fn(),
   historyList: jest.fn(),
+  historyRead: jest.fn(),
 
 }))
 const mockGroupedChatHistory = [
@@ -164,17 +165,39 @@ describe('ChatHistoryListItemCell', () => {
     const titleElement = screen.getByText(/Test Chat/i)
     expect(titleElement).toBeInTheDocument()
   })
-  test('calls onSelect when a chat history item is clicked', async () => {
-    renderWithContext(<ChatHistoryListItemCell item={conversation} onSelect={mockOnSelect} />, mockAppState)
-    const titleElement = screen.getByText(/Test Chat/i)
-    expect(titleElement).toBeInTheDocument()
-    // Simulate click on a chat item
-    fireEvent.click(titleElement)
+  // test('calls onSelect when a chat history item is clicked', async () => {
+  //   renderWithContext(<ChatHistoryListItemCell item={conversation} onSelect={mockOnSelect} />, mockAppState)
+  //   const titleElement = screen.getByText(/Test Chat/i)
+  //   expect(titleElement).toBeInTheDocument()
+  //   // Simulate click on a chat item
+  //   fireEvent.click(titleElement)
+  //   await waitFor(() => {
+  //     // Ensure the onSelect handler is called with the correct item
+  //     expect(mockOnSelect).toHaveBeenCalledWith(conversation)
+  //   })
+  // })
+
+  // test('calls onSelect when clicked', async () => {
+  //   renderWithContext(<ChatHistoryListItemCell item={conversation} onSelect={mockOnSelect} />, mockAppState);
+  //   fireEvent.click(screen.getByText(/Test Chat/i));
+  //   await waitFor(() => {
+  //     expect(mockOnSelect).toHaveBeenCalledWith(conversation);
+  //   });
+  // });
+
+  test('calls onSelect with updated chat data when clicked', async () => {
+    // Mock historyRead to return some messages
+    const mockMessages = [{ id: 'msg1', text: 'Hello' }];
+    (historyRead as jest.Mock).mockResolvedValue(mockMessages);
+  
+    renderWithContext(<ChatHistoryListItemCell item={conversation} onSelect={mockOnSelect} />, mockAppState);
+  
+    fireEvent.click(screen.getByText(/Test Chat/i));
+  
     await waitFor(() => {
-      // Ensure the onSelect handler is called with the correct item
-      expect(mockOnSelect).toHaveBeenCalledWith(conversation)
-    })
-  })
+      expect(mockOnSelect).toHaveBeenCalledWith({ ...conversation, messages: mockMessages });
+    });
+  });
 
   test('truncates long title', () => {
     const longTitleConversation = {
@@ -188,13 +211,20 @@ describe('ChatHistoryListItemCell', () => {
     expect(truncatedTitle).toBeInTheDocument()
   })
 
-  test('calls onSelect when clicked', () => {
-    renderWithContext(<ChatHistoryListItemCell item={conversation} onSelect={mockOnSelect} />, mockAppState)
-
-    const item = screen.getByLabelText('chat history item')
-    fireEvent.click(item)
-    expect(mockOnSelect).toHaveBeenCalledWith(conversation)
-  })
+  test('calls onSelect when clicked', async () => {
+    renderWithContext(<ChatHistoryListItemCell item={conversation} onSelect={mockOnSelect} />, mockAppState);
+  
+    const item = screen.getByLabelText('chat history item');
+    fireEvent.click(item);
+  
+    await waitFor(() => {
+      expect(mockOnSelect).toHaveBeenCalledWith(expect.objectContaining({
+        id: conversation.id,
+        title: conversation.title,
+        date: conversation.date,
+      }));
+    });
+  });
 
   test('when null item is not passed', () => {
     renderWithContext(<ChatHistoryListItemCell onSelect={mockOnSelect} />, mockAppState)

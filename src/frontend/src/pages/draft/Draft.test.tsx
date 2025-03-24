@@ -161,11 +161,13 @@ describe('Draft Component', () => {
     expect(sectionCards.length).toBe(0)
   })
 
-  test('renders SectionCard for each section in draftedDocument', () => {
+  test('renders SectionCard for each section in draftedDocument', async() => {
     renderComponent(mockAppState)
 
-    const sectionCards = screen.getAllByTestId('mock-section-card')
-    expect(sectionCards.length).toBe(mockAppState.state.draftedDocument.sections.length)
+    await waitFor(() => {
+      const sectionCards = screen.getAllByTestId('mock-section-card');
+      expect(sectionCards.length).toBe(mockAppState.state.draftedDocument.sections.length);
+  });
   })
 
   test('getTitle function returns correct title when draftedDocumentTitle is valid', () => {
