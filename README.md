@@ -75,7 +75,7 @@ When you start the deployment, most parameters will have **default values**, but
 |------------|----------------|  ------------|
 | **Azure Region** | The region where resources will be created. | eastus | 
 | **Environment Name** | A **3-20 character alphanumeric value** used to generate a unique ID to prefix the resources. |  byctemplate |
-| **Secondary Location** | A **less busy** region for **Azure SQL and CosmosDB**, useful in case of availability constraints. |  eastus2 |
+| **Secondary Location** | A **less busy** region for **CosmosDB**, useful in case of availability constraints. |  eastus2 |
 | **Deployment Type** | Select from a drop-down list. |  Global Standard |
 | **GPT Model** | Choose from **gpt-4, gpt-4o** | gpt-4o |  
 | **GPT Model Deployment Capacity** | Configure capacity for **GPT models**. | 30k |
