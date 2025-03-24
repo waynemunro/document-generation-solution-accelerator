@@ -62,7 +62,7 @@ var solutionPrefix = 'dg${padLeft(take(uniqueId, 12), 12, '0')}'
 var resourceGroupLocation = resourceGroup().location
 
 var solutionLocation = resourceGroupLocation
-var baseUrl = 'https://raw.githubusercontent.com/microsoft/Generic-Build-your-own-copilot-Solution-Accelerator/main/'
+var baseUrl = 'https://raw.githubusercontent.com/microsoft/document-generation-solution-accelerator/main/'
 
 var ApplicationInsightsName = 'appins-${solutionPrefix}'
 var WorkspaceName = 'worksp-${solutionPrefix}'
