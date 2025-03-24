@@ -73,19 +73,21 @@ When you start the deployment, most parameters will have **default values**, but
 
 | **Setting** | **Description** |  **Default value** |
 |------------|----------------|  ------------|
-| **Azure Region** | The region where resources will be created. | East US| 
+| **Azure Region** | The region where resources will be created. | eastus | 
 | **Environment Name** | A **3-20 character alphanumeric value** used to generate a unique ID to prefix the resources. |  byctemplate |
 | **Secondary Location** | A **less busy** region for **Azure SQL and CosmosDB**, useful in case of availability constraints. |  eastus2 |
-| **Deployment Type** | Select from a drop-down list. |  Standard |
-| **GPT Model** | Choose from **gpt-4, gpt-4o** | gpt-4 |  
+| **Deployment Type** | Select from a drop-down list. |  Global Standard |
+| **GPT Model** | Choose from **gpt-4, gpt-4o** | gpt-4o |  
 | **GPT Model Deployment Capacity** | Configure capacity for **GPT models**. | 30k |
 | **Embedding Model** | Default: **text-embedding-ada-002**. |  text-embedding-ada-002 |
 | **Embedding Model Capacity** | Set the capacity for **embedding models**. |  80k |
 
 
 ### [Optional] Quota Recommendations  
-By default, the **GPT model capacity** in deployment is set to **30k tokens**.  
-> **We recommend increasing the capacity to 100k tokens for optimal performance.** 
+By default, the **Gpt-4o model capacity** in deployment is set to **30k tokens**, so we recommend
+> **For GPT-4o, the capacity to at least 150k tokens post-deployment for optimal performance.**
+
+> **For GPT-4, ensure a minimum of 30k–40k tokens for best results.**
 
 To adjust quota settings, follow these [steps](./docs/AzureGPTQuotaSettings.md)  
 
