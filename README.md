@@ -32,7 +32,7 @@ The documents are intended for use as sample data only.
 
 
 ### Solution accelerator architecture
-![image](/docs/images/Archimage.png)
+![image](/docs/images/DocGen_Azure_AI_Foundry_Architecture.png)
 
 <h2><img src="./docs/images/oneClickDeploy.png" width="64">
 <br/>
