@@ -22,6 +22,8 @@ _Sample Questions:_
 - Add a Payment acceleration clause after the payment terms section.
 - Click on Generate Draft.
   
+![GenerateDraft](images/GenerateDraft.png)
+  
 ### **Draft**
 The Draft section ensures accuracy and completeness of the generated promissory notes. Key tasks include:
 
