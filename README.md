@@ -211,7 +211,9 @@ Additional Steps
 
      Follow steps in [Delete Resource Group](./docs/DeleteResourceGroup.md) If your deployment fails and you need to clean up the resources.
 
+## Sample Questions
 
+To help you get started, here are some [Sample Questions](./docs/SampleQuestions.md) you can follow once your application is up and running.
 
 <!-- 
 
@@ -245,8 +247,6 @@ To add further access controls, update the logic in `getUserInfoList` in `fronte
 
 ### Local deployment
 Review the local deployment [README](./docs/README_LOCAL.md). -->
-
-
 
 <h2>
 </br>
