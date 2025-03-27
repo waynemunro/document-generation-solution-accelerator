@@ -57,7 +57,7 @@ describe('ChatHistoryList', () => {
     renderChatHistoryList({ chatHistory });
 
     expect(screen.getByText('Recent')).toBeInTheDocument();
-    expect(screen.getByText('Recent Chat')).toBeInTheDocument();
+    expect(screen.getAllByText('Recent Chat').length).toBeGreaterThan(1);
   });
 
   it('handles empty chat history group gracefully', () => {
@@ -71,8 +71,8 @@ describe('ChatHistoryList', () => {
       { id: '4', title: 'Month Old Chat', date: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(), messages: [] },
     ];
     renderChatHistoryList({ chatHistory });
-    expect(screen.getByText('Week Old Chat')).toBeInTheDocument();
-    expect(screen.getByText('Month Old Chat')).toBeInTheDocument();
+    expect(screen.getAllByText('Week Old Chat').length).toBeGreaterThan(1);
+    expect(screen.getAllByText('Month Old Chat').length).toBeGreaterThan(1);
   });
 
   it('groups entries without matching month-year into a new group', () => {
@@ -80,7 +80,7 @@ describe('ChatHistoryList', () => {
       { id: '5', title: 'Very Old Chat', date: new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString(), messages: [] },
     ];
     renderChatHistoryList({ chatHistory });
-    expect(screen.getByText('Very Old Chat')).toBeInTheDocument();
+    expect(screen.getAllByText('Very Old Chat').length).toBeGreaterThan(1);
     // Check that a new group for the year appears if it's far in the past
   });
   
@@ -90,8 +90,8 @@ describe('ChatHistoryList', () => {
       { id: '7', title: 'Chat 2', date: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000).toISOString(), messages: [] },
     ];
     renderChatHistoryList({ chatHistory });
-    expect(screen.getByText('Chat 1')).toBeInTheDocument();
-    expect(screen.getByText('Chat 2')).toBeInTheDocument();
+    expect(screen.getAllByText('Chat 1').length).toBeGreaterThan(1);
+    expect(screen.getAllByText('Chat 2').length).toBeGreaterThan(1);
     // Confirm that both entries are grouped in the same month
   });
   it('groups recent and older entries separately', () => {
@@ -101,7 +101,7 @@ describe('ChatHistoryList', () => {
     ];
     renderChatHistoryList({ chatHistory });
     expect(screen.getByText('Recent')).toBeInTheDocument();
-    expect(screen.getByText('Older Chat')).toBeInTheDocument();
+    expect(screen.getAllByText('Older Chat').length).toBeGreaterThan(1);
     // Ensures "Recent Chat" is grouped separately from older entries
   });
   it('groups multiple entries in the same month-year and sorts them', () => {
@@ -110,8 +110,8 @@ describe('ChatHistoryList', () => {
       { id: '11', title: 'Chat on Day 2', date: new Date(Date.now() - 46 * 24 * 60 * 60 * 1000).toISOString(), messages: [] },
     ];
     renderChatHistoryList({ chatHistory });
-    expect(screen.getByText('Chat on Day 1')).toBeInTheDocument();
-    expect(screen.getByText('Chat on Day 2')).toBeInTheDocument();
+    expect(screen.getAllByText('Chat on Day 1').length).toBeGreaterThan(1);
+    expect(screen.getAllByText('Chat on Day 2').length).toBeGreaterThan(1);
     // Confirms entries from the same month-year are grouped and sorted within the group
   });
   it('handles empty groups gracefully', () => {
@@ -130,9 +130,9 @@ describe('ChatHistoryList', () => {
       { id: '15', title: 'Oldest Chat', date: new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString(), messages: [] },
     ];
     renderChatHistoryList({ chatHistory });
-    expect(screen.getByText('Newest Chat')).toBeInTheDocument();
-    expect(screen.getByText('Older Chat')).toBeInTheDocument();
-    expect(screen.getByText('Oldest Chat')).toBeInTheDocument();
+    expect(screen.getAllByText('Newest Chat').length).toBeGreaterThan(1);
+    expect(screen.getAllByText('Older Chat').length).toBeGreaterThan(1);
+    expect(screen.getAllByText('Oldest Chat').length).toBeGreaterThan(1);
     
   });
   

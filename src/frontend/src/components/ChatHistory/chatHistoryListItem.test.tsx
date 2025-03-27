@@ -75,12 +75,14 @@ describe('ChatHistoryListItemGroups', () => {
     });
   });
 
-  test('renders grouped chat history correctly', () => {
+  test('renders grouped chat history correctly', async () => {
     renderWithContext(<ChatHistoryListItemGroups groupedChatHistory={mockGroupedChatHistory} />)
 
     // Check if group month and titles are rendered
-    expect(screen.getByText('2024-11')).toBeInTheDocument()
-    expect(screen.getByText('Chat 1')).toBeInTheDocument()
+    await waitFor(() => {
+      expect(screen.getByText('2024-11')).toBeInTheDocument();
+      expect(screen.getAllByText('Chat 1').length).toBeGreaterThan(1);
+    });
   })
 
   test('displays a spinner when fetching history', async () => {
@@ -162,8 +164,8 @@ describe('ChatHistoryListItemCell', () => {
   test('renders the chat history item', () => {
     renderWithContext(<ChatHistoryListItemCell item={conversation} onSelect={mockOnSelect} />, mockAppState)
 
-    const titleElement = screen.getByText(/Test Chat/i)
-    expect(titleElement).toBeInTheDocument()
+    const titleElement = screen.getAllByText(/Test Chat/i)
+    expect(titleElement.length).toBeGreaterThan(1)
   })
   // test('calls onSelect when a chat history item is clicked', async () => {
   //   renderWithContext(<ChatHistoryListItemCell item={conversation} onSelect={mockOnSelect} />, mockAppState)
@@ -192,7 +194,7 @@ describe('ChatHistoryListItemCell', () => {
   
     renderWithContext(<ChatHistoryListItemCell item={conversation} onSelect={mockOnSelect} />, mockAppState);
   
-    fireEvent.click(screen.getByText(/Test Chat/i));
+    fireEvent.click(screen.getAllByText(/Test Chat/i)[0]);
   
     await waitFor(() => {
       expect(mockOnSelect).toHaveBeenCalledWith({ ...conversation, messages: mockMessages });
@@ -202,12 +204,12 @@ describe('ChatHistoryListItemCell', () => {
   test('truncates long title', () => {
     const longTitleConversation = {
       ...conversation,
-      title: 'A very long title that should be truncated after 28 characters'
+      title: 'A very long title that should be truncated after 24 characters'
     }
 
     renderWithContext(<ChatHistoryListItemCell item={longTitleConversation} onSelect={mockOnSelect} />, mockAppState)
 
-    const truncatedTitle = screen.getByText(/A very long title that shoul .../i)
+    const truncatedTitle = screen.getByText(/A very long title that s .../i)
     expect(truncatedTitle).toBeInTheDocument()
   })
 

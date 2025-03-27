@@ -7,6 +7,7 @@ import {
   DialogType,
   IconButton,
   ITextField,
+  ITooltipHostStyles,
   List,
   PrimaryButton,
   Separator,
@@ -14,7 +15,9 @@ import {
   SpinnerSize,
   Stack,
   Text,
-  TextField
+  TextField,
+  TooltipHost,
+  DirectionalHint,
 } from '@fluentui/react'
 import { useBoolean } from '@fluentui/react-hooks'
 
@@ -77,6 +80,10 @@ export const ChatHistoryListItemCell: React.FC<ChatHistoryListItemCellProps> = (
     isBlocking: true,
     styles: { main: { maxWidth: 450 } }
   }
+  
+  const tooltipStyles: Partial<ITooltipHostStyles> = {
+    root: { display: 'inline-block', maxWidth: '80%' }
+  };
 
   if (!item) {
     return null
@@ -145,7 +152,7 @@ export const ChatHistoryListItemCell: React.FC<ChatHistoryListItemCellProps> = (
     }
   }
 
-  const truncatedTitle = item?.title?.length > 28 ? `${item.title.substring(0, 28)} ...` : item.title
+  const truncatedTitle = item?.title?.length > 24 ? `${item.title.substring(0, 24)} ...` : item.title
 
   const handleSaveEdit = async (e: any) => {
     e.preventDefault()
@@ -285,9 +292,17 @@ export const ChatHistoryListItemCell: React.FC<ChatHistoryListItemCellProps> = (
       ) : (
         <>
           <Stack horizontal verticalAlign={'center'} style={{ width: '100%' }}>
-            <div className={styles.chatTitle}>{truncatedTitle}</div>
+            <Stack.Item grow>
+              <TooltipHost
+                content={item.title}
+                directionalHint={DirectionalHint.bottomCenter}
+              >
+                <div className={styles.chatTitle}>{truncatedTitle}</div>
+              </TooltipHost>
+            </Stack.Item>
+            {/* <div className={styles.chatTitle}>{truncatedTitle}</div> */}
             {(isSelected || isHovered) && (
-              <Stack horizontal horizontalAlign="end">
+              <Stack horizontal horizontalAlign="end" styles={{ root: { marginLeft: 'auto' } }}>
                 <IconButton
                   className={styles.itemButton}
                   iconProps={{ iconName: 'Delete' }}
