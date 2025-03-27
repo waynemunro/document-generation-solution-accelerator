@@ -5,14 +5,14 @@
     "_generator": {
       "name": "bicep",
       "version": "0.34.1.11899",
-      "templateHash": "3385834780038216651"
+      "templateHash": "6939886522036033725"
     }
   },
   "parameters": {
     "environmentName": {
       "type": "string",
       "minLength": 3,
-      "maxLength": 10,
+      "maxLength": 20,
       "metadata": {
         "description": "A unique prefix for all resources in this deployment. This should be 3-10 characters long:"
       }
@@ -1697,7 +1697,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.34.1.11899",
-              "templateHash": "8749313878807873763"
+              "templateHash": "11157199356947505887"
             }
           },
           "parameters": {
@@ -1786,7 +1786,7 @@
                 "databaseAccountOfferType": "Standard",
                 "enableAutomaticFailover": false,
                 "enableMultipleWriteLocations": false,
-                "disableLocalAuth": false,
+                "disableLocalAuth": true,
                 "apiProperties": "[if(equals(parameters('kind'), 'MongoDB'), createObject('serverVersion', '4.0'), createObject())]",
                 "capabilities": [
                   {
