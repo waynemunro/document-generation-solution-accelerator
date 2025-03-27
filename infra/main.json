@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.34.1.11899",
-      "templateHash": "6939886522036033725"
+      "templateHash": "10534846592360054965"
     }
   },
   "parameters": {
@@ -14,7 +14,7 @@
       "minLength": 3,
       "maxLength": 20,
       "metadata": {
-        "description": "A unique prefix for all resources in this deployment. This should be 3-10 characters long:"
+        "description": "A unique prefix for all resources in this deployment. This should be 3-20 characters long:"
       }
     },
     "secondaryLocation": {
