@@ -3,10 +3,8 @@ targetScope = 'resourceGroup'
 
 @minLength(3)
 @maxLength(20)
-@description('A unique prefix for all resources in this deployment. This should be 3-10 characters long:')
+@description('A unique prefix for all resources in this deployment. This should be 3-20 characters long:')
 param environmentName string
-
-
 
 @metadata({
   azd: {
