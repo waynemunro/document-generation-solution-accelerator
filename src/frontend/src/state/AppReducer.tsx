@@ -122,14 +122,25 @@ export const appStateReducer = (state: AppState, action: Action): AppState => {
     
     case 'UPDATE_IS_LOADED_SECTIONS' :
       let tempLoadedSection:any = [];
-      if(action.payload.act === 'removeAll')
-      {
-         tempLoadedSection = [];
-      }else
-      {
-        tempLoadedSection = [...state.isLoadedSections];
-        tempLoadedSection.push(action.payload.section)
+      console.log("action.payload", action.payload);
+
+      switch(action.payload.act){
+        case 'removeAll': 
+        tempLoadedSection = [];
+        break;
+        case 'removeItem' : 
+        tempLoadedSection = state.isLoadedSections.filter((item) => item.title !== action.payload.title);
+        break;
+        default : 
+          const exists = state.isLoadedSections.some((item) => item.title === action.payload.section?.title);
+          console.log("exists", exists);
+          tempLoadedSection = [...state.isLoadedSections];
+          if(!exists){
+            tempLoadedSection.push(action.payload.section);
+          }
+          break;
       }
+    
       return {...state, isLoadedSections: tempLoadedSection}
 
     default:

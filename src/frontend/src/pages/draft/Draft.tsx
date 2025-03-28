@@ -41,8 +41,9 @@ const Draft = (): JSX.Element => {
       }, index * 500); 
     });
     
-      //appStateContext?.dispatch({ type: 'UPDATE_IS_LOADED_SECTIONS', payload: {section : null, 'act': 'removeAll' } })
-  
+    return ()=>{
+      appStateContext?.dispatch({ type: 'UPDATE_IS_LOADED_SECTIONS', payload: {section : null, 'act': 'removeAll' } })
+    }
   }, []); 
 
   useEffect(()=>{
