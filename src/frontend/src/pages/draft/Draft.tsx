@@ -19,49 +19,40 @@ const Draft = (): JSX.Element => {
   const sections = draftedDocument?.sections ?? []
 
   const isLoadedSections = appStateContext?.state.isLoadedSections
-  
 
-  const [sectionItems , setSectionItems] = useState<Section[]>([])
+
+  const [sectionItems, setSectionItems] = useState<Section[]>([])
   const aiWarningLabel = 'AI-generated content may be incorrect'
 
 
   const [isExportButtonDisable, setIsExportButtonDisable] = useState<boolean>(false)
 
-  
+
 
   useEffect(() => {
-    
     sections.forEach((item, index) => {
       setTimeout(() => {
-        setSectionItems((prev) => [...prev, item]); 
-      }, index * 500); 
+        setSectionItems((prev) => [...prev, item]);
+      }, index * 500);
     });
-    
-    return ()=>{
-      appStateContext?.dispatch({ type: 'UPDATE_IS_LOADED_SECTIONS', payload: {section : null, 'act': 'removeAll' } })
+
+    return () => {
+      appStateContext?.dispatch({ type: 'UPDATE_IS_LOADED_SECTIONS', payload: { section: null, 'act': 'removeAll' } })
     }
-  
-  }, []); 
+
+  }, []);
 
 
 
-  useEffect(()=>{
-    if(isLoadedSections?.length === sections.length)
-    {
+  useEffect(() => {
+    if (isLoadedSections?.length === sections.length) {
       setIsExportButtonDisable(false);
     }
-    else{
+    else {
       setIsExportButtonDisable(true);
     }
+  }, [isLoadedSections])
 
-  },[isLoadedSections])
-
-
-  useEffect(()=>{
-    console.log("is loaded?", isLoadedSections)
-
-    console.log("sectionItems", sectionItems )
-  },[sectionItems, isLoadedSections])
 
   if (!draftedDocument) {
     navigate('/')
@@ -141,12 +132,10 @@ const Draft = (): JSX.Element => {
     return title.replace(/[^a-zA-Z0-9]/g, '')
   }
 
-  
-
   return (
     <Stack className={styles.container}>
       <TitleCard />
-      {(sectionItems ?? []).map((_, index : any) => (
+      {(sectionItems).map((_, index: any) => (
         <SectionCard key={index} sectionIdx={index} />
       ))}
       <Stack className={styles.buttonContainer}>
@@ -172,7 +161,7 @@ const Draft = (): JSX.Element => {
           onClick={exportToWord}
           aria-label="export document"
           text="Export Document"
-          disabled = {isExportButtonDisable}
+          disabled={isExportButtonDisable}
         />
       </Stack>
     </Stack>
