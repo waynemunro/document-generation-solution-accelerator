@@ -65,7 +65,8 @@ const modalStyles: IModalStyles = {
     minHeight: '40%',
     padding: '20px',
     backgroundColor: '#f3f2f1',
-    borderRadius: '8px'
+    borderRadius: '8px',
+    overflowY: 'hidden'
   },
   root: undefined,
   scrollableContent: {
@@ -80,7 +81,7 @@ const modalStyles: IModalStyles = {
 const contentStyles = mergeStyleSets({
   iframe: {
     width: '100%',
-    height: '500px',
+    height: '55vh',
     border: 'none'
   },
   closeButton: {
