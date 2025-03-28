@@ -37,8 +37,13 @@ const Draft = (): JSX.Element => {
       }, index * 500); 
     });
     
+    return ()=>{
+      appStateContext?.dispatch({ type: 'UPDATE_IS_LOADED_SECTIONS', payload: {section : null, 'act': 'removeAll' } })
+    }
   
   }, []); 
+
+
 
   useEffect(()=>{
     if(isLoadedSections?.length === sections.length)
