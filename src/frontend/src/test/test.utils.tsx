@@ -22,6 +22,7 @@ const defaultMockState = {
   failedSections : [],
   isFailedReqInitiated : false,
   isLoading : false,
+  isLoadedSections : []
 };
 
 // Create a custom render function

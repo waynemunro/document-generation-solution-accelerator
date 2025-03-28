@@ -28,6 +28,7 @@ const mockState = {
   failedSections : [],
   isFailedReqInitiated : false,
   isLoading : false,
+  isLoadedSections : []
 };
 
 const renderChatHistoryList = (stateOverride = {}) => {

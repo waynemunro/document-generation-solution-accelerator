@@ -175,4 +175,5 @@ describe('Draft Component', () => {
     expect(screen.getByDisplayValue('Sample Draft')).toBeInTheDocument()
   })
 
+ 
 })

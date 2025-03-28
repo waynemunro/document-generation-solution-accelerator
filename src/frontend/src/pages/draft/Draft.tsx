@@ -18,22 +18,50 @@ const Draft = (): JSX.Element => {
   const draftedDocument = appStateContext?.state.draftedDocument
   const sections = draftedDocument?.sections ?? []
 
+  const isLoadedSections = appStateContext?.state.isLoadedSections
+  
+
   const [sectionItems , setSectionItems] = useState<Section[]>([])
   const aiWarningLabel = 'AI-generated content may be incorrect'
 
+
+  const [isExportButtonDisable, setIsExportButtonDisable] = useState<boolean>(false)
+
+  
+  
   // redirect to home page if draftedDocument is empty
 
+  
+
   useEffect(() => {
+    
     sections.forEach((item, index) => {
       setTimeout(() => {
         setSectionItems((prev) => [...prev, item]); 
       }, index * 500); 
     });
+    
+      //appStateContext?.dispatch({ type: 'UPDATE_IS_LOADED_SECTIONS', payload: {section : null, 'act': 'removeAll' } })
+  
   }, []); 
 
   useEffect(()=>{
-    console.log("sectionItems", sectionItems)
-  },[sectionItems])
+    if(isLoadedSections?.length === sections.length)
+    {
+      setIsExportButtonDisable(false);
+    }
+    else{
+      setIsExportButtonDisable(true);
+    }
+
+  },[isLoadedSections])
+
+
+  useEffect(()=>{
+    console.log("is loaded?", isLoadedSections)
+
+    console.log("sectionItems", sectionItems )
+  },[sectionItems, isLoadedSections])
 
   if (!draftedDocument) {
     navigate('/')
@@ -113,6 +141,35 @@ const Draft = (): JSX.Element => {
     return title.replace(/[^a-zA-Z0-9]/g, '')
   }
 
+  // const handleLoadingChange = (isSectionLoading: boolean) => {
+  //   setLoadingCount((prev) => {
+  //     const newCount = isSectionLoading ? prev + 1 : prev - 1
+  //     return newCount
+  //   })
+  // }
+  // useEffect(() => {
+  //   const failedSections = appStateContext?.state?.failedSections ?? []
+  //   if (failedSections.length > 0) {
+      
+  //     setTimeout(() => {
+  //       setIsFailLoading(true);
+  //     }, 5000);
+      
+  //     if(failedSections.length>1)
+  //     {
+  //       setTimeout(() => {
+  //         setLoadingCount(0)
+  //       },5000);
+  //     }
+  //   }
+  //   else
+  //   {
+  //     setTimeout(() => {
+  //     setIsFailLoading(false)
+  //   }, 5000);
+  //   }
+  // }, [appStateContext?.state?.failedSections])
+
   return (
     <Stack className={styles.container}>
       <TitleCard />
@@ -142,6 +199,7 @@ const Draft = (): JSX.Element => {
           onClick={exportToWord}
           aria-label="export document"
           text="Export Document"
+          disabled = {isExportButtonDisable}
         />
       </Stack>
     </Stack>

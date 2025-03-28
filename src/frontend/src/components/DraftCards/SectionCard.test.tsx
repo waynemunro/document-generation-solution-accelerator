@@ -57,6 +57,7 @@ const mockState = {
   failedSections : [],
   isFailedReqInitiated : false,
   isLoading : false,
+  isLoadedSections: []
 }
 
 const renderWithContext = (idx = 0) =>
@@ -210,4 +211,20 @@ describe('SectionCard Component', () => {
       }
     })
   })
+//////
+  it('displays pre-filled section content', async () => {
+    mockState.draftedDocument.sections[0].content = 'Pre-filled content'
+  
+    renderWithContext()
+  
+    await waitFor(() => {
+      expect(screen.getByText('Pre-filled content')).toBeInTheDocument()
+      expect(sectionGenerate).not.toHaveBeenCalled()
+    })
+  })
+
+  ////
+
+  
+
 })
