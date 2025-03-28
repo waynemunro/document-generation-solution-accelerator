@@ -28,10 +28,6 @@ const Draft = (): JSX.Element => {
   const [isExportButtonDisable, setIsExportButtonDisable] = useState<boolean>(false)
 
   
-  
-  // redirect to home page if draftedDocument is empty
-
-  
 
   useEffect(() => {
     
@@ -41,9 +37,7 @@ const Draft = (): JSX.Element => {
       }, index * 500); 
     });
     
-    return ()=>{
-      appStateContext?.dispatch({ type: 'UPDATE_IS_LOADED_SECTIONS', payload: {section : null, 'act': 'removeAll' } })
-    }
+  
   }, []); 
 
   useEffect(()=>{
@@ -142,34 +136,7 @@ const Draft = (): JSX.Element => {
     return title.replace(/[^a-zA-Z0-9]/g, '')
   }
 
-  // const handleLoadingChange = (isSectionLoading: boolean) => {
-  //   setLoadingCount((prev) => {
-  //     const newCount = isSectionLoading ? prev + 1 : prev - 1
-  //     return newCount
-  //   })
-  // }
-  // useEffect(() => {
-  //   const failedSections = appStateContext?.state?.failedSections ?? []
-  //   if (failedSections.length > 0) {
-      
-  //     setTimeout(() => {
-  //       setIsFailLoading(true);
-  //     }, 5000);
-      
-  //     if(failedSections.length>1)
-  //     {
-  //       setTimeout(() => {
-  //         setLoadingCount(0)
-  //       },5000);
-  //     }
-  //   }
-  //   else
-  //   {
-  //     setTimeout(() => {
-  //     setIsFailLoading(false)
-  //   }, 5000);
-  //   }
-  // }, [appStateContext?.state?.failedSections])
+  
 
   return (
     <Stack className={styles.container}>

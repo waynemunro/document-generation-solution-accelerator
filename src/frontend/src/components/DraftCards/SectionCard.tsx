@@ -12,7 +12,6 @@ import { useLocation } from 'react-router-dom'
 
 interface SectionCardProps {
   sectionIdx: number
- // onLoadingChange: (isLoading: boolean) => void
 }
 
 const useStyles = makeStyles({
@@ -157,7 +156,6 @@ const SectionCard = ({ sectionIdx  }: SectionCardProps) => {
 
   async function fetchSectionContent(sectionTitle: string, sectionDescription: string , isReqFrom = '') {
     setIsLoading(true)
-    //onLoadingChange(true)
     
     const sectionGenerateRequest: SectionGenerateRequest = { sectionTitle, sectionDescription }
 
@@ -193,7 +191,6 @@ const SectionCard = ({ sectionIdx  }: SectionCardProps) => {
   
       setCharCount(content.length)
       setIsLoading(false)
-      //onLoadingChange(false)
       appStateContext?.dispatch({ type: 'REMOVED_FAILED_SECTION', payload: {section : updatedSection} })
 
       appStateContext?.dispatch({ type: 'UPDATE_IS_LOADED_SECTIONS', payload: {section : updatedSection} })
