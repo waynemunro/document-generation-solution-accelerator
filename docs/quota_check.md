@@ -3,9 +3,38 @@
 Before deploying the accelerator, **ensure sufficient quota availability** for the required model.  
 Use one of the following scripts based on your needs:  
 
-- **`quota_check_params.sh`** → If you **know the model and capacity** required.  
-- **`quota_check_all_regions.sh`** → If you **want to check available capacity across all regions** for supported models.  
+- **`quota_check_params.sh`** → If you **know the model and capacity** required.
 
+## Usage Scenarios:
+- No parameters passed → Default models and capacities will be checked in default regions.
+- Only model(s) provided → The script will check for those models in the default regions.
+- Only region(s) provided → The script will check default models in the specified regions.
+- Both models and regions provided → The script will check those models in the specified regions.
+  
+## **Input Formats**
+✔️ Run without parameters to check default models & regions:
+   ```
+  ./quota_check_params.sh
+   ```
+✔️ Model name and required capacity in the format:
+  ```
+  ./quota_check_params.sh gpt-4o:30
+  ```
+✔️ Multiple models can be passed, separated by commas:
+  ```
+  ./quota_check_params.sh gpt-4o:30,text-embedding-ada-002:80
+  ```
+✔️ Specify region(s) (comma-separated):  
+  ```
+  ./quota_check_params.sh gpt-4o:30 eastus,westus2
+  ```
+✔️ Check default models in specific regions:
+  ```
+  ./quota_check_params.sh "" eastus,westus2
+  ```
+
+#### **Sample Output**
+The final table lists regions with available quota for both GPT and text embedding models. You can select any of these regions for deployment.
 ---
 ## **If using Azure Portal and Cloud Shell**
 
@@ -30,8 +59,12 @@ Use one of the following scripts based on your needs:
     ```
     
 ## **If using VS Code or Codespaces**
-
-1. Run the appropriate script based on your requirement:  
+1. Open the terminal in VS Code or Codespaces.  
+2. Navigate to the `scripts` folder where the script files are located:
+   ```sh
+    cd scripts
+    ```
+3. Run the appropriate script based on your requirement:  
 
    **To check quota for a specific model and capacity:**  
 
@@ -44,13 +77,13 @@ Use one of the following scripts based on your needs:
     ```sh
     ./quota_check_all_regions.sh
     ```
-2. If you see the error `_bash: az: command not found_`, install Azure CLI:  
+4. If you see the error `_bash: az: command not found_`, install Azure CLI:  
 
     ```sh
     curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
     az login
     ```
-3. Rerun the script after installing Azure CLI.
+5. Rerun the script after installing Azure CLI.
    
     **Parameters**
     - `<model_name:capacity>`: The name and required capacity for each model, in the format model_name:capacity (**e.g., gpt-4o-mini:30,text-embedding-ada-002:20**).
