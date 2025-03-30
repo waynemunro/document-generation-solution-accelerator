@@ -1,10 +1,15 @@
 ## Check Quota Availability Before Deployment
 
-Before deploying the accelerator, **ensure sufficient quota availability** for the required model.  
-Use one of the following scripts based on your needs:  
+Before deploying the accelerator, **ensure sufficient quota availability** for the required model.  \
 
-- **`quota_check_params.sh`** → If you **know the model and capacity** required.
-
+## 📌 Default Models & Capacities:
+```
+gpt-4o:30, text-embedding-ada-002:80, gpt-4:30
+```
+## 📌 Default Regions:
+```
+eastus, uksouth, eastus2, northcentralus, swedencentral, westus, westus2, southcentralus, canadacentral
+```
 ## Usage Scenarios:
 - No parameters passed → Default models and capacities will be checked in default regions.
 - Only model(s) provided → The script will check for those models in the default regions.
@@ -34,7 +39,10 @@ Use one of the following scripts based on your needs:
   ```
 
 #### **Sample Output**
-The final table lists regions with available quota for both GPT and text embedding models. You can select any of these regions for deployment.
+The final table lists regions with available quota. You can select any of these regions for deployment.
+
+![quota-check-ouput](images/quota-check-output.png)
+
 ---
 ## **If using Azure Portal and Cloud Shell**
 
@@ -84,7 +92,3 @@ The final table lists regions with available quota for both GPT and text embeddi
     az login
     ```
 5. Rerun the script after installing Azure CLI.
-   
-    **Parameters**
-    - `<model_name:capacity>`: The name and required capacity for each model, in the format model_name:capacity (**e.g., gpt-4o-mini:30,text-embedding-ada-002:20**).
-    - `[<model_region>] (optional)`: The Azure region to check first. If not provided, all supported regions will be checked (**e.g., eastus**).
