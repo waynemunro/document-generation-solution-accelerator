@@ -1,20 +1,35 @@
 #!/bin/bash
 
-# Parameters
-IFS=',' read -r -a MODEL_CAPACITY_PAIRS <<< "$1"  # Split the comma-separated model and capacity pairs into an array
+# Default Models and Capacities (Comma-separated in "model:capacity" format)
+DEFAULT_MODEL_CAPACITY="gpt-4o:30,text-embedding-ada-002:80,gpt-4:30"
+
+# Convert the comma-separated string into an array
+IFS=',' read -r -a MODEL_CAPACITY_PAIRS <<< "$DEFAULT_MODEL_CAPACITY"
+
+# Default Regions to check (Comma-separated, now configurable)
+DEFAULT_REGIONS="eastus,uksouth,eastus2,northcentralus,swedencentral,westus,westus2,southcentralus,canadacentral"
+IFS=',' read -r -a DEFAULT_REGION_ARRAY <<< "$DEFAULT_REGIONS"
+
+# Read parameters (if any)
+IFS=',' read -r -a USER_PROVIDED_PAIRS <<< "$1"
 USER_REGION="$2"
 
-if [ ${#MODEL_CAPACITY_PAIRS[@]} -lt 1 ]; then
-    echo "❌ ERROR: At least one model and capacity pairs must be provided as arguments."
-    exit 1
+IS_USER_PROVIDED_PAIRS=false
+
+if [ ${#USER_PROVIDED_PAIRS[@]} -lt 1 ]; then
+    echo "No parameters provided, using default model-capacity pairs: ${MODEL_CAPACITY_PAIRS[*]}"
+else
+    echo "Using provided model and capacity pairs: ${USER_PROVIDED_PAIRS[*]}"
+    IS_USER_PROVIDED_PAIRS=true
+    MODEL_CAPACITY_PAIRS=("${USER_PROVIDED_PAIRS[@]}")
 fi
 
-# Extract model names and required capacities into arrays
-declare -a MODEL_NAMES
-declare -a CAPACITIES
+declare -a FINAL_MODEL_NAMES
+declare -a FINAL_CAPACITIES
+declare -a TABLE_ROWS
 
 for PAIR in "${MODEL_CAPACITY_PAIRS[@]}"; do
-    MODEL_NAME=$(echo "$PAIR" | cut -d':' -f1)
+    MODEL_NAME=$(echo "$PAIR" | cut -d':' -f1 | tr '[:upper:]' '[:lower:]')
     CAPACITY=$(echo "$PAIR" | cut -d':' -f2)
 
     if [ -z "$MODEL_NAME" ] || [ -z "$CAPACITY" ]; then
@@ -22,138 +37,127 @@ for PAIR in "${MODEL_CAPACITY_PAIRS[@]}"; do
         exit 1
     fi
 
-    MODEL_NAMES+=("$MODEL_NAME")
-    CAPACITIES+=("$CAPACITY")
+    FINAL_MODEL_NAMES+=("$MODEL_NAME")
+    FINAL_CAPACITIES+=("$CAPACITY")
+
 done
 
-echo "🔄 Using Models: ${MODEL_NAMES[*]} with respective Capacities: ${CAPACITIES[*]}"
+echo "🔄 Using Models: ${FINAL_MODEL_NAMES[*]} with respective Capacities: ${FINAL_CAPACITIES[*]}"
+echo "----------------------------------------"
 
-echo "🔄 Fetching available Azure subscriptions..."
-SUBSCRIPTIONS=$(az account list --query "[?state=='Enabled'].{Name:name, ID:id}" --output tsv)
-SUB_COUNT=$(echo "$SUBSCRIPTIONS" | wc -l)
-
-if [ "$SUB_COUNT" -eq 1 ]; then
-    # If only one subscription, automatically select it
-    AZURE_SUBSCRIPTION_ID=$(echo "$SUBSCRIPTIONS" | awk '{print $2}')
-    echo "✅ Using the only available subscription: $AZURE_SUBSCRIPTION_ID"
-else
-    # If multiple subscriptions exist, prompt the user to choose one
-    echo "Multiple subscriptions found:"
-    echo "$SUBSCRIPTIONS" | awk '{print NR")", $1, "-", $2}'
-
-    while true; do
-        echo "Enter the number of the subscription to use:"
-        read SUB_INDEX
-
-        # Validate user input
-        if [[ "$SUB_INDEX" =~ ^[0-9]+$ ]] && [ "$SUB_INDEX" -ge 1 ] && [ "$SUB_INDEX" -le "$SUB_COUNT" ]; then
-            AZURE_SUBSCRIPTION_ID=$(echo "$SUBSCRIPTIONS" | awk -v idx="$SUB_INDEX" 'NR==idx {print $2}')
-            echo "✅ Selected Subscription: $AZURE_SUBSCRIPTION_ID"
-            break
-        else
-            echo "❌ Invalid selection. Please enter a valid number from the list."
-        fi
-    done
-fi
-
-# Set the selected subscription
-az account set --subscription "$AZURE_SUBSCRIPTION_ID"
-echo "🎯 Active Subscription: $(az account show --query '[name, id]' --output table)"
-
-# List of regions to check
-DEFAULT_REGIONS=("eastus" "uksouth" "eastus2" "northcentralus" "swedencentral" "westus" "westus2" "southcentralus" "canadacentral")
-
-# Prioritize user-provided region if given
+# Check if the user provided a region, if not, use the default regions
 if [ -n "$USER_REGION" ]; then
-    # Ensure the user-provided region is checked first
-    REGIONS=("$USER_REGION" "${DEFAULT_REGIONS[@]}")
+    echo "🔍 User provided region: $USER_REGION"
+    IFS=',' read -r -a REGIONS <<< "$USER_REGION"
 else
-    REGIONS=("${DEFAULT_REGIONS[@]}")
+    echo "No region specified, using default regions: ${DEFAULT_REGION_ARRAY[*]}"
+    REGIONS=("${DEFAULT_REGION_ARRAY[@]}")
+    APPLY_OR_CONDITION=true
 fi
 
 echo "✅ Retrieved Azure regions. Checking availability..."
+INDEX=1
 
 VALID_REGIONS=()
 for REGION in "${REGIONS[@]}"; do
     echo "----------------------------------------"
     echo "🔍 Checking region: $REGION"
 
-    # Fetch quota information for the region
-    QUOTA_INFO=$(az cognitiveservices usage list --location "$REGION" --output json)
+    QUOTA_INFO=$(az cognitiveservices usage list --location "$REGION" --output json | tr '[:upper:]' '[:lower:]')
     if [ -z "$QUOTA_INFO" ]; then
         echo "⚠️ WARNING: Failed to retrieve quota for region $REGION. Skipping."
         continue
     fi
 
-    # Initialize a flag to track if both models have sufficient quota in the region
-    BOTH_MODELS_AVAILABLE=true
+    TEXT_EMBEDDING_AVAILABLE=false
+    AT_LEAST_ONE_MODEL_AVAILABLE=false
+    TEMP_TABLE_ROWS=()
 
-    for index in "${!MODEL_NAMES[@]}"; do
-        MODEL_NAME="${MODEL_NAMES[$index]}"
-        REQUIRED_CAPACITY="${CAPACITIES[$index]}"
-        
-        echo "🔍 Checking model: $MODEL_NAME with required capacity: $REQUIRED_CAPACITY"
+    for index in "${!FINAL_MODEL_NAMES[@]}"; do
+        MODEL_NAME="${FINAL_MODEL_NAMES[$index]}"
+        REQUIRED_CAPACITY="${FINAL_CAPACITIES[$index]}"
+        FOUND=false
+        INSUFFICIENT_QUOTA=false
 
-        # Extract model quota information
-        MODEL_INFO=$(echo "$QUOTA_INFO" | awk -v model="\"value\": \"OpenAI.Standard.$MODEL_NAME\"" '
-            BEGIN { RS="},"; FS="," }
-            $0 ~ model { print $0 }
-        ')
-
-        if [ -z "$MODEL_INFO" ]; then
-            echo "⚠️ WARNING: No quota information found for model: OpenAI.Standard.$MODEL_NAME in $REGION. Skipping."
-            BOTH_MODELS_AVAILABLE=false
-            break  # If any model is not available, no need to check further for this region
+        if [ "$MODEL_NAME" = "text-embedding-ada-002" ]; then
+            MODEL_TYPES=("openai.standard.$MODEL_NAME")
+        else
+            MODEL_TYPES=("openai.standard.$MODEL_NAME" "openai.globalstandard.$MODEL_NAME")
         fi
 
-        CURRENT_VALUE=$(echo "$MODEL_INFO" | awk -F': ' '/"currentValue"/ {print $2}' | tr -d ',' | tr -d ' ')
-        LIMIT=$(echo "$MODEL_INFO" | awk -F': ' '/"limit"/ {print $2}' | tr -d ',' | tr -d ' ')
+        for MODEL_TYPE in "${MODEL_TYPES[@]}"; do
+            FOUND=false
+            INSUFFICIENT_QUOTA=false
+            echo "🔍 Checking model: $MODEL_NAME with required capacity: $REQUIRED_CAPACITY ($MODEL_TYPE)"
 
-        CURRENT_VALUE=${CURRENT_VALUE:-0}
-        LIMIT=${LIMIT:-0}
+            MODEL_INFO=$(echo "$QUOTA_INFO" | awk -v model="\"value\": \"$MODEL_TYPE\"" '
+                BEGIN { RS="},"; FS="," }
+                $0 ~ model { print $0 }
+            ')
 
-        CURRENT_VALUE=$(echo "$CURRENT_VALUE" | cut -d'.' -f1)
-        LIMIT=$(echo "$LIMIT" | cut -d'.' -f1)
+            if [ -z "$MODEL_INFO" ]; then
+                FOUND=false
+                echo "⚠️ WARNING: No quota information found for model: $MODEL_NAME in region: $REGION for model type: $MODEL_TYPE."
+                continue
+            fi
 
-        AVAILABLE=$((LIMIT - CURRENT_VALUE))
+            if [ -n "$MODEL_INFO" ]; then
+                FOUND=true
+                CURRENT_VALUE=$(echo "$MODEL_INFO" | awk -F': ' '/"currentvalue"/ {print $2}' | tr -d ',' | tr -d ' ')
+                LIMIT=$(echo "$MODEL_INFO" | awk -F': ' '/"limit"/ {print $2}' | tr -d ',' | tr -d ' ')
 
-        echo "✅ Model: OpenAI.Standard.$MODEL_NAME | Used: $CURRENT_VALUE | Limit: $LIMIT | Available: $AVAILABLE"
+                CURRENT_VALUE=${CURRENT_VALUE:-0}
+                LIMIT=${LIMIT:-0}
 
-        # Check if quota is sufficient
-        if [ "$AVAILABLE" -lt "$REQUIRED_CAPACITY" ]; then
-            echo "❌ ERROR: 'OpenAI.Standard.$MODEL_NAME' in $REGION has insufficient quota. Required: $REQUIRED_CAPACITY, Available: $AVAILABLE"
-            echo "➡️  To request a quota increase, visit: https://aka.ms/oai/stuquotarequest"
-            BOTH_MODELS_AVAILABLE=false
-            break
-        fi
+                CURRENT_VALUE=$(echo "$CURRENT_VALUE" | cut -d'.' -f1)
+                LIMIT=$(echo "$LIMIT" | cut -d'.' -f1)
+
+                AVAILABLE=$((LIMIT - CURRENT_VALUE))
+                echo "✅ Model: $MODEL_TYPE | Used: $CURRENT_VALUE | Limit: $LIMIT | Available: $AVAILABLE"
+
+                if [ "$AVAILABLE" -ge "$REQUIRED_CAPACITY" ]; then
+                    FOUND=true
+                    if [ "$MODEL_NAME" = "text-embedding-ada-002" ]; then
+                        TEXT_EMBEDDING_AVAILABLE=true
+                    fi
+                    AT_LEAST_ONE_MODEL_AVAILABLE=true
+                    TEMP_TABLE_ROWS+=("$(printf "| %-4s | %-20s | %-60s | %-10s | %-10s | %-10s |" "$INDEX" "$REGION" "$MODEL_TYPE" "$LIMIT" "$CURRENT_VALUE" "$AVAILABLE")")
+                else
+                    INSUFFICIENT_QUOTA=true
+                fi
+            fi
+            
+            if [ "$FOUND" = false ]; then
+                echo "❌ No models found for model: $MODEL_NAME in region: $REGION (${MODEL_TYPES[*]})"
+            elif [ "$INSUFFICIENT_QUOTA" = true ]; then
+                echo "⚠️ Model $MODEL_NAME in region: $REGION has insufficient quota (${MODEL_TYPES[*]})."
+            fi
+        done
     done
 
-    # If both models have sufficient quota, add region to valid regions
-    if [ "$BOTH_MODELS_AVAILABLE" = true ]; then
-        echo "✅ All models have sufficient quota in $REGION."
+if { [ "$IS_USER_PROVIDED_PAIRS" = true ] && [ "$INSUFFICIENT_QUOTA" = false ] && [ "$FOUND" = true ]; } || { [ "$TEXT_EMBEDDING_AVAILABLE" = true ] && { [ "$APPLY_OR_CONDITION" != true ] || [ "$AT_LEAST_ONE_MODEL_AVAILABLE" = true ]; }; }; then
         VALID_REGIONS+=("$REGION")
+        TABLE_ROWS+=("${TEMP_TABLE_ROWS[@]}")
+        INDEX=$((INDEX + 1))
+    elif [ ${#USER_PROVIDED_PAIRS[@]} -eq 0 ]; then
+        echo "🚫 Skipping $REGION as it does not meet quota requirements."
     fi
+
 done
 
-# Determine final result and display in table format
-if [ ${#VALID_REGIONS[@]} -eq 0 ]; then
-    echo "----------------------------------------"
-    echo "❌ No region with sufficient quota found for all models. Blocking deployment."
-    echo "----------------------------------------"
-    exit 0
+if [ ${#TABLE_ROWS[@]} -eq 0 ]; then
+    echo "----------------------------------------------------------------------------------------------------------"
+
+    echo "❌ No regions have sufficient quota for all required models. Please request a quota increase: https://aka.ms/oai/stuquotarequest"
 else
-    echo "----------------------------------------"
-    echo "✅ Suggested Regions with Sufficient Quota"
-    echo "----------------------------------------"
-    printf "| %-5s | %-20s |\n" "No." "Region"
-    echo "----------------------------------------"
-    
-    INDEX=1
-    for REGION in "${VALID_REGIONS[@]}"; do
-        printf "| %-5s | %-20s |\n" "$INDEX" "$REGION"
-        INDEX=$((INDEX + 1))
+    echo "----------------------------------------------------------------------------------------------------------"
+    printf "| %-4s | %-20s | %-60s | %-10s | %-10s | %-10s |\n" "No." "Region" "Model Name" "Limit" "Used" "Available"
+    echo "----------------------------------------------------------------------------------------------------------"
+    for ROW in "${TABLE_ROWS[@]}"; do
+        echo "$ROW"
     done
-    
-    echo "----------------------------------------"
-    exit 0
+    echo "----------------------------------------------------------------------------------------------------------"
+    echo "➡️  To request a quota increase, visit: https://aka.ms/oai/stuquotarequest"
 fi
+
+echo "✅ Script completed."
