@@ -50,22 +50,13 @@ The final table lists regions with available quota. You can select any of these 
 2. Click on **Azure Cloud Shell** in the top right navigation menu.
 3. Run the appropriate command based on your requirement:  
 
-   **To check quota for a specific model and capacity:**  
+   **To check quota for the deployment**  
 
     ```sh
     curl -L -o quota_check_params.sh "https://raw.githubusercontent.com/microsoft/document-generation-solution-accelerator/main/scripts/quota_check_params.sh"
     chmod +x quota_check_params.sh
-    ./quota_check_params.sh <model_name:capacity> [<model_region>] (e.g., gpt-4o-mini:30,text-embedding-ada-002:20 eastus)
+    ./quota_check_params.sh
     ```
-
-   **To check available quota across all regions for supported models:**  
-
-    ```sh
-    curl -L -o quota_check_all_regions.sh "https://raw.githubusercontent.com/microsoft/document-generation-solution-accelerator/main/scripts/quota_check_all_regions.sh"
-    chmod +x quota_check_all_regions.sh
-    ./quota_check_all_regions.sh
-    ```
-    
 ### **If using VS Code or Codespaces**
 1. Open the terminal in VS Code or Codespaces.  
 2. Navigate to the `scripts` folder where the script files are located:
@@ -74,16 +65,10 @@ The final table lists regions with available quota. You can select any of these 
     ```
 3. Run the appropriate script based on your requirement:  
 
-   **To check quota for a specific model and capacity:**  
+   **To check quota for the deployment**  
 
     ```sh
-    ./quota_check_params.sh <model_name:capacity> [<model_region>] (e.g., gpt-4o-mini:30,text-embedding-ada-002:20 eastus)
-    ```
-
-   **To check available quota across all regions for supported models:**  
-
-    ```sh
-    ./quota_check_all_regions.sh
+    ./quota_check_params.sh
     ```
 4. If you see the error `_bash: az: command not found_`, install Azure CLI:  
 
