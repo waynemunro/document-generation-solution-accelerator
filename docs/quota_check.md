@@ -29,7 +29,7 @@ eastus, uksouth, eastus2, northcentralus, swedencentral, westus, westus2, southc
   ```
   ./quota_check_params.sh gpt-4o:30,text-embedding-ada-002:80
   ```
-✔️ Specify region(s) (comma-separated):  
+✔️ Passing Both models and regions:  
   ```
   ./quota_check_params.sh gpt-4o:30 eastus,westus2
   ```
