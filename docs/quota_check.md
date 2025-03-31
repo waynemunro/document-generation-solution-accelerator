@@ -57,6 +57,8 @@ The final table lists regions with available quota. You can select any of these 
     chmod +x quota_check_params.sh
     ./quota_check_params.sh
     ```
+    - Refer to [Input Formats](#input-formats) for detailed commands.
+      
 ### **If using VS Code or Codespaces**
 1. Open the terminal in VS Code or Codespaces.  
 2. Navigate to the `scripts` folder where the script files are located and make the script as executable:
@@ -71,6 +73,8 @@ The final table lists regions with available quota. You can select any of these 
     ```sh
     ./quota_check_params.sh
     ```
+   - Refer to [Input Formats](#input-formats) for detailed commands.
+
 4. If you see the error `_bash: az: command not found_`, install Azure CLI:  
 
     ```sh
