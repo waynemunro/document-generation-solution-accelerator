@@ -2,21 +2,21 @@
 
 Before deploying the accelerator, **ensure sufficient quota availability** for the required model.  \
 
-## 📌 Default Models & Capacities:
+### 📌 Default Models & Capacities:
 ```
 gpt-4o:30, text-embedding-ada-002:80, gpt-4:30
 ```
-## 📌 Default Regions:
+### 📌 Default Regions:
 ```
 eastus, uksouth, eastus2, northcentralus, swedencentral, westus, westus2, southcentralus, canadacentral
 ```
-## Usage Scenarios:
+### Usage Scenarios:
 - No parameters passed → Default models and capacities will be checked in default regions.
 - Only model(s) provided → The script will check for those models in the default regions.
 - Only region(s) provided → The script will check default models in the specified regions.
 - Both models and regions provided → The script will check those models in the specified regions.
   
-## **Input Formats**
+### **Input Formats**
 ✔️ Run without parameters to check default models & regions:
    ```
   ./quota_check_params.sh
@@ -38,13 +38,13 @@ eastus, uksouth, eastus2, northcentralus, swedencentral, westus, westus2, southc
   ./quota_check_params.sh "" eastus,westus2
   ```
 
-#### **Sample Output**
+### **Sample Output**
 The final table lists regions with available quota. You can select any of these regions for deployment.
 
 ![quota-check-ouput](images/quota-check-output.png)
 
 ---
-## **If using Azure Portal and Cloud Shell**
+### **If using Azure Portal and Cloud Shell**
 
 1. Navigate to the [Azure Portal](https://portal.azure.com).
 2. Click on **Azure Cloud Shell** in the top right navigation menu.
@@ -66,7 +66,7 @@ The final table lists regions with available quota. You can select any of these 
     ./quota_check_all_regions.sh
     ```
     
-## **If using VS Code or Codespaces**
+### **If using VS Code or Codespaces**
 1. Open the terminal in VS Code or Codespaces.  
 2. Navigate to the `scripts` folder where the script files are located:
    ```sh
