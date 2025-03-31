@@ -59,9 +59,10 @@ The final table lists regions with available quota. You can select any of these 
     ```
 ### **If using VS Code or Codespaces**
 1. Open the terminal in VS Code or Codespaces.  
-2. Navigate to the `scripts` folder where the script files are located:
+2. Navigate to the `scripts` folder where the script files are located and make the script as executable:
    ```sh
     cd scripts
+    chmod +x quota_check_params.sh
     ```
 3. Run the appropriate script based on your requirement:  
 
