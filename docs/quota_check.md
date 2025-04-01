@@ -60,13 +60,15 @@ The final table lists regions with available quota. You can select any of these 
     - Refer to [Input Formats](#input-formats) for detailed commands.
       
 ### **If using VS Code or Codespaces**
-1. Open the terminal in VS Code or Codespaces.  
-2. Navigate to the `scripts` folder where the script files are located and make the script as executable:
+1. Open the terminal in VS Code or Codespaces.
+2. If you're using VS Code, click the dropdown on the right side of the terminal window, and select `Git Bash`.
+   ![git_bash](images/git_bash.png)
+3. Navigate to the `scripts` folder where the script files are located and make the script as executable:
    ```sh
     cd scripts
     chmod +x quota_check_params.sh
     ```
-3. Run the appropriate script based on your requirement:  
+4. Run the appropriate script based on your requirement:  
 
    **To check quota for the deployment**  
 
@@ -75,10 +77,10 @@ The final table lists regions with available quota. You can select any of these 
     ```
    - Refer to [Input Formats](#input-formats) for detailed commands.
 
-4. If you see the error `_bash: az: command not found_`, install Azure CLI:  
+5. If you see the error `_bash: az: command not found_`, install Azure CLI:  
 
     ```sh
     curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
     az login
     ```
-5. Rerun the script after installing Azure CLI.
+6. Rerun the script after installing Azure CLI.
