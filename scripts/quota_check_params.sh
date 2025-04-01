@@ -6,6 +6,38 @@ DEFAULT_MODEL_CAPACITY="gpt-4o:30,text-embedding-ada-002:80,gpt-4:30"
 # Convert the comma-separated string into an array
 IFS=',' read -r -a MODEL_CAPACITY_PAIRS <<< "$DEFAULT_MODEL_CAPACITY"
 
+echo "🔄 Fetching available Azure subscriptions..."
+SUBSCRIPTIONS=$(az account list --query "[?state=='Enabled'].{Name:name, ID:id}" --output tsv)
+SUB_COUNT=$(echo "$SUBSCRIPTIONS" | wc -l)
+
+if [ "$SUB_COUNT" -eq 1 ]; then
+    # If only one subscription, automatically select it
+    AZURE_SUBSCRIPTION_ID=$(echo "$SUBSCRIPTIONS" | awk '{print $2}')
+    echo "✅ Using the only available subscription: $AZURE_SUBSCRIPTION_ID"
+else
+    # If multiple subscriptions exist, prompt the user to choose one
+    echo "Multiple subscriptions found:"
+    echo "$SUBSCRIPTIONS" | awk '{print NR")", $1, "-", $2}'
+
+    while true; do
+        echo "Enter the number of the subscription to use:"
+        read SUB_INDEX
+
+        # Validate user input
+        if [[ "$SUB_INDEX" =~ ^[0-9]+$ ]] && [ "$SUB_INDEX" -ge 1 ] && [ "$SUB_INDEX" -le "$SUB_COUNT" ]; then
+            AZURE_SUBSCRIPTION_ID=$(echo "$SUBSCRIPTIONS" | awk -v idx="$SUB_INDEX" 'NR==idx {print $2}')
+            echo "✅ Selected Subscription: $AZURE_SUBSCRIPTION_ID"
+            break
+        else
+            echo "❌ Invalid selection. Please enter a valid number from the list."
+        fi
+    done
+fi
+
+# Set the selected subscription
+az account set --subscription "$AZURE_SUBSCRIPTION_ID"
+echo "🎯 Active Subscription: $(az account show --query '[name, id]' --output tsv)"
+
 # Default Regions to check (Comma-separated, now configurable)
 DEFAULT_REGIONS="eastus,uksouth,eastus2,northcentralus,swedencentral,westus,westus2,southcentralus,canadacentral"
 IFS=',' read -r -a DEFAULT_REGION_ARRAY <<< "$DEFAULT_REGIONS"
