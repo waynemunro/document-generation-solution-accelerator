@@ -153,7 +153,7 @@ for REGION in "${REGIONS[@]}"; do
                         TEXT_EMBEDDING_AVAILABLE=true
                     fi
                     AT_LEAST_ONE_MODEL_AVAILABLE=true
-                    TEMP_TABLE_ROWS+=("$(printf "| %-4s | %-20s | %-60s | %-10s | %-10s | %-10s |" "$INDEX" "$REGION" "$MODEL_TYPE" "$LIMIT" "$CURRENT_VALUE" "$AVAILABLE")")
+                    TEMP_TABLE_ROWS+=("$(printf "| %-4s | %-20s | %-45s | %-10s | %-10s | %-10s |" "$INDEX" "$REGION" "$MODEL_TYPE" "$LIMIT" "$CURRENT_VALUE" "$AVAILABLE")")
                 else
                     INSUFFICIENT_QUOTA=true
                 fi
@@ -183,7 +183,7 @@ if [ ${#TABLE_ROWS[@]} -eq 0 ]; then
     echo "❌ No regions have sufficient quota for all required models. Please request a quota increase: https://aka.ms/oai/stuquotarequest"
 else
     echo "----------------------------------------------------------------------------------------------------------"
-    printf "| %-4s | %-20s | %-60s | %-10s | %-10s | %-10s |\n" "No." "Region" "Model Name" "Limit" "Used" "Available"
+    printf "| %-4s | %-20s | %-45s | %-10s | %-10s | %-10s |\n" "No." "Region" "Model Name" "Limit" "Used" "Available"
     echo "----------------------------------------------------------------------------------------------------------"
     for ROW in "${TABLE_ROWS[@]}"; do
         echo "$ROW"
