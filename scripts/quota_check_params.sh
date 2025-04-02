@@ -10,9 +10,16 @@ echo "🔄 Fetching available Azure subscriptions..."
 SUBSCRIPTIONS=$(az account list --query "[?state=='Enabled'].{Name:name, ID:id}" --output tsv)
 SUB_COUNT=$(echo "$SUBSCRIPTIONS" | wc -l)
 
-if [ "$SUB_COUNT" -eq 1 ]; then
+if [ "$SUB_COUNT" -eq 0 ]; then
+    echo "❌ ERROR: No active Azure subscriptions found. Please log in using 'az login' and ensure you have an active subscription."
+    exit 1
+elif [ "$SUB_COUNT" -eq 1 ]; then
     # If only one subscription, automatically select it
     AZURE_SUBSCRIPTION_ID=$(echo "$SUBSCRIPTIONS" | awk '{print $2}')
+    if [ -z "$AZURE_SUBSCRIPTION_ID" ]; then
+        echo "❌ ERROR: No active Azure subscriptions found. Please log in using 'az login' and ensure you have an active subscription."
+        exit 1
+    fi
     echo "✅ Using the only available subscription: $AZURE_SUBSCRIPTION_ID"
 else
     # If multiple subscriptions exist, prompt the user to choose one
