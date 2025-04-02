@@ -7,8 +7,8 @@ param managedIdentityObjectId string
 param managedIdentityClientId string
 param storageAccountName string
 param containerName string
-param containerAppName string = '${ solutionName }containerapp'
-param environmentName string = '${ solutionName }containerappenv'
+param containerAppName string = 'ca-${ solutionName }'
+param environmentName string = 'cae-${ solutionName }'
 param imageName string = 'python:3.11-alpine'
 param setupCopyKbFiles string = '${baseUrl}infra/scripts/copy_kb_files.sh'
 param setupCreateIndexScriptsUrl string = '${baseUrl}infra/scripts/run_create_index_scripts.sh'
