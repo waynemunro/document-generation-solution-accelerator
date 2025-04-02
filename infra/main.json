@@ -4,8 +4,8 @@
   "metadata": {
     "_generator": {
       "name": "bicep",
-      "version": "0.34.1.11899",
-      "templateHash": "10534846592360054965"
+      "version": "0.34.44.8038",
+      "templateHash": "745056846550767942"
     }
   },
   "parameters": {
@@ -93,8 +93,8 @@
     "resourceGroupLocation": "[resourceGroup().location]",
     "solutionLocation": "[variables('resourceGroupLocation')]",
     "baseUrl": "https://raw.githubusercontent.com/microsoft/document-generation-solution-accelerator/main/",
-    "ApplicationInsightsName": "[format('appins-{0}', variables('solutionPrefix'))]",
-    "WorkspaceName": "[format('worksp-{0}', variables('solutionPrefix'))]"
+    "ApplicationInsightsName": "[format('appi-{0}', variables('solutionPrefix'))]",
+    "WorkspaceName": "[format('log-{0}', variables('solutionPrefix'))]"
   },
   "resources": [
     {
@@ -150,8 +150,8 @@
           "metadata": {
             "_generator": {
               "name": "bicep",
-              "version": "0.34.1.11899",
-              "templateHash": "5321954130579291970"
+              "version": "0.34.44.8038",
+              "templateHash": "16854919160820907978"
             }
           },
           "parameters": {
@@ -171,7 +171,7 @@
             },
             "miName": {
               "type": "string",
-              "defaultValue": "[format('{0}-managed-identity', parameters('solutionName'))]",
+              "defaultValue": "[format('id-{0}', parameters('solutionName'))]",
               "metadata": {
                 "description": "Name"
               }
@@ -243,8 +243,8 @@
           "metadata": {
             "_generator": {
               "name": "bicep",
-              "version": "0.34.1.11899",
-              "templateHash": "15644309813710584263"
+              "version": "0.34.44.8038",
+              "templateHash": "998804936838864872"
             }
           },
           "parameters": {
@@ -264,7 +264,7 @@
             }
           },
           "variables": {
-            "keyvaultName": "[format('{0}-kv', parameters('solutionName'))]"
+            "keyvaultName": "[format('kv-{0}', parameters('solutionName'))]"
           },
           "resources": [
             {
@@ -383,8 +383,8 @@
           "metadata": {
             "_generator": {
               "name": "bicep",
-              "version": "0.34.1.11899",
-              "templateHash": "6241332452423283350"
+              "version": "0.34.44.8038",
+              "templateHash": "15569997416548251984"
             }
           },
           "parameters": {
@@ -420,20 +420,20 @@
             }
           },
           "variables": {
-            "storageName": "[format('{0}hubstorage', parameters('solutionName'))]",
+            "storageName": "[format('st{0}hub', parameters('solutionName'))]",
             "storageSkuName": "Standard_LRS",
-            "aiServicesName": "[format('{0}-aiservices', parameters('solutionName'))]",
-            "applicationInsightsName": "[format('{0}-appinsights', parameters('solutionName'))]",
-            "containerRegistryName": "[format('{0}acr', parameters('solutionName'))]",
-            "keyvaultName": "[format('{0}-kv', parameters('solutionName'))]",
+            "aiServicesName": "[format('ais-{0}', parameters('solutionName'))]",
+            "applicationInsightsName": "[format('appi-{0}', parameters('solutionName'))]",
+            "containerRegistryName": "[format('cr-{0}', parameters('solutionName'))]",
+            "keyvaultName": "[format('kv-{0}', parameters('solutionName'))]",
             "location": "[parameters('solutionLocation')]",
-            "aiHubName": "[format('{0}-aihub', parameters('solutionName'))]",
+            "aiHubName": "[format('hub-{0}', parameters('solutionName'))]",
             "aiHubFriendlyName": "[variables('aiHubName')]",
             "aiHubDescription": "AI Hub",
-            "aiProjectName": "[format('{0}-aiproject', parameters('solutionName'))]",
+            "aiProjectName": "[format('proj-{0}', parameters('solutionName'))]",
             "aiProjectFriendlyName": "[variables('aiProjectName')]",
-            "aiSearchName": "[format('{0}-search', parameters('solutionName'))]",
-            "workspaceName": "[format('{0}-workspace', parameters('solutionName'))]",
+            "aiSearchName": "[format('srch-{0}', parameters('solutionName'))]",
+            "workspaceName": "[format('log-{0}-hub', parameters('solutionName'))]",
             "aiModelDeployments": [
               {
                 "name": "[parameters('gptModelName')]",
@@ -981,8 +981,8 @@
           "metadata": {
             "_generator": {
               "name": "bicep",
-              "version": "0.34.1.11899",
-              "templateHash": "5169332991642386736"
+              "version": "0.34.44.8038",
+              "templateHash": "4051638923493896337"
             }
           },
           "parameters": {
@@ -1002,7 +1002,7 @@
             },
             "saName": {
               "type": "string",
-              "defaultValue": "[format('{0}storage', parameters('solutionName'))]",
+              "defaultValue": "[format('st{0}', parameters('solutionName'))]",
               "metadata": {
                 "description": "Name"
               }
@@ -1210,8 +1210,8 @@
           "metadata": {
             "_generator": {
               "name": "bicep",
-              "version": "0.34.1.11899",
-              "templateHash": "12565043404933150402"
+              "version": "0.34.44.8038",
+              "templateHash": "4077975888118623954"
             }
           },
           "parameters": {
@@ -1225,14 +1225,14 @@
             },
             "HostingPlanName": {
               "type": "string",
-              "defaultValue": "[format('{0}-app-service-plan', parameters('solutionName'))]",
+              "defaultValue": "[format('asp-{0}', parameters('solutionName'))]",
               "metadata": {
                 "description": "Name of App Service plan"
               }
             },
             "HostingPlanSku": {
               "type": "string",
-              "defaultValue": "P0v3",
+              "defaultValue": "B1",
               "allowedValues": [
                 "F1",
                 "D1",
@@ -1254,7 +1254,7 @@
             },
             "WebsiteName": {
               "type": "string",
-              "defaultValue": "[format('{0}-app-service', parameters('solutionName'))]",
+              "defaultValue": "[format('app-{0}', parameters('solutionName'))]",
               "metadata": {
                 "description": "Name of Web App"
               }
@@ -1696,8 +1696,8 @@
           "metadata": {
             "_generator": {
               "name": "bicep",
-              "version": "0.34.1.11899",
-              "templateHash": "11157199356947505887"
+              "version": "0.34.44.8038",
+              "templateHash": "6611317231290784098"
             }
           },
           "parameters": {
@@ -1730,7 +1730,7 @@
             }
           },
           "variables": {
-            "accountName": "[format('{0}-cosmos', parameters('solutionName'))]",
+            "accountName": "[format('cosmos-{0}', parameters('solutionName'))]",
             "databaseName": "db_conversation_history",
             "collectionName": "conversations",
             "containers": [
@@ -1919,8 +1919,8 @@
           "metadata": {
             "_generator": {
               "name": "bicep",
-              "version": "0.34.1.11899",
-              "templateHash": "16100001477502640669"
+              "version": "0.34.44.8038",
+              "templateHash": "17578272684671627358"
             }
           },
           "parameters": {
@@ -1953,11 +1953,11 @@
             },
             "containerAppName": {
               "type": "string",
-              "defaultValue": "[format('{0}containerapp', parameters('solutionName'))]"
+              "defaultValue": "[format('ca-{0}', parameters('solutionName'))]"
             },
             "environmentName": {
               "type": "string",
-              "defaultValue": "[format('{0}containerappenv', parameters('solutionName'))]"
+              "defaultValue": "[format('cae-{0}', parameters('solutionName'))]"
             },
             "imageName": {
               "type": "string",

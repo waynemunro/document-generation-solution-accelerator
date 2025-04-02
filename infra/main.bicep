@@ -62,8 +62,8 @@ var resourceGroupLocation = resourceGroup().location
 var solutionLocation = resourceGroupLocation
 var baseUrl = 'https://raw.githubusercontent.com/microsoft/document-generation-solution-accelerator/main/'
 
-var ApplicationInsightsName = 'appins-${solutionPrefix}'
-var WorkspaceName = 'worksp-${solutionPrefix}'
+var ApplicationInsightsName = 'appi-${solutionPrefix}'
+var WorkspaceName = 'log-${solutionPrefix}'
 
 // ========== Managed Identity ========== //
 module managedIdentityModule 'deploy_managed_identity.bicep' = {
