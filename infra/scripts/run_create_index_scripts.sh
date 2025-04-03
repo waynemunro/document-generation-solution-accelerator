@@ -47,7 +47,6 @@ fi
 
 
 # create virtual environment
-echo "Creating virtual environment"
 # Check if the virtual environment already exists
 if [ -d "infra/scripts/scriptenv" ]; then
     echo "Virtual environment already exists. Skipping creation."
@@ -55,7 +54,7 @@ else
     echo "Creating virtual environment"
     python3 -m venv infra/scripts/scriptenv
 fi
-source infra/scripts/scriptenv/Scripts/activate
+source infra/scripts/scriptenv/bin/activate
 
 # Install the requirements
 echo "Installing requirements"
@@ -63,7 +62,7 @@ pip install -r infra/scripts/index_scripts/requirements.txt
 echo "Requirements installed"
 
 # Run the scripts
-echo "Running the pyhton scripts"
+echo "Running the python scripts"
 echo "Creating the search index"
 python infra/scripts/index_scripts/01_create_search_index.py
 if [ $? -ne 0 ]; then
