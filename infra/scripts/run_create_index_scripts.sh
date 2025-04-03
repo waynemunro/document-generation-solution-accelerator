@@ -63,9 +63,18 @@ pip install -r infra/scripts/index_scripts/requirements.txt
 echo "Requirements installed"
 
 # Run the scripts
-echo "Running the scripts"
+echo "Running the pyhton scripts"
 echo "Creating the search index"
 python infra/scripts/index_scripts/01_create_search_index.py
+if [ $? -ne 0 ]; then
+    echo "Error: 01_create_search_index.py failed."
+    exit 1
+fi
+
 echo "Processing the data"
 python infra/scripts/index_scripts/02_process_data.py
+if [ $? -ne 0 ]; then
+    echo "Error: 02_process_data.py failed."
+    exit 1
+fi
 echo "Scripts completed"
