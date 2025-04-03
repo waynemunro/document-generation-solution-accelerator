@@ -31,6 +31,10 @@ hooks:
       run: |
         Write-Host "Web app URL: "
         Write-Host "$env:WEB_APP_URL" -ForegroundColor Cyan
+        Write-Host "Run the following command in the terminal to copy data files to storage account: "
+        Write-Host "$env:copykbfiles" -ForegroundColor Cyan
+        Write-Host "Run the following command in the terminal to run the scripts: "
+        Write-Host "$env:createindex" -ForegroundColor Cyan
       shell: pwsh
       continueOnError: false
       interactive: true
@@ -38,6 +42,10 @@ hooks:
       run: |
         echo "Web app URL: "
         echo $WEB_APP_URL
+        echo "Run the following command in the terminal to copy data files to storage account: "
+        echo $copykbfiles
+        echo "Run the following command in the terminal to run the scripts: "
+        echo $createindex
       shell: sh
       continueOnError: false
       interactive: true
