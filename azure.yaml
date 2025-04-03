@@ -35,7 +35,7 @@ hooks:
         # Write-Host "$env:copykbfiles" -ForegroundColor Cyan
         # Write-Host "Run the following command in the terminal to run the scripts: "
         # Write-Host "$env:createindex" -ForegroundColor Cyan
-        Write-Host "If you want to use the Sample Data, run the following command in the Bash terminal to process it:"
+        Write-Host "`nIf you want to use the Sample Data, run the following command in the Bash terminal to process it:"
         Write-Host "./infra/scripts/process_sample_data.sh $env:STORAGE_ACCOUNT_NAME $env:STORAGE_CONTAINER_NAME $env:KEY_VAULT_NAME" -ForegroundColor Cyan
       shell: pwsh
       continueOnError: false
@@ -48,8 +48,9 @@ hooks:
         # echo $copykbfiles
         # echo "Run the following command in the terminal to run the scripts: "
         # echo $createindex
-        Write-Host "If you want to use the Sample Data, run the following command in the Bash terminal to process it:"
-        Write-Host "./infra/scripts/process_sample_data.sh $env:STORAGE_ACCOUNT_NAME $env:STORAGE_CONTAINER_NAME kv-$env:KEY_VAULT_NAME" -ForegroundColor Cyan
+        echo ""
+        echo "If you want to use the Sample Data, run the following command in the terminal to process it:"
+        echo "./infra/scripts/process_sample_data.sh $env:STORAGE_ACCOUNT_NAME $env:STORAGE_CONTAINER_NAME $env:KEY_VAULT_NAME" -ForegroundColor Cyan
       shell: sh
       continueOnError: false
       interactive: true
