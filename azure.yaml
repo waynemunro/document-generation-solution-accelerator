@@ -31,10 +31,12 @@ hooks:
       run: |
         Write-Host "Web app URL: "
         Write-Host "$env:WEB_APP_URL" -ForegroundColor Cyan
-        Write-Host "Run the following command in the terminal to copy data files to storage account: "
-        Write-Host "$env:copykbfiles" -ForegroundColor Cyan
-        Write-Host "Run the following command in the terminal to run the scripts: "
-        Write-Host "$env:createindex" -ForegroundColor Cyan
+        # Write-Host "Run the following command in the terminal to copy data files to storage account: "
+        # Write-Host "$env:copykbfiles" -ForegroundColor Cyan
+        # Write-Host "Run the following command in the terminal to run the scripts: "
+        # Write-Host "$env:createindex" -ForegroundColor Cyan
+        Write-Host "If you want to use the Sample Data, run the following command in the Bash terminal to process it:"
+        Write-Host "./infra/scripts/process_sample_data.sh $env:STORAGE_ACCOUNT_NAME $env:STORAGE_CONTAINER_NAME $env:KEY_VAULT_NAME" -ForegroundColor Cyan
       shell: pwsh
       continueOnError: false
       interactive: true
@@ -42,10 +44,12 @@ hooks:
       run: |
         echo "Web app URL: "
         echo $WEB_APP_URL
-        echo "Run the following command in the terminal to copy data files to storage account: "
-        echo $copykbfiles
-        echo "Run the following command in the terminal to run the scripts: "
-        echo $createindex
+        # echo "Run the following command in the terminal to copy data files to storage account: "
+        # echo $copykbfiles
+        # echo "Run the following command in the terminal to run the scripts: "
+        # echo $createindex
+        Write-Host "If you want to use the Sample Data, run the following command in the Bash terminal to process it:"
+        Write-Host "./infra/scripts/process_sample_data.sh $env:STORAGE_ACCOUNT_NAME $env:STORAGE_CONTAINER_NAME kv-$env:KEY_VAULT_NAME" -ForegroundColor Cyan
       shell: sh
       continueOnError: false
       interactive: true

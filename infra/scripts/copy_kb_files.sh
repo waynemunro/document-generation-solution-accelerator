@@ -28,8 +28,24 @@ unzip infra/data/"$zipFileName1" -d infra/data/"$extractedFolder1"
 
 echo "Script Started"
 
-# Authenticate with Azure using managed identity
-az login --identity --client-id ${managedIdentityClientId}
+# Authenticate with Azure
+if az account show &> /dev/null; then
+    echo "Already authenticated with Azure."
+else
+    if [ -n "$managedIdentityClientId" ]; then
+        # Use managed identity if running in Azure
+        echo "Authenticating with Managed Identity..."
+        az login --identity --client-id ${managedIdentityClientId}
+    else
+        # Use Azure CLI login if running locally
+        echo "Authenticating with Azure CLI..."
+        az login
+    fi
+    echo "Not authenticated with Azure. Attempting to authenticate..."
+fi
+
+
 # Using az storage blob upload-batch to upload files with managed identity authentication, as the az storage fs directory upload command is not working with managed identity authentication.
-az storage blob upload-batch --account-name "$storageAccount" --destination data/"$extractedFolder1" --source infra/data/"$extractedFolder1" --auth-mode login --pattern '*' --overwrite
+echo "Uploading files to Azure Storage..."
+az storage blob upload-batch --account-name "$storageAccount" --destination "$fileSystem"/"$extractedFolder1" --source infra/data/"$extractedFolder1" --auth-mode login --pattern '*' --overwrite
 # az storage blob upload-batch --account-name "$storageAccount" --destination data/"$extractedFolder2" --source /mnt/azscripts/azscriptinput/"$extractedFolder2" --auth-mode login --pattern '*' --overwrite

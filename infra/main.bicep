@@ -424,8 +424,12 @@ module cosmosDBModule 'deploy_cosmos_db.bicep' = {
   }
   scope: resourceGroup(resourceGroup().name)
 }
-output copykbfiles string = './infra/scripts/copy_kb_files.sh ${storageAccount.outputs.storageName} ${storageAccount.outputs.storageContainer} ${managedIdentityModule.outputs.managedIdentityOutput.clientId}'
-output createindex string = './infra/scripts/run_create_index_scripts.sh ${kvault.outputs.keyvaultName} ${managedIdentityModule.outputs.managedIdentityOutput.clientId}'
+// output copykbfiles string = './infra/scripts/copy_kb_files.sh ${storageAccount.outputs.storageName} ${storageAccount.outputs.storageContainer} ${managedIdentityModule.outputs.managedIdentityOutput.clientId}'
+// output createindex string = './infra/scripts/run_create_index_scripts.sh ${kvault.outputs.keyvaultName} ${managedIdentityModule.outputs.managedIdentityOutput.clientId}'
+
+output STORAGE_ACCOUNT_NAME string = storageAccount.outputs.storageName
+output STORAGE_CONTAINER_NAME string = storageAccount.outputs.storageContainer
+output KEY_VAULT_NAME string = kvault.outputs.keyvaultName
 
 
 // //========== Deployment script to upload sample data ========== //
