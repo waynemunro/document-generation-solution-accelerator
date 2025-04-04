@@ -21,9 +21,21 @@ signed_user_id=$(az ad signed-in-user show --query id -o tsv)
 echo "Getting key vault resource id"
 key_vault_resource_id=$(az keyvault show --name $keyvaultName --query id --output tsv)
 
-# Assign the Key Vault Administrator role to the user
-echo "Assigning the Key Vault Administrator role to the user."
-az role assignment create --assignee $signed_user_id --role "Key Vault Administrator" --scope /$key_vault_resource_id
+# Check if the user has the Key Vault Administrator role
+echo "Checking if user has the Key Vault Administrator role"
+role_assignment=$(MSYS_NO_PATHCONV=1 az role assignment list --assignee $signed_user_id --role "Key Vault Administrator" --scope $key_vault_resource_id --query "[].roleDefinitionId" -o tsv)
+if [ -z "$role_assignment" ]; then
+    echo "User does not have the Key Vault Administrator role. Assigning the role."
+    MSYS_NO_PATHCONV=1 az role assignment create --assignee $signed_user_id --role "Key Vault Administrator" --scope $key_vault_resource_id --output none
+    if [ $? -eq 0 ]; then
+        echo "Key Vault Administrator role assigned successfully."
+    else
+        echo "Failed to assign Key Vault Administrator role."
+        exit 1
+    fi
+else
+    echo "User already has the Key Vault Administrator role."
+fi
 
 # RUN apt-get update
 # RUN apt-get install python3 python3-dev g++ unixodbc-dev unixodbc libpq-dev
@@ -58,7 +70,7 @@ source infra/scripts/scriptenv/bin/activate
 
 # Install the requirements
 echo "Installing requirements"
-pip install -r infra/scripts/index_scripts/requirements.txt
+pip install --quiet -r infra/scripts/index_scripts/requirements.txt
 echo "Requirements installed"
 
 # Run the scripts

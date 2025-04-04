@@ -40,10 +40,6 @@ hooks:
       run: |
         echo "Web app URL: "
         echo $WEB_APP_URL
-        # echo "Run the following command in the terminal to copy data files to storage account: "
-        # echo $copykbfiles
-        # echo "Run the following command in the terminal to run the scripts: "
-        # echo $createindex
         echo ""
         echo "If you want to use the Sample Data, run the following command in the terminal to process it:"
         echo "bash ./infra/scripts/process_sample_data.sh $STORAGE_ACCOUNT_NAME $STORAGE_CONTAINER_NAME $KEY_VAULT_NAME"
