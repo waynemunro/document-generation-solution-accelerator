@@ -66,7 +66,12 @@ else
     echo "Creating virtual environment"
     python3 -m venv infra/scripts/scriptenv
 fi
-source infra/scripts/scriptenv/bin/activate
+
+# handling virtual environment activation for different OS
+activate_env_output=$(source infra/scripts/scriptenv/bin/activate 2>&1)
+if [ -n "$activate_env_output" ]; then
+    source infra/scripts/scriptenv/Scripts/activate
+fi
 
 # Install the requirements
 echo "Installing requirements"
