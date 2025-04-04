@@ -2,11 +2,9 @@
 targetScope = 'resourceGroup'
 
 @minLength(3)
-@maxLength(10)
-@description('A unique prefix for all resources in this deployment. This should be 3-10 characters long:')
+@maxLength(20)
+@description('A unique prefix for all resources in this deployment. This should be 3-20 characters long:')
 param environmentName string
-
-
 
 @metadata({
   azd: {
@@ -25,7 +23,7 @@ param secondaryLocation string
   'Standard'
   'GlobalStandard'
 ])
-param deploymentType string = 'Standard'
+param deploymentType string = 'GlobalStandard'
 
 @minLength(1)
 @description('Name of the GPT model to deploy:')
@@ -33,7 +31,7 @@ param deploymentType string = 'Standard'
   'gpt-4o'
   'gpt-4'
 ])
-param gptModelName string = 'gpt-4'
+param gptModelName string = 'gpt-4o'
 
 param azureOpenaiAPIVersion string = '2024-05-01-preview'
 
@@ -55,17 +53,17 @@ param embeddingModel string = 'text-embedding-ada-002'
 @description('Capacity of the Embedding Model deployment')
 param embeddingDeploymentCapacity int = 80
 
-param imageTag string = 'dev'
+param imageTag string = 'latest'
 
 var uniqueId = toLower(uniqueString(environmentName, subscription().id, resourceGroup().location))
 var solutionPrefix = 'dg${padLeft(take(uniqueId, 12), 12, '0')}'
 var resourceGroupLocation = resourceGroup().location
 
 var solutionLocation = resourceGroupLocation
-var baseUrl = 'https://raw.githubusercontent.com/microsoft/Generic-Build-your-own-copilot-Solution-Accelerator/dev/'
+var baseUrl = 'https://raw.githubusercontent.com/microsoft/document-generation-solution-accelerator/main/'
 
-var ApplicationInsightsName = 'appins-${solutionPrefix}'
-var WorkspaceName = 'worksp-${solutionPrefix}'
+var ApplicationInsightsName = 'appi-${solutionPrefix}'
+var WorkspaceName = 'log-${solutionPrefix}'
 
 // ========== Managed Identity ========== //
 module managedIdentityModule 'deploy_managed_identity.bicep' = {
