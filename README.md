@@ -192,7 +192,12 @@ To change the azd parameters from the default values, follow the steps [here](./
     * This deployment will take *7-10 minutes* to provision the resources in your account and set up the solution with sample data. 
     * If you get an error or timeout with deployment, changing the location can help, as there may be availability constraints for the resources.
 
-5. Once the deployment has completed successfully, open the [Azure Portal](https://portal.azure.com/), go to the deployed resource group, find the App Service and get the app URL from `Default domain`.
+5. Once the deployment has completed successfully and you would like to use the sample data, run the bash command printed in the terminal. The bash command will look like the following: 
+    ```shell 
+    ./infra/scripts/process_sample_data.sh <Storage-Account-name> <Storgae-Account-container-name> <Key-Vault-name>
+    ```
+
+6. Open the [Azure Portal](https://portal.azure.com/), go to the deployed resource group, find the App Service and get the app URL from `Default domain`.
 
 6. You can now delete the resources by running `azd down`, if you are done trying out the application. 
 <!-- 6. You can now proceed to run the [development server](#development-server) to test the app locally, or if you are done trying out the app, you can delete the resources by running `azd down`. -->
