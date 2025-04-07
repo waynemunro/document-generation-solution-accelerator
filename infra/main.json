@@ -12,9 +12,9 @@
     "environmentName": {
       "type": "string",
       "minLength": 3,
-      "maxLength": 10,
+      "maxLength": 20,
       "metadata": {
-        "description": "A unique prefix for all resources in this deployment. This should be 3-10 characters long:"
+        "description": "A unique prefix for all resources in this deployment. This should be 3-20 characters long:"
       }
     },
     "secondaryLocation": {
@@ -29,7 +29,7 @@
     },
     "deploymentType": {
       "type": "string",
-      "defaultValue": "Standard",
+      "defaultValue": "GlobalStandard",
       "allowedValues": [
         "Standard",
         "GlobalStandard"
@@ -41,7 +41,7 @@
     },
     "gptModelName": {
       "type": "string",
-      "defaultValue": "gpt-4",
+      "defaultValue": "gpt-4o",
       "allowedValues": [
         "gpt-4o",
         "gpt-4"
@@ -84,7 +84,7 @@
     },
     "imageTag": {
       "type": "string",
-      "defaultValue": "dev"
+      "defaultValue": "latest"
     }
   },
   "variables": {
@@ -92,9 +92,9 @@
     "solutionPrefix": "[format('dg{0}', padLeft(take(variables('uniqueId'), 12), 12, '0'))]",
     "resourceGroupLocation": "[resourceGroup().location]",
     "solutionLocation": "[variables('resourceGroupLocation')]",
-    "baseUrl": "https://raw.githubusercontent.com/microsoft/Generic-Build-your-own-copilot-Solution-Accelerator/dev/",
-    "ApplicationInsightsName": "[format('appins-{0}', variables('solutionPrefix'))]",
-    "WorkspaceName": "[format('worksp-{0}', variables('solutionPrefix'))]"
+    "baseUrl": "https://raw.githubusercontent.com/microsoft/document-generation-solution-accelerator/main/",
+    "ApplicationInsightsName": "[format('appi-{0}', variables('solutionPrefix'))]",
+    "WorkspaceName": "[format('log-{0}', variables('solutionPrefix'))]"
   },
   "resources": [
     {
@@ -171,7 +171,7 @@
             },
             "miName": {
               "type": "string",
-              "defaultValue": "[format('{0}-managed-identity', parameters('solutionName'))]",
+              "defaultValue": "[format('id-{0}', parameters('solutionName'))]",
               "metadata": {
                 "description": "Name"
               }
@@ -264,7 +264,7 @@
             }
           },
           "variables": {
-            "keyvaultName": "[format('{0}-kv', parameters('solutionName'))]"
+            "keyvaultName": "[format('kv-{0}', parameters('solutionName'))]"
           },
           "resources": [
             {
@@ -419,20 +419,20 @@
             }
           },
           "variables": {
-            "storageName": "[format('{0}hubstorage', parameters('solutionName'))]",
+            "storageName": "[format('st{0}hub', parameters('solutionName'))]",
             "storageSkuName": "Standard_LRS",
-            "aiServicesName": "[format('{0}-aiservices', parameters('solutionName'))]",
-            "applicationInsightsName": "[format('{0}-appinsights', parameters('solutionName'))]",
-            "containerRegistryName": "[format('{0}acr', parameters('solutionName'))]",
-            "keyvaultName": "[format('{0}-kv', parameters('solutionName'))]",
+            "aiServicesName": "[format('ais-{0}', parameters('solutionName'))]",
+            "applicationInsightsName": "[format('appi-{0}', parameters('solutionName'))]",
+            "containerRegistryName": "[format('cr-{0}', parameters('solutionName'))]",
+            "keyvaultName": "[format('kv-{0}', parameters('solutionName'))]",
             "location": "[parameters('solutionLocation')]",
-            "aiHubName": "[format('{0}-aihub', parameters('solutionName'))]",
+            "aiHubName": "[format('hub-{0}', parameters('solutionName'))]",
             "aiHubFriendlyName": "[variables('aiHubName')]",
             "aiHubDescription": "AI Hub",
-            "aiProjectName": "[format('{0}-aiproject', parameters('solutionName'))]",
+            "aiProjectName": "[format('proj-{0}', parameters('solutionName'))]",
             "aiProjectFriendlyName": "[variables('aiProjectName')]",
-            "aiSearchName": "[format('{0}-search', parameters('solutionName'))]",
-            "workspaceName": "[format('{0}-workspace', parameters('solutionName'))]",
+            "aiSearchName": "[format('srch-{0}', parameters('solutionName'))]",
+            "workspaceName": "[format('log-{0}-hub', parameters('solutionName'))]",
             "aiModelDeployments": [
               {
                 "name": "[parameters('gptModelName')]",
@@ -1001,7 +1001,7 @@
             },
             "saName": {
               "type": "string",
-              "defaultValue": "[format('{0}storage', parameters('solutionName'))]",
+              "defaultValue": "[format('st{0}', parameters('solutionName'))]",
               "metadata": {
                 "description": "Name"
               }
@@ -1224,14 +1224,14 @@
             },
             "HostingPlanName": {
               "type": "string",
-              "defaultValue": "[format('{0}-app-service-plan', parameters('solutionName'))]",
+              "defaultValue": "[format('asp-{0}', parameters('solutionName'))]",
               "metadata": {
                 "description": "Name of App Service plan"
               }
             },
             "HostingPlanSku": {
               "type": "string",
-              "defaultValue": "P0v3",
+              "defaultValue": "B1",
               "allowedValues": [
                 "F1",
                 "D1",
@@ -1253,7 +1253,7 @@
             },
             "WebsiteName": {
               "type": "string",
-              "defaultValue": "[format('{0}-app-service', parameters('solutionName'))]",
+              "defaultValue": "[format('app-{0}', parameters('solutionName'))]",
               "metadata": {
                 "description": "Name of Web App"
               }
@@ -1729,7 +1729,7 @@
             }
           },
           "variables": {
-            "accountName": "[format('{0}-cosmos', parameters('solutionName'))]",
+            "accountName": "[format('cosmos-{0}', parameters('solutionName'))]",
             "databaseName": "db_conversation_history",
             "collectionName": "conversations",
             "containers": [
@@ -1785,7 +1785,7 @@
                 "databaseAccountOfferType": "Standard",
                 "enableAutomaticFailover": false,
                 "enableMultipleWriteLocations": false,
-                "disableLocalAuth": false,
+                "disableLocalAuth": true,
                 "apiProperties": "[if(equals(parameters('kind'), 'MongoDB'), createObject('serverVersion', '4.0'), createObject())]",
                 "capabilities": [
                   {
@@ -1952,11 +1952,11 @@
             },
             "containerAppName": {
               "type": "string",
-              "defaultValue": "[format('{0}containerapp', parameters('solutionName'))]"
+              "defaultValue": "[format('ca-{0}', parameters('solutionName'))]"
             },
             "environmentName": {
               "type": "string",
-              "defaultValue": "[format('{0}containerappenv', parameters('solutionName'))]"
+              "defaultValue": "[format('cae-{0}', parameters('solutionName'))]"
             },
             "imageName": {
               "type": "string",

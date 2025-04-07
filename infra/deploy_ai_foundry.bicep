@@ -10,22 +10,22 @@ param embeddingModel string
 param embeddingDeploymentCapacity int
 param managedIdentityObjectId string
 
-var storageName = '${solutionName}hubstorage'
+var storageName = 'st${solutionName}hub'
 var storageSkuName = 'Standard_LRS'
-var aiServicesName = '${solutionName}-aiservices'
+var aiServicesName = 'ais-${solutionName}'
 // var aiServicesName_m = '${solutionName}-aiservices_m'
 // var location_m = solutionLocation
-var applicationInsightsName = '${solutionName}-appinsights'
-var containerRegistryName = '${solutionName}acr'
-var keyvaultName = '${solutionName}-kv'
+var applicationInsightsName = 'appi-${solutionName}'
+var containerRegistryName = 'cr-${solutionName}'
+var keyvaultName = 'kv-${solutionName}'
 var location = solutionLocation //'eastus2'
-var aiHubName = '${solutionName}-aihub'
+var aiHubName = 'hub-${solutionName}'
 var aiHubFriendlyName = aiHubName
 var aiHubDescription = 'AI Hub'
-var aiProjectName = '${solutionName}-aiproject'
+var aiProjectName = 'proj-${solutionName}'
 var aiProjectFriendlyName = aiProjectName
-var aiSearchName = '${solutionName}-search'
-var workspaceName = '${solutionName}-workspace'
+var aiSearchName = 'srch-${solutionName}'
+var workspaceName = 'log-${solutionName}-hub'
 var aiModelDeployments = [
   {
     name: gptModelName

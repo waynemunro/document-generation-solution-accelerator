@@ -1,6 +1,6 @@
-# Generic Build your own copilot Solution Accelerator
+# Document Generation Solution Accelerator
 
-MENU: [**USER STORY**](#user-story) \| [**ONE-CLICK DEPLOY**](#one-click-deploy)  \| [**SUPPORTING DOCUMENTS**](#supporting-documents) 
+MENU: [**USER STORY**](#user-story) \| [**QUICK DEPLOY**](#quick-deploy) \| [**SUPPORTING DOCUMENTATION**](#supporting-documentation)
 
 
 <h2><img src="./docs/images/userStory.png" width="64">
@@ -8,11 +8,12 @@ MENU: [**USER STORY**](#user-story) \| [**ONE-CLICK DEPLOY**](#one-click-deploy)
 User story
 </h2>
 
-### Overview
+**Solution accelerator overview**
 
-This solution accelerator is a powerful tool that helps you create your own AI assistant(s). The accelerator can be used by any customer looking for reusable architecture and code snippets to build an AI assistant(s) with their own enterprise data. 
+This solution accelerator is a powerful tool that helps you create your own AI assistant for document generation. The accelerator can be used by any customer looking for reusable architecture and code snippets to build an AI assistant to generate a sample template and content grounded on their own enterprise data. 
 
-It leverages Azure AI Foundry, Azure OpenAI Service and Azure AI Search, to identify relevant documents, summarize unstructured information, and generate Word document templates using your own data. 
+It leverages Azure OpenAI Service and Azure AI Search, to identify relevant documents, summarize unstructured information, and generate document templates. 
+
 
 ### Key features
 
@@ -22,41 +23,46 @@ Below is an image of the solution.
 
 ![Landing Page](/docs/images/landing_page.png)
 
-### Scenario
+**Scenario**
 
 This example focuses on a generic use case - chat with your own data, generate a document template using your own data, and exporting the document in a docx format.
 
 The sample data is sourced from generic AI-generated promissory notes.
 The documents are intended for use as sample data only.
 
+
 ### Solution accelerator architecture
-![image](/docs/images/architecture.png)
+![image](/docs/images/DocGen_Azure_AI_Foundry_Architecture.png)
 
 <h2><img src="./docs/images/oneClickDeploy.png" width="64">
 <br/>
 QUICK DEPLOY
 </h2>
 
-| [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/microsoft/Generic-Build-your-own-copilot-Solution-Accelerator) | [![Open in Dev Containers](https://img.shields.io/static/v1?style=for-the-badge&label=Dev%20Containers&message=Open&color=blue&logo=visualstudiocode)](https://vscode.dev/redirect?url=vscode://ms-vscode-remote.remote-containers/cloneInVolume?url=https://github.com/microsoft/Generic-Build-your-own-copilot-Solution-Accelerator) | [![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fmicrosoft%2FGeneric-Build-your-own-copilot-Solution-Accelerator%2Fmain%2Finfra%2Fmain.json) |
-|---|---|---|
-
-
 ### Prerequisites
 
 To deploy this solution accelerator, ensure you have access to an [Azure subscription](https://azure.microsoft.com/free/) with the necessary permissions to create **resource groups and resources**. Follow the steps in  [Azure Account Set Up](./docs/AzureAccountSetUp.md) 
 
-Check the [Azure Products by Region](https://azure.microsoft.com/en-us/explore/global-infrastructure/products-by-region/?products=all&regions=all) page and select a **region** where the following services are available:  
+Check the [Azure Products by Region](https://azure.microsoft.com/en-us/explore/global-infrastructure/products-by-region/table) page and select a **region** where the following services are available:  
 
-- Azure AI Foundry 
 - Azure OpenAI Service
 - Azure AI Search
-- Embedding Model Capacity  
-- GPT Model Capacity
 - [Azure Semantic Search](./docs/AzureSemanticSearchRegion.md)  
 
+Here are some example regions where the services are available: East US, East US2, Australia East, UK South, France Central.
+
+### ⚠️ Important: Check Azure OpenAI Quota Availability  
+
+➡️ To ensure sufficient quota is available in your subscription, please follow **[Quota check instructions guide](./docs/quota_check.md)** before you deploy the solution.
 
 <!-- Here are some example regions where the services are available: East US, East US2, Australia East, UK South, France Central. -->
+<!-- 
+| [![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fmicrosoft%2Fdocument-generation-solution-accelerator%2Fmain%2Finfra%2Fmain.json) |
+|---|
+-->
 
+| [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/microsoft/document-generation-solution-accelerator) | [![Open in Dev Containers](https://img.shields.io/static/v1?style=for-the-badge&label=Dev%20Containers&message=Open&color=blue&logo=visualstudiocode)](https://vscode.dev/redirect?url=vscode://ms-vscode-remote.remote-containers/cloneInVolume?url=https://github.com/microsoft/document-generation-solution-accelerator) | 
+|---|---|
 
 ### Configurable Deployment Settings
 
@@ -64,24 +70,23 @@ When you start the deployment, most parameters will have **default values**, but
 
 | **Setting** | **Description** |  **Default value** |
 |------------|----------------|  ------------|
-| **Azure Region** | The region where resources will be created. | East US| 
+| **Azure Region** | The region where resources will be created. | eastus | 
 | **Environment Name** | A **3-20 character alphanumeric value** used to generate a unique ID to prefix the resources. |  byctemplate |
-| **Secondary Location** | A **less busy** region for **Azure SQL and CosmosDB**, useful in case of availability constraints. |  eastus2 |
-| **Deployment Type** | Select from a drop-down list. |  Standard |
-| **GPT Model** | Choose from **gpt-4, gpt-4o** | gpt-4 |  
+| **Secondary Location** | A **less busy** region for **CosmosDB**, useful in case of availability constraints. |  eastus2 |
+| **Deployment Type** | Select from a drop-down list. |  Global Standard |
+| **GPT Model** | Choose from **gpt-4, gpt-4o** | gpt-4o |  
 | **GPT Model Deployment Capacity** | Configure capacity for **GPT models**. | 30k |
 | **Embedding Model** | Default: **text-embedding-ada-002**. |  text-embedding-ada-002 |
 | **Embedding Model Capacity** | Set the capacity for **embedding models**. |  80k |
 
 
 ### [Optional] Quota Recommendations  
-By default, the **GPT model capacity** in deployment is set to **30k tokens**.  
-> **We recommend increasing the capacity to 100k tokens for optimal performance.** 
+By default, the **Gpt-4o model capacity** in deployment is set to **30k tokens**, so we recommend
+> **For Global Standard | GPT-4o - the capacity to at least 150k tokens post-deployment for optimal performance.**
+
+> **For Standard | GPT-4 - ensure a minimum of 30k–40k tokens for best results.**
 
 To adjust quota settings, follow these [steps](./docs/AzureGPTQuotaSettings.md)  
-
-
-**⚠️ Warning:**  **Insufficient quota can cause deployment errors.** Please ensure you have the recommended capacity or request for additional capacity before deploying this solution.
 
 ### Deployment Options
 Pick from the options below to see step-by-step instructions for: GitHub Codespaces, VS Code Dev Containers, Local Environments, and Bicep deployments.
@@ -95,7 +100,7 @@ You can run this solution using GitHub Codespaces. The button will open a web-ba
 
 1. Open the solution accelerator (this may take several minutes):
 
-    [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/microsoft/Generic-Build-your-own-copilot-Solution-Accelerator)
+    [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/microsoft/document-generation-solution-accelerator)
 2. Accept the default values on the create Codespaces page
 3. Open a terminal window if it is not already open
 4. Continue with the [deploying steps](#deploying)
@@ -112,7 +117,7 @@ You can run this solution in VS Code Dev Containers, which will open the project
 1. Start Docker Desktop (install it if not already installed)
 2. Open the project:
 
-    [![Open in Dev Containers](https://img.shields.io/static/v1?style=for-the-badge&label=Dev%20Containers&message=Open&color=blue&logo=visualstudiocode)](https://vscode.dev/redirect?url=vscode://ms-vscode-remote.remote-containers/cloneInVolume?url=https://github.com/microsoft/Generic-Build-your-own-copilot-Solution-Accelerator)
+    [![Open in Dev Containers](https://img.shields.io/static/v1?style=for-the-badge&label=Dev%20Containers&message=Open&color=blue&logo=visualstudiocode)](https://vscode.dev/redirect?url=vscode://ms-vscode-remote.remote-containers/cloneInVolume?url=https://github.com/microsoft/document-generation-solution-accelerator)
 
 
 3. In the VS Code window that opens, once the project files show up (this may take several minutes), open a terminal window.
@@ -137,7 +142,7 @@ If you're not using one of the above options for opening the project, then you'l
 2. Download the project code:
 
     ```shell
-    azd init -t microsoft/Generic-Build-your-own-copilot-Solution-Accelerator/
+    azd init -t microsoft/document-generation-solution-accelerator/
     ```
 
 3. Open the project folder in your terminal or editor.
@@ -146,16 +151,15 @@ If you're not using one of the above options for opening the project, then you'l
 
 </details>
 
-<details>
+<!-- <details>
   <summary><b>Deploy with Bicep/ARM template</b></summary>
-
-### Bicep
+ ### Bicep
  
    Click the following deployment button to create the required resources for this solution directly in your Azure Subscription.
 
-   [![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fmicrosoft%2FGeneric-Build-your-own-copilot-Solution-Accelerator%2Fmain%2Finfra%2Fmain.json)          
+   [![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fmicrosoft%2Fdocument-generation-solution-accelerator%2Fmain%2Finfra%2Fmain.json)          
 
-</details>
+</details> -->
 
 
 ### Deploying
@@ -207,7 +211,9 @@ Additional Steps
 
      Follow steps in [Delete Resource Group](./docs/DeleteResourceGroup.md) If your deployment fails and you need to clean up the resources.
 
+## Sample Questions
 
+To help you get started, here are some [Sample Questions](./docs/SampleQuestions.md) you can follow once your application is up and running.
 
 <!-- 
 
@@ -218,7 +224,7 @@ https://azure.microsoft.com/en-us/explore/global-infrastructure/products-by-regi
 
 2. Click the following deployment button to create the required resources for this accelerator in your Azure Subscription.
 
-   [![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fmicrosoft%2FGeneric-Build-your-own-copilot-Solution-Accelerator%2Fmain%2Finfrastructure%2Fdeployment.json)
+   [![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fmicrosoft%2Fdocument-generation-solution-accelerator%2Fmain%2Finfrastructure%2Fdeployment.json)
 
 3. You will need to select an Azure Subscription, create/select a Resource group, and Region. If your intention is to deploy this solution accelerator and the corresponding sample data set, the default settings will suffice.
 
@@ -241,8 +247,6 @@ To add further access controls, update the logic in `getUserInfoList` in `fronte
 
 ### Local deployment
 Review the local deployment [README](./docs/README_LOCAL.md). -->
-
-
 
 <h2>
 </br>

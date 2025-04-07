@@ -12,7 +12,7 @@ param solutionName string
 // param identity string
 
 @description('Name of App Service plan')
-param HostingPlanName string = '${ solutionName }-app-service-plan'
+param HostingPlanName string = 'asp-${ solutionName }'
 
 @description('The pricing tier for the App Service plan')
 @allowed(
@@ -20,10 +20,10 @@ param HostingPlanName string = '${ solutionName }-app-service-plan'
 )
 // param HostingPlanSku string = 'B1'
 
-param HostingPlanSku string = 'P0v3'
+param HostingPlanSku string = 'B1'
 
 @description('Name of Web App')
-param WebsiteName string = '${ solutionName }-app-service'
+param WebsiteName string = 'app-${ solutionName }'
 
 // @description('Name of Application Insights')
 // param ApplicationInsightsName string = '${ solutionName }-app-insights'

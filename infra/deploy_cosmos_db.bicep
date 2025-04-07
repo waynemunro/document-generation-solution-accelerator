@@ -5,7 +5,7 @@ param solutionName string
 param solutionLocation string
 param keyVaultName string
 
-var accountName = '${ solutionName }-cosmos'
+var accountName = 'cosmos-${ solutionName }'
 var databaseName = 'db_conversation_history'
 var collectionName = 'conversations'
 
@@ -39,7 +39,7 @@ resource cosmos 'Microsoft.DocumentDB/databaseAccounts@2022-08-15' = {
     databaseAccountOfferType: 'Standard'
     enableAutomaticFailover: false
     enableMultipleWriteLocations: false
-    disableLocalAuth: false
+    disableLocalAuth: true
     apiProperties: (kind == 'MongoDB') ? { serverVersion: '4.0' } : {}
     capabilities: [ { name: 'EnableServerless' } ]
   }
