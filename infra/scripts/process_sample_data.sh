@@ -4,13 +4,24 @@
 storageAccount="$1"
 fileSystem="$2"
 keyvaultName="$3"
-managedIdentityClientId="$4"
+cosmosDbAccountName="$4"
+resourceGroupName="$5"
+managedIdentityClientId="$6"
 
 # Check if all required arguments are provided
-if [ -z "$storageAccount" ] || [ -z "$fileSystem" ] || [ -z "$keyvaultName" ]; then
-    echo "Usage: $0 <storageAccount> <fileSystem> <keyvaultName> [managedIdentityClientId]"
+if [ -z "$storageAccount" ] || [ -z "$fileSystem" ] || [ -z "$keyvaultName" ] || [ -z "$cosmosDbAccountName" ] || [ -z "$resourceGroupName" ]; then
+    echo "Usage: $0 <storageAccount> <fileSystem> <keyvaultName> <cosmosDbAccountName> <resourceGroupName> [managedIdentityClientId]"
     exit 1
 fi
+
+# Call add_cosmosdb_access.sh
+echo "Running add_cosmosdb_access.sh"
+bash infra/scripts/add_cosmosdb_access.sh "$resourceGroupName" "$cosmosDbAccountName" "$managedIdentityClientId"
+if [ $? -ne 0 ]; then
+    echo "Error: add_cosmosdb_access.sh failed."
+    exit 1
+fi
+echo "add_cosmosdb_access.sh completed successfully."
 
 # Call copy_kb_files.sh
 echo "Running copy_kb_files.sh"

@@ -1,5 +1,4 @@
 #!/bin/bash
-echo "started the script"
 
 # Variables
 # baseUrl="$1"
@@ -9,6 +8,22 @@ managedIdentityClientId="$2"
 # requirementFileUrl=${baseUrl}"infra/scripts/index_scripts/requirements.txt"
 
 echo "Script Started"
+
+# Authenticate with Azure
+if az account show &> /dev/null; then
+    echo "Already authenticated with Azure."
+else
+    if [ -n "$managedIdentityClientId" ]; then
+        # Use managed identity if running in Azure
+        echo "Authenticating with Managed Identity..."
+        az login --identity --client-id ${managedIdentityClientId}
+    else
+        # Use Azure CLI login if running locally
+        echo "Authenticating with Azure CLI..."
+        az login
+    fi
+    echo "Not authenticated with Azure. Attempting to authenticate..."
+fi
 
 echo "Getting signed in user id"
 signed_user_id=$(az ad signed-in-user show --query id -o tsv)

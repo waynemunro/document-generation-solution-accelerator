@@ -138,6 +138,7 @@ If you're not using one of the above options for opening the project, then you'l
     * [Python 3.9+](https://www.python.org/downloads/)
     * [Docker Desktop](https://www.docker.com/products/docker-desktop/)
     * [Git](https://git-scm.com/downloads)
+    * [Powershell](https://learn.microsoft.com/en-us/powershell/scripting/install/installing-powershell-on-windows?view=powershell-7.5) (Required for Windows users only. Follow the steps [here](./docs/PowershellSetup.md) to add it to the Windows PATH.)
 
 2. Download the project code:
 
@@ -194,7 +195,7 @@ To change the azd parameters from the default values, follow the steps [here](./
 
 5. Once the deployment has completed successfully and you would like to use the sample data, run the bash command printed in the terminal. The bash command will look like the following: 
     ```shell 
-    ./infra/scripts/process_sample_data.sh <Storage-Account-name> <Storgae-Account-container-name> <Key-Vault-name>
+    bash ./infra/scripts/process_sample_data.sh <Storage-Account-name> <Storgae-Account-container-name> <Key-Vault-name> <CosmosDB-Account-name> <Resource-Group-name>
     ```
 
 6. Open the [Azure Portal](https://portal.azure.com/), go to the deployed resource group, find the App Service and get the app URL from `Default domain`.

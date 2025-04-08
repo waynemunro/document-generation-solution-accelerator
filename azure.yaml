@@ -32,7 +32,7 @@ hooks:
         Write-Host "Web app URL: "
         Write-Host "$env:WEB_APP_URL" -ForegroundColor Cyan
         Write-Host "`nIf you want to use the Sample Data, run the following command in the Bash terminal to process it:"
-        Write-Host "bash ./infra/scripts/process_sample_data.sh $env:STORAGE_ACCOUNT_NAME $env:STORAGE_CONTAINER_NAME $env:KEY_VAULT_NAME" -ForegroundColor Cyan
+        Write-Host "bash ./infra/scripts/process_sample_data.sh $env:STORAGE_ACCOUNT_NAME $env:STORAGE_CONTAINER_NAME $env:KEY_VAULT_NAME $env:COSMOSDB_ACCOUNT_NAME $env:RESOURCE_GROUP_NAME" -ForegroundColor Cyan
       shell: pwsh
       continueOnError: false
       interactive: true
@@ -42,7 +42,7 @@ hooks:
         echo $WEB_APP_URL
         echo ""
         echo "If you want to use the Sample Data, run the following command in the terminal to process it:"
-        echo "bash ./infra/scripts/process_sample_data.sh $STORAGE_ACCOUNT_NAME $STORAGE_CONTAINER_NAME $KEY_VAULT_NAME"
+        echo "bash ./infra/scripts/process_sample_data.sh $STORAGE_ACCOUNT_NAME $STORAGE_CONTAINER_NAME $KEY_VAULT_NAME $COSMOSDB_ACCOUNT_NAME $RESOURCE_GROUP_NAME"
       shell: sh
       continueOnError: false
       interactive: true
