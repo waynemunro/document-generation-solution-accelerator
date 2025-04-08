@@ -4,8 +4,8 @@
   "metadata": {
     "_generator": {
       "name": "bicep",
-      "version": "0.33.93.31351",
-      "templateHash": "2424049160506179064"
+      "version": "0.34.44.8038",
+      "templateHash": "1426128943473309418"
     }
   },
   "parameters": {
@@ -150,8 +150,8 @@
           "metadata": {
             "_generator": {
               "name": "bicep",
-              "version": "0.33.93.31351",
-              "templateHash": "5719315788994459005"
+              "version": "0.34.44.8038",
+              "templateHash": "16854919160820907978"
             }
           },
           "parameters": {
@@ -243,8 +243,8 @@
           "metadata": {
             "_generator": {
               "name": "bicep",
-              "version": "0.33.93.31351",
-              "templateHash": "16444845925569233096"
+              "version": "0.34.44.8038",
+              "templateHash": "998804936838864872"
             }
           },
           "parameters": {
@@ -383,8 +383,8 @@
           "metadata": {
             "_generator": {
               "name": "bicep",
-              "version": "0.33.93.31351",
-              "templateHash": "627756007451802146"
+              "version": "0.34.44.8038",
+              "templateHash": "5944622050604729741"
             }
           },
           "parameters": {
@@ -529,7 +529,7 @@
               "properties": {
                 "Application_Type": "web",
                 "publicNetworkAccessForIngestion": "Enabled",
-                "publicNetworkAccessForQuery": "Disabled",
+                "publicNetworkAccessForQuery": "Enabled",
                 "WorkspaceResourceId": "[resourceId('Microsoft.OperationalInsights/workspaces', variables('workspaceName'))]"
               },
               "dependsOn": [
@@ -981,8 +981,8 @@
           "metadata": {
             "_generator": {
               "name": "bicep",
-              "version": "0.33.93.31351",
-              "templateHash": "12863612675732383951"
+              "version": "0.34.44.8038",
+              "templateHash": "4051638923493896337"
             }
           },
           "parameters": {
@@ -1210,8 +1210,8 @@
           "metadata": {
             "_generator": {
               "name": "bicep",
-              "version": "0.33.93.31351",
-              "templateHash": "6455788440385967919"
+              "version": "0.34.44.8038",
+              "templateHash": "4077975888118623954"
             }
           },
           "parameters": {
@@ -1696,8 +1696,8 @@
           "metadata": {
             "_generator": {
               "name": "bicep",
-              "version": "0.33.93.31351",
-              "templateHash": "16935405490916431865"
+              "version": "0.34.44.8038",
+              "templateHash": "6611317231290784098"
             }
           },
           "parameters": {
@@ -1881,13 +1881,25 @@
       "type": "string",
       "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, resourceGroup().name), 'Microsoft.Resources/deployments', 'deploy_app_service'), '2022-09-01').outputs.webAppUrl.value]"
     },
-    "copykbfiles": {
+    "STORAGE_ACCOUNT_NAME": {
       "type": "string",
-      "value": "[format('./infra/scripts/copy_kb_files.sh {0} {1} {2}', reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, resourceGroup().name), 'Microsoft.Resources/deployments', 'deploy_storage_account'), '2022-09-01').outputs.storageName.value, reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, resourceGroup().name), 'Microsoft.Resources/deployments', 'deploy_storage_account'), '2022-09-01').outputs.storageContainer.value, reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, resourceGroup().name), 'Microsoft.Resources/deployments', 'deploy_managed_identity'), '2022-09-01').outputs.managedIdentityOutput.value.clientId)]"
+      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, resourceGroup().name), 'Microsoft.Resources/deployments', 'deploy_storage_account'), '2022-09-01').outputs.storageName.value]"
     },
-    "createindex": {
+    "STORAGE_CONTAINER_NAME": {
       "type": "string",
-      "value": "[format('./infra/scripts/run_create_index_scripts.sh {0} {1}', reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, resourceGroup().name), 'Microsoft.Resources/deployments', 'deploy_keyvault'), '2022-09-01').outputs.keyvaultName.value, reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, resourceGroup().name), 'Microsoft.Resources/deployments', 'deploy_managed_identity'), '2022-09-01').outputs.managedIdentityOutput.value.clientId)]"
+      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, resourceGroup().name), 'Microsoft.Resources/deployments', 'deploy_storage_account'), '2022-09-01').outputs.storageContainer.value]"
+    },
+    "KEY_VAULT_NAME": {
+      "type": "string",
+      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, resourceGroup().name), 'Microsoft.Resources/deployments', 'deploy_keyvault'), '2022-09-01').outputs.keyvaultName.value]"
+    },
+    "COSMOSDB_ACCOUNT_NAME": {
+      "type": "string",
+      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, resourceGroup().name), 'Microsoft.Resources/deployments', 'deploy_cosmos_db'), '2022-09-01').outputs.cosmosAccountName.value]"
+    },
+    "RESOURCE_GROUP_NAME": {
+      "type": "string",
+      "value": "[resourceGroup().name]"
     }
   }
 }

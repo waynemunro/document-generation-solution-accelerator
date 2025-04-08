@@ -430,6 +430,8 @@ module cosmosDBModule 'deploy_cosmos_db.bicep' = {
 output STORAGE_ACCOUNT_NAME string = storageAccount.outputs.storageName
 output STORAGE_CONTAINER_NAME string = storageAccount.outputs.storageContainer
 output KEY_VAULT_NAME string = kvault.outputs.keyvaultName
+output COSMOSDB_ACCOUNT_NAME string = cosmosDBModule.outputs.cosmosAccountName
+output RESOURCE_GROUP_NAME string = resourceGroup().name
 
 
 // //========== Deployment script to upload sample data ========== //
