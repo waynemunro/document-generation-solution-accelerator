@@ -1,6 +1,12 @@
 ## Check Quota Availability Before Deployment
 
-Before deploying the accelerator, **ensure sufficient quota availability** for the required model.  \
+Before deploying the accelerator, **ensure sufficient quota availability** for the required model.  
+
+### Login if you have not done so already
+```
+azd auth login
+```
+
 
 ### 📌 Default Models & Capacities:
 ```
