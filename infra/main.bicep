@@ -54,12 +54,12 @@ param embeddingModel string = 'text-embedding-ada-002'
 param embeddingDeploymentCapacity int = 80
 
 param imageTag string = 'latest'
+param AZURE_LOCATION string=''
+var solutionLocation = empty(AZURE_LOCATION) ? resourceGroup().location : AZURE_LOCATION
 
-var uniqueId = toLower(uniqueString(environmentName, subscription().id, resourceGroup().location))
+var uniqueId = toLower(uniqueString(environmentName, subscription().id, solutionLocation))
 var solutionPrefix = 'dg${padLeft(take(uniqueId, 12), 12, '0')}'
-var resourceGroupLocation = resourceGroup().location
 
-var solutionLocation = resourceGroupLocation
 var baseUrl = 'https://raw.githubusercontent.com/microsoft/document-generation-solution-accelerator/main/'
 
 var ApplicationInsightsName = 'appi-${solutionPrefix}'
@@ -80,7 +80,7 @@ module kvault 'deploy_keyvault.bicep' = {
   name: 'deploy_keyvault'
   params: {
     solutionName: solutionPrefix
-    solutionLocation: resourceGroupLocation
+    solutionLocation: solutionLocation
     managedIdentityObjectId:managedIdentityModule.outputs.managedIdentityOutput.objectId
   }
   scope: resourceGroup(resourceGroup().name)
@@ -91,7 +91,7 @@ module aifoundry 'deploy_ai_foundry.bicep' = {
   name: 'deploy_ai_foundry'
   params: {
     solutionName: solutionPrefix
-    solutionLocation: resourceGroupLocation
+    solutionLocation: solutionLocation
     keyVaultName: kvault.outputs.keyvaultName
     deploymentType: deploymentType
     gptModelName: gptModelName
@@ -369,7 +369,7 @@ module appserviceModule 'deploy_app_service.bicep' = {
     applicationInsightsId: aifoundry.outputs.applicationInsightsId
     // identity:managedIdentityModule.outputs.managedIdentityOutput.id
     solutionName: solutionPrefix
-    // solutionLocation: solutionLocation
+    solutionLocation: solutionLocation
     aiSearchService: aifoundry.outputs.aiSearchService
     AzureSearchKey: keyVault.getSecret('AZURE-SEARCH-KEY')
     AzureOpenAIEndpoint:aifoundry.outputs.aiServicesTarget
@@ -392,7 +392,7 @@ output WEB_APP_URL string = appserviceModule.outputs.webAppUrl
 
 resource Workspace 'Microsoft.OperationalInsights/workspaces@2020-08-01' = {
   name: WorkspaceName
-  location: resourceGroup().location
+  location: solutionLocation
   properties: {
     sku: {
       name: 'PerGB2018'
@@ -403,7 +403,7 @@ resource Workspace 'Microsoft.OperationalInsights/workspaces@2020-08-01' = {
 
 resource ApplicationInsights 'Microsoft.Insights/components@2020-02-02' = {
   name: ApplicationInsightsName
-  location: resourceGroup().location
+  location: solutionLocation
   tags: {
     'hidden-link:${resourceId('Microsoft.Web/sites',ApplicationInsightsName)}': 'Resource'
   }
