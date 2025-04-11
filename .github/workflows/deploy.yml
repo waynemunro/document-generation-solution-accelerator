@@ -263,6 +263,25 @@ jobs:
             fi
           done
 
+          # --- Purge Key Vaults ---
+          echo "Starting purge for Key Vaults..."
+          IFS=' ' read -r -a VAULTS <<< "${{ env.KEYVAULT_NAME }}"
+
+          for VAULT in "${VAULTS[@]}"; do
+            echo "Checking location for Key Vault: $VAULT"
+
+            # Fetch Key Vault location
+            VAULT_LOCATION=$(az keyvault list-deleted --query "[?name=='$VAULT'].properties.location" -o tsv 2>/dev/null || echo "")
+
+            if [ -n "$VAULT_LOCATION" ]; then
+              echo "Purging Key Vault $VAULT in $VAULT_LOCATION"
+              az keyvault purge --name "$VAULT" --location "$VAULT_LOCATION"
+            else
+              echo "Could not determine location for Key Vault: $VAULT. Skipping purge."
+            fi
+          done
+
+
       - name: Send Notification on Failure
         if: failure()
         run: |
