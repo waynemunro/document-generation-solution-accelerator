@@ -225,8 +225,14 @@ export const ChatHistoryListItemCell: React.FC<ChatHistoryListItemCellProps> = (
       tabIndex={0}
       aria-label="chat history item"
       className={styles.itemCell}
-      onClick={() => handleSelectItem()}
-      onKeyDown={e => (e.key === 'Enter' || e.key === ' ' ? handleSelectItem() : null)}
+      onClick={() => {if (!edit) handleSelectItem()}}
+      onKeyDown={e => {
+        if (!edit && (e.key === 'Enter' || e.key === ' ')) {
+          handleSelectItem();
+        } else {
+          e.stopPropagation(); // stop from reaching here when editing
+        }
+      }}
       verticalAlign="center"
       // horizontal
       onMouseEnter={() => setIsHovered(true)}
@@ -258,7 +264,7 @@ export const ChatHistoryListItemCell: React.FC<ChatHistoryListItemCellProps> = (
                     <Stack aria-label="action button group" horizontal verticalAlign={'center'}>
                       <IconButton
                         role="button"
-                        disabled={errorRename !== undefined}
+                        disabled={errorRename !== undefined || editTitle == item.title}
                         onKeyDown={e => (e.key === ' ' || e.key === 'Enter' ? handleSaveEdit(e) : null)}
                         onClick={e => handleSaveEdit(e)}
                         aria-label="confirm new title"
@@ -311,13 +317,21 @@ export const ChatHistoryListItemCell: React.FC<ChatHistoryListItemCellProps> = (
                   disabled={isButtonDisabled}
                   onKeyDown={e => (e.key === ' ' ? toggleDeleteDialog() : null)}
                 />
-                <IconButton
+               <IconButton
                   className={styles.itemButton}
                   iconProps={{ iconName: 'Edit' }}
                   title="Edit"
-                  onClick={onEdit}
+                  onClick={(e) => {
+                    e.stopPropagation(); // Prevent triggering parent click
+                    onEdit();
+                  }}
                   disabled={isButtonDisabled}
-                  onKeyDown={e => (e.key === ' ' ? onEdit() : null)}
+                  onKeyDown={(e) => {
+                    if (e.key === ' ') {
+                      e.stopPropagation(); // Prevent triggering parent keydown
+                      onEdit();
+                    }
+                  }}
                 />
               </Stack>
             )}
