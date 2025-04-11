@@ -6,8 +6,8 @@ targetScope = 'resourceGroup'
 @description('Solution Name')
 param solutionName string
 
-// @description('Solution Location')
-// param solutionLocation string
+@description('Solution Location')
+param solutionLocation string
 
 // param identity string
 
@@ -116,7 +116,7 @@ var azureOpenAiTitlePrompt = 'Summarize the conversation so far into a 4-word or
 
 resource HostingPlan 'Microsoft.Web/serverfarms@2020-06-01' = {
   name: HostingPlanName
-  location: resourceGroup().location
+  location: solutionLocation
   sku: {
     name: HostingPlanSku
   }
@@ -129,7 +129,7 @@ resource HostingPlan 'Microsoft.Web/serverfarms@2020-06-01' = {
 
 resource Website 'Microsoft.Web/sites@2020-06-01' = {
   name: WebsiteName
-  location: resourceGroup().location
+  location: solutionLocation
   identity: {
     type: 'SystemAssigned'
   }
