@@ -1,6 +1,9 @@
 ## Check Quota Availability Before Deployment
 
-Before deploying the accelerator, **ensure sufficient quota availability** for the required model.  
+Before deploying the accelerator, **ensure sufficient quota availability** for the required model.
+> **For Global Standard | GPT-4o - the capacity to at least 150k tokens post-deployment for optimal performance.**
+
+> **For Standard | GPT-4 - ensure a minimum of 30k–40k tokens for best results.**
 
 ### Login if you have not done so already
 ```
@@ -21,27 +24,34 @@ eastus, uksouth, eastus2, northcentralus, swedencentral, westus, westus2, southc
 - Only model(s) provided → The script will check for those models in the default regions.
 - Only region(s) provided → The script will check default models in the specified regions.
 - Both models and regions provided → The script will check those models in the specified regions.
+- `--verbose` passed → Enables detailed logging output for debugging and traceability.
   
 ### **Input Formats**
-✔️ Run without parameters to check default models & regions:
+> Use the --models, --regions, and --verbose options for parameter handling:
+
+✔️ Run without parameters to check default models & regions without verbose logging:
    ```
   ./quota_check_params.sh
    ```
-✔️ Model name and required capacity in the format:
+✔️ Enable verbose logging:
+   ```
+  ./quota_check_params.sh --verbose
+   ```
+✔️ Check specific model(s) in default regions:
   ```
-  ./quota_check_params.sh gpt-4o:30
+  ./quota_check_params.sh --models gpt-4o:30,text-embedding-ada-002:80
   ```
-✔️ Multiple models can be passed, separated by commas:
+✔️ Check default models in specific region(s):
   ```
-  ./quota_check_params.sh gpt-4o:30,text-embedding-ada-002:80
+./quota_check_params.sh --regions eastus,westus
   ```
 ✔️ Passing Both models and regions:  
   ```
-  ./quota_check_params.sh gpt-4o:30 eastus,westus2
+  ./quota_check_params.sh --models gpt-4o:30 --regions eastus,westus2
   ```
-✔️ Check default models in specific regions:
+✔️ All parameters combined:
   ```
-  ./quota_check_params.sh "" eastus,westus2
+ ./quota_check_params.sh --models gpt-4:30,text-embedding-ada-002:80 --regions eastus,westus --verbose
   ```
 
 ### **Sample Output**
