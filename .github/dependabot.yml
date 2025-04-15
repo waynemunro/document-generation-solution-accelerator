@@ -6,7 +6,7 @@
 version: 2
 updates:
   - package-ecosystem: "npm" # for frontend dependencies
-    directory: "/frontend"  
+    directory: "/src/frontend"  
     schedule:
       interval: "monthly"
     commit-message:
@@ -15,7 +15,7 @@ updates:
     open-pull-requests-limit: 100
 
   - package-ecosystem: "pip" # for backend dependencies
-    directory: "/"   
+    directory: "/src/backend"   
     schedule:
       interval: "monthly"
     commit-message:
