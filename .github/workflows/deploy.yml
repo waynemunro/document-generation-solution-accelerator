@@ -32,6 +32,7 @@ jobs:
           export AZURE_SUBSCRIPTION_ID="${{ secrets.AZURE_SUBSCRIPTION_ID }}"
           export GPT_MIN_CAPACITY="30"
           export TEXT_EMBEDDING_MIN_CAPACITY="30"
+          export AZURE_REGIONS="${{ vars.AZURE_REGIONS }}"
 
           chmod +x scripts/checkquota.sh
           if ! scripts/checkquota.sh; then
@@ -74,11 +75,11 @@ jobs:
         id: generate_rg_name
         run: |
           echo "Generating a unique resource group name..."
-          TIMESTAMP=$(date +%Y%m%d%H%M%S)
-          COMMON_PART="pslautomationRes"
-          UNIQUE_RG_NAME="${COMMON_PART}${TIMESTAMP}"
+          ACCL_NAME="docgen"  # Account name as specified
+          SHORT_UUID=$(uuidgen | cut -d'-' -f1)
+          UNIQUE_RG_NAME="arg-${ACCL_NAME}-${SHORT_UUID}"
           echo "RESOURCE_GROUP_NAME=${UNIQUE_RG_NAME}" >> $GITHUB_ENV
-          echo "Generated Resource_GROUP_PREFIX: ${UNIQUE_RG_NAME}" 
+          echo "Generated RESOURCE_GROUP_NAME: ${UNIQUE_RG_NAME}"
       
       - name: Check and Create Resource Group
         id: check_create_rg
@@ -110,16 +111,38 @@ jobs:
           set -e
           az deployment group create \
             --resource-group ${{ env.RESOURCE_GROUP_NAME }} \
-            --template-file infrastructure/deployment.json \
+            --template-file infra/main.json \
             --parameters \
-                HostingPlanName="${{ env.SOLUTION_PREFIX }}-plan" \
-                ApplicationInsightsName="appins-${{ env.SOLUTION_PREFIX }}" \
-                WebsiteName="webapp-${{ env.SOLUTION_PREFIX }}" \
-                CosmosDBName="db-cosmos-${{ env.SOLUTION_PREFIX }}" \
-                CosmosDBRegion="${{ env.AZURE_LOCATION }}" \
-                AzureSearchService="search-${{ env.SOLUTION_PREFIX }}" \
-                AzureOpenAIResource="aoai-${{ env.SOLUTION_PREFIX }}" \
-                WorkspaceName="worksp-${{ env.SOLUTION_PREFIX }}" 
+                environmentName="${{ env.SOLUTION_PREFIX }}" \
+                secondaryLocation="eastus2" \
+                deploymentType="GlobalStandard" \
+                gptModelName="gpt-4o" \
+                azureOpenaiAPIVersion="2024-05-01-preview" \
+                gptDeploymentCapacity="10" \
+                embeddingModel="text-embedding-ada-002" \
+                embeddingDeploymentCapacity="30" \
+                imageTag="latest"
+      
+      - name: Extract AI Services and Key Vault Names
+        if: always()
+        run: |
+          echo "Fetching AI Services and Key Vault names before deletion..."
+          
+          # Get Key Vault name
+          KEYVAULT_NAME=$(az resource list --resource-group "${{ env.RESOURCE_GROUP_NAME }}" --resource-type "Microsoft.KeyVault/vaults" --query "[].name" -o tsv)
+          echo "Detected Key Vault: $KEYVAULT_NAME"
+          echo "KEYVAULT_NAME=$KEYVAULT_NAME" >> $GITHUB_ENV
+      
+
+           # Extract AI Services names
+          echo "Fetching AI Services..."
+          AI_SERVICES=$(az resource list --resource-group '${{ env.RESOURCE_GROUP_NAME }}' --resource-type "Microsoft.CognitiveServices/accounts" --query "[].name" -o tsv)
+
+          # Flatten newline-separated values to space-separated
+          AI_SERVICES=$(echo "$AI_SERVICES" | paste -sd ' ' -)
+
+          echo "Detected AI Services: $AI_SERVICES"
+          echo "AI_SERVICES=$AI_SERVICES" >> $GITHUB_ENV
       
       - name: Delete Bicep Deployment
         if: success()
@@ -140,82 +163,124 @@ jobs:
 
       - name: Wait for Resource Deletion to Complete
         run: |
-          # List of resources to check based on SOLUTION_PREFIX
-          resources_to_check=(
-            "aoai-${{ env.SOLUTION_PREFIX }}"
-            "appins-${{ env.SOLUTION_PREFIX }}"
-            "db-cosmos-${{ env.SOLUTION_PREFIX }}"
-            "${{ env.SOLUTION_PREFIX }}-plan"
-            "search-${{ env.SOLUTION_PREFIX }}"
-            "webapp-${{ env.SOLUTION_PREFIX }}"
-            "worksp-${{ env.SOLUTION_PREFIX }}"
-          )
-
-          # Get the list of resources in YAML format
-          resource_list=$(az resource list --subscription ${{ secrets.AZURE_SUBSCRIPTION_ID }} --output yaml)
-          
-          # Maximum number of retries and retry intervals
+          echo "Waiting for all deployed resources (including AI Services) to be deleted..."
+      
+          # Convert AI_SERVICES space-separated string into an array
+          IFS=' ' read -r -a resources_to_check <<< "${{ env.AI_SERVICES }}"
+      
+          echo "Resources to check for deletion:"
+          printf '%s\n' "${resources_to_check[@]}"
+      
+          # Get the current resource list in YAML
+          resource_list=$(az resource list --subscription "${{ secrets.AZURE_SUBSCRIPTION_ID }}" --output yaml)
+      
+          # Set up retry logic
           max_retries=3
           retry_intervals=(30 60 120)
           retries=0
-          
+      
           while true; do
             resource_found=false
-            # Iterate through the resources to check
             for resource in "${resources_to_check[@]}"; do
-              echo "Checking resource: $resource"
+              echo "Checking if resource '$resource' still exists..."
               if echo "$resource_list" | grep -q "name: $resource"; then
-                echo "Resource '$resource' exists in the subscription."
+                echo "Resource '$resource' still exists."
                 resource_found=true
               else
-                echo "Resource '$resource' does not exist in the subscription."
+                echo "Resource '$resource' has been deleted."
               fi
             done
-
-            # If any resource exists, retry
+      
             if [ "$resource_found" = true ]; then
               retries=$((retries + 1))
               if [ "$retries" -ge "$max_retries" ]; then
-                echo "Maximum retry attempts reached. Exiting."
+                echo "Reached max retry attempts. Exiting wait loop."
                 break
               else
-                echo "Waiting for ${retry_intervals[$retries-1]} seconds before retrying..."
-                sleep ${retry_intervals[$retries-1]}
+                echo "Some resources still exist. Waiting for ${retry_intervals[$((retries-1))]} seconds..."
+                sleep "${retry_intervals[$((retries-1))]}"
+                resource_list=$(az resource list --subscription "${{ secrets.AZURE_SUBSCRIPTION_ID }}" --output yaml)
               fi
             else
-              echo "No resources found. Exiting."
+              echo "All resources have been deleted."
               break
             fi
           done
+        
 
-      - name: Purging the Resources
-        if: success()
+      - name: Wait for Soft Deletion of Key Vault and AI Services
+        if: always()
         run: |
-          set -e
-          # Purging resources based on solution prefix
-          echo "Purging resources..."
+          echo "Waiting for resources to be soft deleted..."
+      
+          # Wait for Key Vault to be soft deleted
+          if [ -n "${{ env.KEYVAULT_NAME }}" ]; then
+            while true; do
+              DELETED_VAULT=$(az keyvault show-deleted --name ${{ env.KEYVAULT_NAME }} --query "id" -o tsv 2>/dev/null || echo "")
+              if [ -n "$DELETED_VAULT" ]; then
+                echo "Key Vault soft deleted!"
+                break
+              fi
+              echo "Key Vault not yet soft deleted. Retrying in 15s..."
+              sleep 15
+            done
+          fi
 
-          # List of resources to purge
-          resources_to_purge=(
-            "aoai-${{ env.SOLUTION_PREFIX }}"
-            "appins-${{ env.SOLUTION_PREFIX }}"
-            "db-cosmos-${{ env.SOLUTION_PREFIX }}"
-            "${{ env.SOLUTION_PREFIX }}-plan"
-            "search-${{ env.SOLUTION_PREFIX }}"
-            "webapp-${{ env.SOLUTION_PREFIX }}"
-            "worksp-${{ env.SOLUTION_PREFIX }}"
-          )
+      
+          # Wait for AI Services to be soft deleted
+          for AI_SERVICE in ${{ env.AI_SERVICES }}; do
+            while true; do
+              DELETED_AI_SERVICE=$(az cognitiveservices account list-deleted --query "[?name=='$AI_SERVICE'].id" -o tsv 2>/dev/null || echo "")
+              if [ -n "$DELETED_AI_SERVICE" ]; then
+                echo "AI Service $AI_SERVICE is soft deleted!"
+                break
+              fi
+              echo "AI Service $AI_SERVICE not yet soft deleted. Retrying in 15s..."
+              sleep 15
+            done
+          done
+              
+        
+      - name: Purge Key Vault and AI Services
+        if: always()
+        run: |
+          echo "Purging soft deleted resources..."
           
-          for resource in "${resources_to_purge[@]}"; do
-            echo "Purging resource: $resource"
-            if ! az resource delete --ids /subscriptions/${{ secrets.AZURE_SUBSCRIPTION_ID }}/providers/Microsoft.CognitiveServices/locations/uksouth/deletedAccounts/$resource --verbose; then
-              echo "Failed to purge resource: $resource"
+          # Ensure AI_SERVICES is properly split into individual services
+          IFS=' ' read -r -a SERVICES <<< "${{ env.AI_SERVICES }}"
+
+          for AI_SERVICE in "${SERVICES[@]}"; do
+            echo "Checking location for AI Service: $AI_SERVICE"
+
+            # Fetch AI Service location
+            SERVICE_LOCATION=$(az cognitiveservices account list-deleted --query "[?name=='$AI_SERVICE'].location" -o tsv 2>/dev/null || echo "")
+
+            if [ -n "$SERVICE_LOCATION" ]; then
+              echo "Purging AI Service $AI_SERVICE in $SERVICE_LOCATION"
+              az cognitiveservices account purge --location "$SERVICE_LOCATION" --resource-group "${{ env.RESOURCE_GROUP_NAME }}" --name "$AI_SERVICE"
             else
-              echo "Purged the resource: $resource"
+              echo "Could not determine location for AI Service: $AI_SERVICE. Skipping purge."
             fi
           done
 
-          echo "Resource purging completed successfully"
+          # --- Purge Key Vaults ---
+          echo "Starting purge for Key Vaults..."
+          IFS=' ' read -r -a VAULTS <<< "${{ env.KEYVAULT_NAME }}"
+
+          for VAULT in "${VAULTS[@]}"; do
+            echo "Checking location for Key Vault: $VAULT"
+
+            # Fetch Key Vault location
+            VAULT_LOCATION=$(az keyvault list-deleted --query "[?name=='$VAULT'].properties.location" -o tsv 2>/dev/null || echo "")
+
+            if [ -n "$VAULT_LOCATION" ]; then
+              echo "Purging Key Vault $VAULT in $VAULT_LOCATION"
+              az keyvault purge --name "$VAULT" --location "$VAULT_LOCATION"
+            else
+              echo "Could not determine location for Key Vault: $VAULT. Skipping purge."
+            fi
+          done
+
 
       - name: Send Notification on Failure
         if: failure()
