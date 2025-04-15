@@ -1,45 +1,48 @@
-# yaml-language-server: $schema=https://raw.githubusercontent.com/Azure/azure-dev/main/schemas/v1.0/azure.yaml.json
+environment:
+  name: document-generation
+  location: eastus
 
-name: sample-app-aoai-chatgpt
+name: document-generation
 metadata:
-  template: sample-app-aoai-chatgpt@0.0.1-beta
-services:
-  backend:
-    project: .
-    language: py
-    host: appservice
-    hooks:
-      prepackage:
-        windows:
-          shell: pwsh
-          run:  cd ./frontend;npm install;npm run build
-          interactive: true
-          continueOnError: false
-        posix:
-          shell: sh
-          run:  cd ./frontend;npm install;npm run build
-          interactive: true
-          continueOnError: false
+  template: document-generation@1.0
+
+parameters:
+  solutionPrefix:
+    type: string
+    default: bs-azdtest  
+  otherLocation:
+    type: string
+    default: eastus2
+  baseUrl:
+    type: string
+    default: 'https://github.com/microsoft/document-generation-solution-accelerator'
+
+deployment:
+  mode: Incremental
+  template: ./infra/main.bicep  # Path to the main.bicep file inside the 'deployment' folder
+  parameters:
+    solutionPrefix: ${parameters.solutionPrefix}
+    otherLocation: ${parameters.otherLocation}
+    baseUrl: ${parameters.baseUrl}
+
 hooks:
-    preprovision:
-      windows:
-        shell: pwsh
-        run: ./scripts/auth_init.ps1
-        interactive: true
-        continueOnError: false
-      posix:
-        shell: sh
-        run: ./scripts/auth_init.sh
-        interactive: true
-        continueOnError: false
-    postprovision:
-      windows:
-        shell: pwsh
-        run: ./scripts/auth_update.ps1;
-        interactive: true
-        continueOnError: false
-      posix:
-        shell: sh
-        run: ./scripts/auth_update.sh;
-        interactive: true
-        continueOnError: false
+  postprovision:
+    windows:
+      run: |
+        Write-Host "Web app URL: "
+        Write-Host "$env:WEB_APP_URL" -ForegroundColor Cyan
+        Write-Host "`nIf you want to use the Sample Data, run the following command in the Bash terminal to process it:"
+        Write-Host "bash ./infra/scripts/process_sample_data.sh $env:STORAGE_ACCOUNT_NAME $env:STORAGE_CONTAINER_NAME $env:KEY_VAULT_NAME $env:COSMOSDB_ACCOUNT_NAME $env:RESOURCE_GROUP_NAME" -ForegroundColor Cyan
+      shell: pwsh
+      continueOnError: false
+      interactive: true
+    posix:
+      run: |
+        echo "Web app URL: "
+        echo $WEB_APP_URL
+        echo ""
+        echo "If you want to use the Sample Data, run the following command in the terminal to process it:"
+        echo "bash ./infra/scripts/process_sample_data.sh $STORAGE_ACCOUNT_NAME $STORAGE_CONTAINER_NAME $KEY_VAULT_NAME $COSMOSDB_ACCOUNT_NAME $RESOURCE_GROUP_NAME"
+      shell: sh
+      continueOnError: false
+      interactive: true
