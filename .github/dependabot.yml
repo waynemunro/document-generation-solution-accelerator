@@ -15,7 +15,7 @@ updates:
     open-pull-requests-limit: 100
 
   - package-ecosystem: "pip" # for backend dependencies
-    directory: "/src/backend"   
+    directory: "/src"   
     schedule:
       interval: "monthly"
     commit-message:
