@@ -4,8 +4,9 @@
 param solutionName string
 param solutionLocation string
 param keyVaultName string
+var abbrs = loadJsonContent('./abbreviations.json')
 
-var accountName = 'cosmos-${ solutionName }'
+var accountName = '${abbrs.databases.cosmosDBDatabase}${solutionName}'
 var databaseName = 'db_conversation_history'
 var collectionName = 'conversations'
 

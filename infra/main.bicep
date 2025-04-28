@@ -48,7 +48,7 @@ param gptDeploymentCapacity int = 30
 ])
 param embeddingModel string = 'text-embedding-ada-002'
 
-
+var abbrs = loadJsonContent('./abbreviations.json')
 @minValue(10)
 @description('Capacity of the Embedding Model deployment')
 param embeddingDeploymentCapacity int = 80
@@ -62,8 +62,8 @@ var resourceGroupLocation = resourceGroup().location
 var solutionLocation = resourceGroupLocation
 var baseUrl = 'https://raw.githubusercontent.com/microsoft/document-generation-solution-accelerator/main/'
 
-var ApplicationInsightsName = 'appi-${solutionPrefix}'
-var WorkspaceName = 'log-${solutionPrefix}'
+var ApplicationInsightsName ='${abbrs.managementGovernance.applicationInsights}${solutionPrefix}'
+var WorkspaceName = '${abbrs.managementGovernance.logAnalyticsWorkspace}${solutionPrefix}'
 
 // ========== Managed Identity ========== //
 module managedIdentityModule 'deploy_managed_identity.bicep' = {
