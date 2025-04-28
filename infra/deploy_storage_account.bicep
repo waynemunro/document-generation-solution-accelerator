@@ -1,6 +1,6 @@
 // ========== Storage Account ========== //
 targetScope = 'resourceGroup'
-
+var abbrs = loadJsonContent('./abbreviations.json')
 @minLength(3)
 @maxLength(15)
 @description('Solution Name')
@@ -10,7 +10,7 @@ param solutionName string
 param solutionLocation string
 
 @description('Name')
-param saName string = 'st${ solutionName }'
+var saName  = '${abbrs.storage.storageAccount}${ solutionName }'
 
 param keyVaultName string
 param managedIdentityObjectId string

@@ -9,23 +9,24 @@ param gptDeploymentCapacity int
 param embeddingModel string
 param embeddingDeploymentCapacity int
 param managedIdentityObjectId string
+var abbrs = loadJsonContent('./abbreviations.json')
 
-var storageName = 'st${solutionName}hub'
+var storageName = '${abbrs.storage.storageAccount}${solutionName}-hub'
 var storageSkuName = 'Standard_LRS'
-var aiServicesName = 'ais-${solutionName}'
+var aiServicesName = '${abbrs.ai.aiServices}${solutionName}'
 // var aiServicesName_m = '${solutionName}-aiservices_m'
 // var location_m = solutionLocation
-var applicationInsightsName = 'appi-${solutionName}'
-var containerRegistryName = 'cr-${solutionName}'
-var keyvaultName = 'kv-${solutionName}'
+var applicationInsightsName = '${abbrs.managementGovernance.applicationInsights}${solutionName}'
+var containerRegistryName = '${abbrs.containers.containerRegistry}${solutionName}'
+var keyvaultName = '${abbrs.security.keyVault}${solutionName}'
 var location = solutionLocation //'eastus2'
-var aiHubName = 'hub-${solutionName}'
+var aiHubName = '${abbrs.ai.aiHub}${solutionName}-hub'
 var aiHubFriendlyName = aiHubName
 var aiHubDescription = 'AI Hub'
-var aiProjectName = 'proj-${solutionName}'
+var aiProjectName = '${abbrs.ai.aiHubProject}${solutionName}'
 var aiProjectFriendlyName = aiProjectName
-var aiSearchName = 'srch-${solutionName}'
-var workspaceName = 'log-${solutionName}-hub'
+var aiSearchName = '${abbrs.ai.aiSearch}${solutionName}'
+var workspaceName = '${abbrs.managementGovernance.logAnalyticsWorkspace}${solutionName}'
 var aiModelDeployments = [
   {
     name: gptModelName
@@ -142,7 +143,7 @@ resource aiServices 'Microsoft.CognitiveServices/accounts@2021-10-01' = {
   properties: {
     customSubDomainName: aiServicesName
     apiProperties: {
-      statisticsEnabled: false
+      //statisticsEnabled: false
     }
   }
 }

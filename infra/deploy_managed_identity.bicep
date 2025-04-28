@@ -1,5 +1,6 @@
 // ========== Managed Identity ========== //
 targetScope = 'resourceGroup'
+var abbrs = loadJsonContent('./abbreviations.json')
 
 @minLength(3)
 @maxLength(15)
@@ -10,7 +11,7 @@ param solutionName string
 param solutionLocation string
 
 @description('Name')
-param miName string = 'id-${ solutionName }'
+var miName  = '${abbrs.security.managedIdentity}${solutionName}'
 
 resource managedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' = {
   name: miName
