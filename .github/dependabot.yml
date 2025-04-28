@@ -15,7 +15,7 @@ updates:
     schedule:
       interval: "monthly"
     target-branch: "dependabotchanges"
-    open-pull-requests-limit: 10
+    open-pull-requests-limit: 200
     commit-message:
       prefix: "build(deps)"
 
@@ -23,40 +23,34 @@ updates:
       all-frontend-deps:
         patterns: ["*"]            # every dependency
 
-    ignore:                        # keep heavy majors out of this lane
-      - dependency-name: "react"
-        update-types: ["version-update:semver-major"]
-      - dependency-name: "@types/react"
-        update-types: ["version-update:semver-major"]
-      - dependency-name: "@fluentui/*"
-        update-types: ["version-update:semver-major"]
+
 
 ###############################################################################
 # 2) ONE PR on `dependabot-react-major` with React / FluentUI majors only     #
 #    versioning-strategy: lockfile-only  ⇢ fixes previous timeout / hang      #
 ###############################################################################
-  - package-ecosystem: "npm"
-    directory: "/src/frontend"
-    schedule:
-      interval: "monthly"
-    target-branch: "dependabot-react-major"
-    open-pull-requests-limit: 50
-    commit-message:
-      prefix: "build(deps-major)"
-    versioning-strategy: lockfile-only      # ← replaces the invalid key
+  # - package-ecosystem: "npm"
+  #   directory: "/src/frontend"
+  #   schedule:
+  #     interval: "monthly"
+  #   target-branch: "dependabot-react-major"
+  #   open-pull-requests-limit: 50
+  #   commit-message:
+  #     prefix: "build(deps-major)"
+  #   versioning-strategy: lockfile-only      # ← replaces the invalid key
 
-    groups:
-      react-fluentui-major:
-        patterns:
-          - "react"
-          - "react-dom"
-          - "react-test-renderer"
-          - "@types/react"
-          - "@types/react-dom"
-          - "@fluentui/*"
-          - "eslint-plugin-react"
-          - "@testing-library/react*"
-        update-types: ["major"]
+  #   groups:
+  #     react-fluentui-major:
+  #       patterns:
+  #         - "react"
+  #         - "react-dom"
+  #         - "react-test-renderer"
+  #         - "@types/react"
+  #         - "@types/react-dom"
+  #         - "@fluentui/*"
+  #         - "eslint-plugin-react"
+  #         - "@testing-library/react*"
+  #       update-types: ["major"]
 
 ###############################################################################
 # 3) ONE PR for all pip requirements                                          #
