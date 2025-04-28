@@ -2,58 +2,32 @@
 # package ecosystems to update and where the package manifests are located.
 # Please see the documentation for all configuration options:
 # https://docs.github.com/github/administering-a-repository/configuration-options-for-dependency-updates
- 
-# .github/dependabot.yml
+
 version: 2
- 
 updates:
-# 1) All frontend (npm) deps in ONE PR  ──────────────────────────────────────────
-  - package-ecosystem: "npm"
-    directory: "/src/frontend"
-    schedule:
-      interval: "monthly"               # run once a month; change to "weekly"
-    target-branch: "dependabotchanges"
-    open-pull-requests-limit: 10        # plenty of head-room; has no effect
-    commit-message:
-      prefix: "build(deps)"
-    # keep widen-ranges (default) → plays nicer with peerDeps
-    groups:
-      all-frontend-deps:
-        patterns:
-          - "*"                         # grab **everything**
-    # ignore majors (and peers) that commonly explode CI; you can remove later
-    ignore:
-      - dependency-name: "react"
-        update-types: ["version-update:semver-major"]
-      - dependency-name: "@types/react"
-        update-types: ["version-update:semver-major"]
-      - dependency-name: "@fluentui/*"
-        update-types: ["version-update:semver-major"]
- 
-# 2) All backend (pip) deps in ONE PR  ───────────────────────────────────────────
-  - package-ecosystem: "pip"
-    directory: "/src"
+  - package-ecosystem: "npm" # for frontend dependencies
+    directory: "/src/frontend"  
     schedule:
       interval: "monthly"
-    target-branch: "dependabotchanges"
-    open-pull-requests-limit: 10
     commit-message:
-      prefix: "build(deps)"
-    groups:
-      all-backend-deps:
-        patterns:
-          - "*"                         # everything in requirements*.txt / py-project
- 
-# 3) All GitHub Actions in ONE PR  ───────────────────────────────────────────────
+      prefix: "build"
+    target-branch: "dependabotchanges"
+    open-pull-requests-limit: 100
+
+  - package-ecosystem: "pip" # for backend dependencies
+    directory: "/src"   
+    schedule:
+      interval: "monthly"
+    commit-message:
+      prefix: "build"
+    target-branch: "dependabotchanges"
+    open-pull-requests-limit: 100
+    
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "monthly"
-    target-branch: "dependabotchanges"
-    open-pull-requests-limit: 10
     commit-message:
-      prefix: "build(deps)"
-    groups:
-      all-actions:
-        patterns:
-          - "*"                         # all actions
+      prefix: "build"
+    target-branch: "dependabotchanges"
+    open-pull-requests-limit: 100
