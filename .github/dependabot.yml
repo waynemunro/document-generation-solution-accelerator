@@ -2,59 +2,35 @@
 # package ecosystems to update and where the package manifests are located.
 # Please see the documentation for all configuration options:
 # https://docs.github.com/github/administering-a-repository/configuration-options-for-dependency-updates
-
+ 
 # .github/dependabot.yml
 version: 2
-
+ 
 updates:
-###############################################################################
-# 1) ONE PR on `dependabotchanges` with *all* normal npm bumps                #
-###############################################################################
+# 1) All frontend (npm) deps in ONE PR  ──────────────────────────────────────────
   - package-ecosystem: "npm"
     directory: "/src/frontend"
     schedule:
-      interval: "monthly"
+      interval: "monthly"               # run once a month; change to "weekly"
     target-branch: "dependabotchanges"
-    open-pull-requests-limit: 200
+    open-pull-requests-limit: 10        # plenty of head-room; has no effect
     commit-message:
       prefix: "build(deps)"
-
+    # keep widen-ranges (default) → plays nicer with peerDeps
     groups:
       all-frontend-deps:
-        patterns: ["*"]            # every dependency
-
-
-
-###############################################################################
-# 2) ONE PR on `dependabot-react-major` with React / FluentUI majors only     #
-#    versioning-strategy: lockfile-only  ⇢ fixes previous timeout / hang      #
-###############################################################################
-  # - package-ecosystem: "npm"
-  #   directory: "/src/frontend"
-  #   schedule:
-  #     interval: "monthly"
-  #   target-branch: "dependabot-react-major"
-  #   open-pull-requests-limit: 50
-  #   commit-message:
-  #     prefix: "build(deps-major)"
-  #   versioning-strategy: lockfile-only      # ← replaces the invalid key
-
-  #   groups:
-  #     react-fluentui-major:
-  #       patterns:
-  #         - "react"
-  #         - "react-dom"
-  #         - "react-test-renderer"
-  #         - "@types/react"
-  #         - "@types/react-dom"
-  #         - "@fluentui/*"
-  #         - "eslint-plugin-react"
-  #         - "@testing-library/react*"
-  #       update-types: ["major"]
-
-###############################################################################
-# 3) ONE PR for all pip requirements                                          #
-###############################################################################
+        patterns:
+          - "*"                         # grab **everything**
+    # ignore majors (and peers) that commonly explode CI; you can remove later
+    ignore:
+      - dependency-name: "react"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@types/react"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@fluentui/*"
+        update-types: ["version-update:semver-major"]
+ 
+# 2) All backend (pip) deps in ONE PR  ───────────────────────────────────────────
   - package-ecosystem: "pip"
     directory: "/src"
     schedule:
@@ -65,11 +41,10 @@ updates:
       prefix: "build(deps)"
     groups:
       all-backend-deps:
-        patterns: ["*"]
-
-###############################################################################
-# 4) ONE PR for all GitHub Actions                                            #
-###############################################################################
+        patterns:
+          - "*"                         # everything in requirements*.txt / py-project
+ 
+# 3) All GitHub Actions in ONE PR  ───────────────────────────────────────────────
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
@@ -80,4 +55,5 @@ updates:
       prefix: "build(deps)"
     groups:
       all-actions:
-        patterns: ["*"]
+        patterns:
+          - "*"                         # all actions
