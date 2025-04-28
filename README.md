@@ -193,7 +193,11 @@ To change the azd parameters from the default values, follow the steps [here](./
     * This deployment will take *7-10 minutes* to provision the resources in your account and set up the solution with sample data. 
     * If you get an error or timeout with deployment, changing the location can help, as there may be availability constraints for the resources.
 
-5. Once the deployment has completed successfully and you would like to use the sample data, run the bash command printed in the terminal. The bash command will look like the following: 
+5. Once the deployment has completed successfully and you would like to use the sample data, run the bash command printed in the terminal. The bash command will look like the following:
+    ```shell 
+    bash ./infra/scripts/process_sample_data.sh
+    ```
+    if you don't have azd env then you need to pass parameters along with the command. Then the command will look like the following:
     ```shell 
     bash ./infra/scripts/process_sample_data.sh <Storage-Account-name> <Storgae-Account-container-name> <Key-Vault-name> <CosmosDB-Account-name> <Resource-Group-name>
     ```

@@ -8,9 +8,31 @@ cosmosDbAccountName="$4"
 resourceGroupName="$5"
 managedIdentityClientId="$6"
 
+# get parameters from azd env, if not provided
+if [ -z "$resourceGroupName" ]; then
+    resourceGroupName=$(azd env get-value RESOURCE_GROUP_NAME)
+fi
+
+if [ -z "$cosmosDbAccountName" ]; then
+    cosmosDbAccountName=$(azd env get-value COSMOSDB_ACCOUNT_NAME)
+fi
+
+if [ -z "$storageAccount" ]; then
+    storageAccount=$(azd env get-value STORAGE_ACCOUNT_NAME)
+fi
+
+if [ -z "$fileSystem" ]; then
+    fileSystem=$(azd env get-value STORAGE_CONTAINER_NAME)
+fi
+
+if [ -z "$keyvaultName" ]; then
+    keyvaultName=$(azd env get-value KEY_VAULT_NAME)
+fi
+
+
 # Check if all required arguments are provided
 if [ -z "$storageAccount" ] || [ -z "$fileSystem" ] || [ -z "$keyvaultName" ] || [ -z "$cosmosDbAccountName" ] || [ -z "$resourceGroupName" ]; then
-    echo "Usage: $0 <storageAccount> <fileSystem> <keyvaultName> <cosmosDbAccountName> <resourceGroupName> [managedIdentityClientId]"
+    echo "Usage: $0 <storageAccount> <storageContainerName> <keyvaultName> <cosmosDbAccountName> <resourceGroupName>"
     exit 1
 fi
 
