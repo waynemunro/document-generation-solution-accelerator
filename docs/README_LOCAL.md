@@ -1,7 +1,7 @@
 ### Deploy from your local machine
 
 #### Local Setup: Basic Chat Experience
-1. Copy `.env.sample` to a new file called `.env` and configure the settings as described in the [Environment variables](#environment-variables) section.
+1. Copy `.env.sample` present in `src` folder to a new file called `.env` and configure the settings as described in the [Environment variables](#environment-variables) section.
     
     These variables are required:
     - `AZURE_OPENAI_RESOURCE`
@@ -17,7 +17,7 @@
 
     See the [documentation](https://learn.microsoft.com/en-us/azure/cognitive-services/openai/reference#example-response-2) for more information on these parameters.
 
-2. Start the app with `start.cmd`. This will build the frontend, install backend dependencies, and then start the app. Or, just run the backend in debug mode using the VSCode debug configuration in `.vscode/launch.json`.
+2. Start the app with `start.cmd` or `start.sh`. This will build the frontend, install backend dependencies, and then start the app. Or, just run the backend in debug mode using the VSCode debug configuration in `.vscode/launch.json`.
 
 3. You can see the local running app at http://127.0.0.1:50505. If you experience a port conflict and the app does not load, stop the application in the terminal (CTRL-C on Windows), edit the `start.cmd` file and change the port to a value not in use (i.e., 5000).
 
@@ -50,7 +50,7 @@ NOTE: You may find you need to set: MacOS: `export NODE_OPTIONS="--max-old-space
     - `AZURE_SEARCH_STRICTNESS`
     - `AZURE_OPENAI_EMBEDDING_NAME`
 
-3. Start the app with `start.cmd`. This will build the frontend, install backend dependencies, and then start the app. Or, just run the backend in debug mode using the VSCode debug configuration in `.vscode/launch.json`.
+3. Start the app with `start.cmd` or `start.sh`. This will build the frontend, install backend dependencies, and then start the app. Or, just run the backend in debug mode using the VSCode debug configuration in `.vscode/launch.json`.
 4. You can see the local running app at http://127.0.0.1:50505. If you experience a port conflict and the app does not load, stop the application in the terminal (CTRL-C on Windows), edit the `start.cmd` file and change the port to a value not in use (i.e., 5000).
 
 NOTE: You may find you need to set: MacOS: `export NODE_OPTIONS="--max-old-space-size=8192"` or Windows: `set NODE_OPTIONS=--max-old-space-size=8192` to avoid running out of memory when building the frontend.
@@ -62,7 +62,7 @@ To enable chat history, you will need to set up CosmosDB resources. The ARM temp
 - `AZURE_COSMOSDB_CONVERSATIONS_CONTAINER`
 - `AZURE_COSMOSDB_ACCOUNT_KEY`
 
-As above, start the app with `start.cmd`, then visit the local running app at http://127.0.0.1:50505. Or, just run the backend in debug mode using the VSCode debug configuration in `.vscode/launch.json`. If you experience a port conflict and the app does not load, stop the application in the terminal (CTRL-C on Windows), edit the `start.cmd` file and change the port to a value not in use (i.e., 5000).
+As above, start the app with `start.cmd` or `start.sh`, then visit the local running app at http://127.0.0.1:50505. Or, just run the backend in debug mode using the VSCode debug configuration in `.vscode/launch.json`. If you experience a port conflict and the app does not load, stop the application in the terminal (CTRL-C on Windows), edit the `start.cmd` file and change the port to a value not in use (i.e., 5000).
 
 #### Local Setup: Enable Message Feedback
 To enable message feedback, you will need to set up CosmosDB resources. Then specify these additional environment variable:
@@ -75,10 +75,10 @@ To enable message feedback, you will need to set up CosmosDB resources. Then spe
 
 You can use the [Azure CLI](https://learn.microsoft.com/en-us/cli/azure/install-azure-cli) to deploy the app from your local machine. Make sure you have version 2.48.1 or later.
 
-If this is your first time deploying the app, you can use [az webapp up](https://learn.microsoft.com/en-us/cli/azure/webapp?view=azure-cli-latest#az-webapp-up). Run the following two commands from the root folder of the repo, updating the placeholder values to your desired app name, resource group, location, and subscription. You can also change the SKU if desired.
+If this is your first time deploying the app, you can use [az webapp up](https://learn.microsoft.com/en-us/cli/azure/webapp?view=azure-cli-latest#az-webapp-up). Run the following two commands from the `src` folder of the repo, updating the placeholder values to your desired app name, resource group, location, and subscription. You can also change the SKU if desired.
 
 1. `az webapp up --runtime PYTHON:3.11 --sku B1 --name <new-app-name> --resource-group <resource-group-name> --location <azure-region> --subscription <subscription-name>`
-1. `az webapp config set --startup-file "python3 -m gunicorn app:app" --name <new-app-name>`
+1. `az webapp config set --startup-file "python3 -m gunicorn app:app" --name <new-app-name> --resource-group <resource-group-name>`
 
 If you've deployed the app previously, first run this command to update the appsettings to allow local code deployment:
 
@@ -88,10 +88,10 @@ Check the runtime stack for your app by viewing the app service resource in the 
 
 Check the SKU in the same way. Use the abbreviated SKU name in the argument below, e.g. for "Basic (B1)" the SKU is `B1`. 
 
-Then, use these commands to deploy your local code to the existing app:
+Then, use these commands from `src` folder to deploy your local code to the existing app:
 
 1. `az webapp up --runtime <runtime-stack> --sku <sku> --name <existing-app-name> --resource-group <resource-group-name>`
-1. `az webapp config set --startup-file "python3 -m gunicorn app:app" --name <existing-app-name>`
+1. `az webapp config set --startup-file "python3 -m gunicorn app:app" --name <existing-app-name> --resource-group <resource-group-name>`
 
 Make sure that the app name and resource group match exactly for the app that was previously deployed.
 
