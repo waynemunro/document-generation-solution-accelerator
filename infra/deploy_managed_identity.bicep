@@ -1,6 +1,6 @@
 // ========== Managed Identity ========== //
 targetScope = 'resourceGroup'
-var abbrs = loadJsonContent('./abbreviations.json')
+
 
 @minLength(3)
 @maxLength(15)

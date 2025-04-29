@@ -4,7 +4,7 @@
 param solutionName string
 param solutionLocation string
 param keyVaultName string
-var abbrs = loadJsonContent('./abbreviations.json')
+
 param accountName string 
 
 var databaseName = 'db_conversation_history'

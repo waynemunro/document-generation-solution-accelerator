@@ -4,7 +4,7 @@
 param solutionName string
 param solutionLocation string
 param managedIdentityObjectId string
-var abbrs = loadJsonContent('./abbreviations.json')
+
 
 param keyvaultName string
 
