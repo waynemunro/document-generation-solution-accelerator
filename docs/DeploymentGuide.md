@@ -71,7 +71,7 @@ You can run this solution in VS Code Dev Containers, which will open the project
 If you're not using one of the above options for opening the project, then you'll need to:
 
 1. Make sure the following tools are installed:
-    - [PowerShell](https://learn.microsoft.com/en-us/powershell/scripting/install/installing-powershell?view=powershell-7.5) <small>(v7.0+)</small> - available for Windows, macOS, and Linux. (Required for Windows users only. Follow the steps [here](./docs/PowershellSetup.md) to add it to the Windows PATH.)
+    - [PowerShell](https://learn.microsoft.com/en-us/powershell/scripting/install/installing-powershell?view=powershell-7.5) <small>(v7.0+)</small> - available for Windows, macOS, and Linux. (Required for Windows users only. Follow the steps [here](./PowershellSetup.md) to add it to the Windows PATH.)
     - [Azure Developer CLI (azd)](https://aka.ms/install-azd)
     - [Python 3.9+](https://www.python.org/downloads/)
     - [Docker Desktop](https://www.docker.com/products/docker-desktop/)
@@ -122,7 +122,7 @@ To adjust quota settings, follow these [steps](./AzureGPTQuotaSettings.md).
 
 ### ⚠️ Important: Check Azure OpenAI Quota Availability  
 
-➡️ To ensure sufficient quota is available in your subscription, please follow **[Quota check instructions guide](./docs/quota_check.md)** before you deploy the solution. Insufficient quota can cause deployment errors. Please ensure you have the recommended capacity or request additional capacity before deploying this solution. 
+➡️ To ensure sufficient quota is available in your subscription, please follow **[Quota check instructions guide](./QuotaCheck.md)** before you deploy the solution. Insufficient quota can cause deployment errors. Please ensure you have the recommended capacity or request additional capacity before deploying this solution. 
 
 </details>
 
