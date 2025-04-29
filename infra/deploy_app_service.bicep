@@ -10,10 +10,10 @@ param solutionName string
 // param solutionLocation string
 
 // param identity string
-var abbrs = loadJsonContent('./abbreviations.json')
+
 
 @description('Name of App Service plan')
-var HostingPlanName  = '${abbrs.compute.appServicePlan}${solutionName}'
+param HostingPlanName string 
 
 @description('The pricing tier for the App Service plan')
 @allowed(
@@ -24,7 +24,7 @@ var HostingPlanName  = '${abbrs.compute.appServicePlan}${solutionName}'
 param HostingPlanSku string = 'B1'
 
 @description('Name of Web App')
-var WebsiteName = '${abbrs.compute.webApp}${solutionName}'
+param WebsiteName string
 
 // @description('Name of Application Insights')
 // param ApplicationInsightsName string = '${ solutionName }-app-insights'

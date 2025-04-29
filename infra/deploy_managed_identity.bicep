@@ -11,7 +11,7 @@ param solutionName string
 param solutionLocation string
 
 @description('Name')
-var miName  = '${abbrs.security.managedIdentity}${solutionName}'
+param miName  string
 
 resource managedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' = {
   name: miName

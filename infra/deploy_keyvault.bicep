@@ -6,7 +6,7 @@ param solutionLocation string
 param managedIdentityObjectId string
 var abbrs = loadJsonContent('./abbreviations.json')
 
-var keyvaultName = '${abbrs.security.keyVault}${solutionName}'
+param keyvaultName string
 
 resource keyVault 'Microsoft.KeyVault/vaults@2022-07-01' = {
   name: keyvaultName
