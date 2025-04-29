@@ -6,6 +6,7 @@
       "name": "bicep",
       "version": "0.33.93.31351",
       "templateHash": "12482088908057991458"
+
     }
   },
   "parameters": {
@@ -379,7 +380,9 @@
             "_generator": {
               "name": "bicep",
               "version": "0.33.93.31351",
+
               "templateHash": "4918959437602908672"
+
             }
           },
           "parameters": {
@@ -696,7 +699,9 @@
             "_generator": {
               "name": "bicep",
               "version": "0.33.93.31351",
+
               "templateHash": "13565525601699191805"
+
             }
           },
           "parameters": {
@@ -978,7 +983,6 @@
                 "enabledForDiskEncryption": true,
                 "enabledForTemplateDeployment": true,
                 "enableRbacAuthorization": true,
-                "enablePurgeProtection": true,
                 "publicNetworkAccess": "enabled",
                 "sku": {
                   "family": "A",
@@ -1064,7 +1068,9 @@
             "_generator": {
               "name": "bicep",
               "version": "0.33.93.31351",
+
               "templateHash": "5677298996620527677"
+
             }
           },
           "parameters": {
@@ -1888,7 +1894,9 @@
             "_generator": {
               "name": "bicep",
               "version": "0.33.93.31351",
+
               "templateHash": "8410820296964867895"
+
             }
           },
           "parameters": {
@@ -2341,7 +2349,9 @@
             "_generator": {
               "name": "bicep",
               "version": "0.33.93.31351",
+
               "templateHash": "10569046713861283240"
+
             }
           },
           "parameters": {
@@ -3043,7 +3053,9 @@
             "_generator": {
               "name": "bicep",
               "version": "0.33.93.31351",
+
               "templateHash": "17431157808305965684"
+
             }
           },
           "parameters": {
