@@ -89,7 +89,7 @@ Pricing varies per region and usage, so it isn't possible to predict exact costs
 
 Use the [Azure pricing calculator](https://azure.microsoft.com/en-us/pricing/calculator) to calculate the cost of this solution in your subscription. 
 
-Review a [sample pricing sheet](https://azure.com/e/68b51f4cb79a4466b631a11aa57e9c16) in the event you want to customize and scale usage.
+Review a [sample pricing sheet](https://azure.com/e/2402502429fc46429e395e0bb93d0711) in the event you want to customize and scale usage.
 
 _Note: This is not meant to outline all costs as selected SKUs, scaled use, customizations, and integrations into your own tenant can affect the total consumption of this sample solution. The sample pricing sheet is meant to give you a starting point to customize the estimate for your specific needs._
 
