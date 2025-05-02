@@ -10,7 +10,7 @@ param solutionName string
 param solutionLocation string
 
 @description('Name')
-param saName string = 'st${ solutionName }'
+param saName string
 
 param keyVaultName string
 param managedIdentityObjectId string

@@ -5,7 +5,8 @@ param solutionName string
 param solutionLocation string
 param managedIdentityObjectId string
 
-var keyvaultName = 'kv-${solutionName}'
+
+param keyvaultName string
 
 resource keyVault 'Microsoft.KeyVault/vaults@2022-07-01' = {
   name: keyvaultName
