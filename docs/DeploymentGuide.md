@@ -168,7 +168,7 @@ Once you've opened the project in [Codespaces](#github-codespaces), [Dev Contain
 
      > Note: Authentication changes can take up to 10 minutes 
 
-    Follow steps in [App Authentication](./AppAuthentication.md) to configure authenitcation in app service.
+    Follow steps in [App Authentication](./AppAuthentication.md) to configure authentication in app service.
 
 2. **Deleting Resources After a Failed Deployment**  
 
