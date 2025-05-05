@@ -188,7 +188,7 @@ Check out similar solution accelerators
 
 ## Provide feedback
 
-Have questions, find a bug, or want to request a feature? [Submit a new issue](https://github.com/microsoft/Build-your-own-copilot-Solution-Accelerator/issues) on this repo and we'll connect.
+Have questions, find a bug, or want to request a feature? [Submit a new issue](https://github.com/microsoft/document-generation-solution-accelerator/issues) on this repo and we'll connect.
 
 <br/>
 
