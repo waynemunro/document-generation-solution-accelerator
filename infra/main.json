@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.35.1.17967",
-      "templateHash": "8821344255310687216"
+      "templateHash": "12021810066891829779"
     }
   },
   "parameters": {
@@ -596,7 +596,7 @@
           "gptModelName": {
             "value": "[parameters('gptModelName')]"
           },
-          "gptModelVersion": {
+          "azureOpenaiAPIVersion": {
             "value": "[parameters('azureOpenaiAPIVersion')]"
           },
           "gptDeploymentCapacity": {
@@ -619,7 +619,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.35.1.17967",
-              "templateHash": "8646925609238635162"
+              "templateHash": "12505669566676288842"
             }
           },
           "parameters": {
@@ -638,7 +638,7 @@
             "gptModelName": {
               "type": "string"
             },
-            "gptModelVersion": {
+            "azureOpenaiAPIVersion": {
               "type": "string"
             },
             "gptDeploymentCapacity": {
@@ -1230,7 +1230,7 @@
               "apiVersion": "2021-11-01-preview",
               "name": "[format('{0}/{1}', parameters('keyVaultName'), 'AZURE-OPENAI-PREVIEW-API-VERSION')]",
               "properties": {
-                "value": "[parameters('gptModelVersion')]"
+                "value": "[parameters('azureOpenaiAPIVersion')]"
               }
             },
             {

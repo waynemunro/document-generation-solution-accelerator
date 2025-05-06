@@ -97,7 +97,7 @@ module aifoundry 'deploy_ai_foundry.bicep' = {
     keyVaultName: kvault.outputs.keyvaultName
     deploymentType: deploymentType
     gptModelName: gptModelName
-    gptModelVersion: azureOpenaiAPIVersion
+    azureOpenaiAPIVersion: azureOpenaiAPIVersion
     gptDeploymentCapacity: gptDeploymentCapacity
     embeddingModel: embeddingModel
     embeddingDeploymentCapacity: embeddingDeploymentCapacity
