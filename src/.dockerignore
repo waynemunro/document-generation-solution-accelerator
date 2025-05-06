@@ -1,5 +1,5 @@
 .venv
 .env
 WebApp.Dockerfile
-WebApp.dockerignore
+.dockerignore
 frontend/node_modules

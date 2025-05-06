@@ -1,295 +1,160 @@
-# Document Generation Solution Accelerator
-
-MENU: [**USER STORY**](#user-story) \| [**QUICK DEPLOY**](#quick-deploy) \| [**SUPPORTING DOCUMENTATION**](#supporting-documentation)
-
-
-<h2><img src="./docs/images/userStory.png" width="64">
-<br/>
-User story
-</h2>
-
-**Solution accelerator overview**
+# Document generation solution accelerator
 
 This solution accelerator is a powerful tool that helps you create your own AI assistant for document generation. The accelerator can be used by any customer looking for reusable architecture and code snippets to build an AI assistant to generate a sample template and content grounded on their own enterprise data. 
 
-It leverages Azure OpenAI Service and Azure AI Search, to identify relevant documents, summarize unstructured information, and generate document templates. 
-
-
-### Key features
-
-![Key Features](/docs/images/keyfeatures.png)
-
-Below is an image of the solution. 
-
-![Landing Page](/docs/images/landing_page.png)
-
-**Scenario**
-
 This example focuses on a generic use case - chat with your own data, generate a document template using your own data, and exporting the document in a docx format.
 
-The sample data is sourced from generic AI-generated promissory notes.
-The documents are intended for use as sample data only.
-
-
-### Solution accelerator architecture
-![image](/docs/images/DocGen_Azure_AI_Foundry_Architecture.png)
-
-<h2><img src="./docs/images/oneClickDeploy.png" width="64">
 <br/>
-QUICK DEPLOY
+
+<div align="center">
+  
+[**SOLUTION OVERVIEW**](#solution-overview)  \| [**QUICK DEPLOY**](#quick-deploy)  \| [**BUSINESS USE CASE**](#business-use-case)  \| [**SUPPORTING DOCUMENTATION**](#supporting-documentation)
+
+</div>
+<br/>
+
+<h2><img src="./docs/images/readme/solution-overview.png" width="48" />
+Solution overview
 </h2>
 
-### Prerequisites
+It leverages Azure OpenAI Service and Azure AI Search, to identify relevant documents, summarize unstructured information, and generate document templates. 
 
-To deploy this solution accelerator, ensure you have access to an [Azure subscription](https://azure.microsoft.com/free/) with the necessary permissions to create **resource groups and resources**. Follow the steps in  [Azure Account Set Up](./docs/AzureAccountSetUp.md) 
+The sample data is sourced from generic AI-generated promissory notes.The documents are intended for use as sample data only.
 
-Check the [Azure Products by Region](https://azure.microsoft.com/en-us/explore/global-infrastructure/products-by-region/table) page and select a **region** where the following services are available:  
-
-- Azure OpenAI Service
-- Azure AI Search
-- [Azure Semantic Search](./docs/AzureSemanticSearchRegion.md)  
-
-Here are some example regions where the services are available: East US, East US2, Australia East, UK South, France Central.
-
-### ⚠️ Important: Check Azure OpenAI Quota Availability  
-
-➡️ To ensure sufficient quota is available in your subscription, please follow **[Quota check instructions guide](./docs/quota_check.md)** before you deploy the solution.
-
-<!-- Here are some example regions where the services are available: East US, East US2, Australia East, UK South, France Central. -->
-<!-- 
-| [![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fmicrosoft%2Fdocument-generation-solution-accelerator%2Fmain%2Finfra%2Fmain.json) |
+### Solution architecture
+|![image](./docs/images/DocGen_Azure_AI_Foundry_Architecture.png)|
 |---|
--->
+
+
+<br/>
+
+### Additional resources
+
+[Azure OpenAI Service](https://learn.microsoft.com/en-us/azure/ai-services/openai/) 
+
+[Azure AI Search](https://learn.microsoft.com/en-us/azure/search/) 
+
+[Azure AI Foundry](https://learn.microsoft.com/en-us/azure/ai-studio/)
+
+
+<br/>
+
+### Key features
+<details open>
+  <summary>Click to learn more about the key features this solution enables</summary>
+
+  - **Semantic search** <br/>
+  Azure AI Search to enable RAG and grounding of the application on the processed dataset.​
+  
+  - **Summarization** <br/>
+  Azure OpenAI Service and GPT models to help summarize the search content and answer questions.​
+
+  - **Content generation** <br/>
+  Azure OpenAI Service and GPT models tohelp generate relevant content with Prompt Flow.​
+     
+</details>
+
+
+
+<br /><br />
+<h2><img src="./docs/images/readme/quick-deploy.png" width="48" />
+Quick deploy
+</h2>
+
+### How to install or deploy
+Follow the quick deploy steps on the deployment guide to deploy this solution to your own Azure subscription.
+
+[Click here to launch the deployment guide](./docs/DeploymentGuide.md)
+<br/><br/>
 
 | [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/microsoft/document-generation-solution-accelerator) | [![Open in Dev Containers](https://img.shields.io/static/v1?style=for-the-badge&label=Dev%20Containers&message=Open&color=blue&logo=visualstudiocode)](https://vscode.dev/redirect?url=vscode://ms-vscode-remote.remote-containers/cloneInVolume?url=https://github.com/microsoft/document-generation-solution-accelerator) | 
 |---|---|
 
-### Configurable Deployment Settings
+<br/>
 
-When you start the deployment, most parameters will have **default values**, but you can update the below settings by following the steps  [here](./docs/CustomizingAzdParameters.md):  
+> ⚠️ **Important: Check Azure OpenAI Quota Availability**
+ <br/>To ensure sufficient quota is available in your subscription, please follow [quota check instructions guide](./docs/QuotaCheck.md) before you deploy the solution.
 
-| **Setting** | **Description** |  **Default value** |
-|------------|----------------|  ------------|
-| **Azure Region** | The region where resources will be created. | eastus | 
-| **Environment Name** | A **3-20 character alphanumeric value** used to generate a unique ID to prefix the resources. |  byctemplate |
-| **Secondary Location** | A **less busy** region for **CosmosDB**, useful in case of availability constraints. |  eastus2 |
-| **Deployment Type** | Select from a drop-down list. |  Global Standard |
-| **GPT Model** | Choose from **gpt-4, gpt-4o** | gpt-4o |  
-| **GPT Model Deployment Capacity** | Configure capacity for **GPT models**. | 30k |
-| **Embedding Model** | Default: **text-embedding-ada-002**. |  text-embedding-ada-002 |
-| **Embedding Model Capacity** | Set the capacity for **embedding models**. |  80k |
+<br/>
 
+### Prerequisites and costs
 
-### [Optional] Quota Recommendations  
-By default, the **Gpt-4o model capacity** in deployment is set to **30k tokens**, so we recommend
-> **For Global Standard | GPT-4o - the capacity to at least 150k tokens post-deployment for optimal performance.**
+To deploy this solution accelerator, ensure you have access to an [Azure subscription](https://azure.microsoft.com/free/) with the necessary permissions to create **resource groups, resources, app registrations, and assign roles at the resource group level**. This should include Contributor role at the subscription level and  Role Based Access Control role on the subscription and/or resource group level. Follow the steps in [Azure Account Set Up](./docs/AzureAccountSetUp.md).
 
-> **For Standard | GPT-4 - ensure a minimum of 30k–40k tokens for best results.**
+Check the [Azure Products by Region](https://azure.microsoft.com/en-us/explore/global-infrastructure/products-by-region/?products=all&regions=all) page and select a **region** where the following services are available.
 
-To adjust quota settings, follow these [steps](./docs/AzureGPTQuotaSettings.md)  
+Pricing varies per region and usage, so it isn't possible to predict exact costs for your usage. The majority of the Azure resources used in this infrastructure are on usage-based pricing tiers. However, Azure Container Registry has a fixed cost per registry per day.
 
-### Deployment Options
-Pick from the options below to see step-by-step instructions for: GitHub Codespaces, VS Code Dev Containers, Local Environments, and Bicep deployments.
+Use the [Azure pricing calculator](https://azure.microsoft.com/en-us/pricing/calculator) to calculate the cost of this solution in your subscription. 
 
-<details>
-  <summary><b>Deploy in GitHub Codespaces</b></summary>
+Review a [sample pricing sheet](https://azure.com/e/2402502429fc46429e395e0bb93d0711) in the event you want to customize and scale usage.
 
-### GitHub Codespaces
+_Note: This is not meant to outline all costs as selected SKUs, scaled use, customizations, and integrations into your own tenant can affect the total consumption of this sample solution. The sample pricing sheet is meant to give you a starting point to customize the estimate for your specific needs._
 
-You can run this solution using GitHub Codespaces. The button will open a web-based VS Code instance in your browser:
+<br/>
 
-1. Open the solution accelerator (this may take several minutes):
-
-    [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/microsoft/document-generation-solution-accelerator)
-2. Accept the default values on the create Codespaces page
-3. Open a terminal window if it is not already open
-4. Continue with the [deploying steps](#deploying)
-
-</details>
-
-<details>
-  <summary><b>Deploy in VS Code</b></summary>
-
- ### VS Code Dev Containers
-
-You can run this solution in VS Code Dev Containers, which will open the project in your local VS Code using the [Dev Containers extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers):
-
-1. Start Docker Desktop (install it if not already installed)
-2. Open the project:
-
-    [![Open in Dev Containers](https://img.shields.io/static/v1?style=for-the-badge&label=Dev%20Containers&message=Open&color=blue&logo=visualstudiocode)](https://vscode.dev/redirect?url=vscode://ms-vscode-remote.remote-containers/cloneInVolume?url=https://github.com/microsoft/document-generation-solution-accelerator)
+| Product | Description | Cost |
+|---|---|---|
+| [Azure AI Foundry](https://learn.microsoft.com/en-us/azure/ai-foundry/) | Free tier. Build generative AI applications on an enterprise-grade platform. | [Pricing](https://azure.microsoft.com/pricing/details/ai-studio/) |
+| [Azure AI Search](https://learn.microsoft.com/en-us/azure/search/) | Standard tier, S1. Pricing is based on the number of documents and operations. Information retrieval at scale for vector and text content in traditional or generative search scenarios. | [Pricing](https://azure.microsoft.com/pricing/details/search/) |
+| [Azure Storage Account](https://learn.microsoft.com/en-us/azure/storage/blobs/) | Standard tier, LRS. Pricing is based on storage and operations. Blob storage in the clopud, optimized for storing massive amounts of unstructured data. | [Pricing](https://azure.microsoft.com/pricing/details/storage/blobs/) |
+| [Azure Key Vault](https://learn.microsoft.com/en-us/azure/key-vault/) | Standard tier. Pricing is based on the number of operations. Maintain keys that access and encrypt your cloud resources, apps, and solutions. | [Pricing](https://azure.microsoft.com/pricing/details/key-vault/) |
+| [Azure AI Services](https://learn.microsoft.com/en-us/azure/ai-services/) | S0 tier, defaults to gpt-4o and text-embedding-ada-002 models. Pricing is based on token count. | [Pricing](https://azure.microsoft.com/pricing/details/cognitive-services/) |
+| [Azure Container App](https://learn.microsoft.com/en-us/azure/container-apps/) | Consumption tier with 0.5 CPU, 1GiB memory/storage. Pricing is based on resource allocation, and each month allows for a certain amount of free usage. Allows you to run containerized applications without worrying about orchestration or infrastructure. | [Pricing](https://azure.microsoft.com/pricing/details/container-apps/) |
+| [Azure Container Registry](https://learn.microsoft.com/en-us/azure/container-registry/) | Basic tier. Build, store, and manage container images and artifacts in a private registry for all types of container deployments | [Pricing](https://azure.microsoft.com/pricing/details/container-registry/) |
+| [Log analytics](https://learn.microsoft.com/en-us/azure/azure-monitor/) | Pay-as-you-go tier. Costs based on data ingested. Collect and analyze on telemetry data generated by Azure. | [Pricing](https://azure.microsoft.com/pricing/details/monitor/) |
+| [Azure Cosmos DB](https://learn.microsoft.com/en-us/azure/cosmos-db/) | Fully managed, distributed NoSQL, relational, and vector database for modern app development. | [Pricing](https://azure.microsoft.com/en-us/pricing/details/cosmos-db/autoscale-provisioned/) |
 
 
-3. In the VS Code window that opens, once the project files show up (this may take several minutes), open a terminal window.
-4. Continue with the [deploying steps](#deploying)
 
-</details>
+<br/>
 
-<details>
-  <summary><b>Deploy in your local environment</b></summary>
+>⚠️ **Important:** To avoid unnecessary costs, remember to take down your app if it's no longer in use,
+either by deleting the resource group in the Portal or running `azd down`.
 
- ### Local environment
-
-If you're not using one of the above options for opening the project, then you'll need to:
-
-1. Make sure the following tools are installed:
-
-    * [Azure Developer CLI (azd)](https://aka.ms/install-azd)
-    * [Python 3.9+](https://www.python.org/downloads/)
-    * [Docker Desktop](https://www.docker.com/products/docker-desktop/)
-    * [Git](https://git-scm.com/downloads)
-    * [Powershell](https://learn.microsoft.com/en-us/powershell/scripting/install/installing-powershell-on-windows?view=powershell-7.5) (Required for Windows users only. Follow the steps [here](./docs/PowershellSetup.md) to add it to the Windows PATH.)
-
-2. Download the project code:
-
-    ```shell
-    azd init -t microsoft/document-generation-solution-accelerator/
-    ```
-
-3. Open the project folder in your terminal or editor.
-
-4. Continue with the [deploying steps](#deploying).
-
-</details>
-
-<!-- <details>
-  <summary><b>Deploy with Bicep/ARM template</b></summary>
- ### Bicep
- 
-   Click the following deployment button to create the required resources for this solution directly in your Azure Subscription.
-
-   [![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fmicrosoft%2Fdocument-generation-solution-accelerator%2Fmain%2Finfra%2Fmain.json)          
-
-</details> -->
-
-
-### Deploying
-
-Once you've opened the project in [Codespaces](#github-codespaces) or in [Dev Containers](#vs-code-dev-containers) or [locally](#local-environment), you can deploy it to Azure following the following steps. 
-
-To change the azd parameters from the default values, follow the steps [here](./docs/CustomizingAzdParameters.md). 
-
-
-1. Login to Azure:
-
-    ```shell
-    azd auth login
-    ```
-
-    #### To authenticate with Azure Developer CLI (`azd`), use the following command with your **Tenant ID**:
-
-    ```sh
-    azd auth login --tenant-id <tenant-id>
-   ```
-
-2. Provision and deploy all the resources:
-
-    ```shell
-    azd up
-    ```
-
-3. Provide an `azd` environment name (like "bycapp")
-4. Select a subscription from your Azure account, and select a location which has quota for all the resources. 
-    * This deployment will take *7-10 minutes* to provision the resources in your account and set up the solution with sample data. 
-    * If you get an error or timeout with deployment, changing the location can help, as there may be availability constraints for the resources.
-
-5. Once the deployment has completed successfully and you would like to use the sample data, run the bash command printed in the terminal. The bash command will look like the following:
-    ```shell 
-    bash ./infra/scripts/process_sample_data.sh
-    ```
-    if you don't have azd env then you need to pass parameters along with the command. Then the command will look like the following:
-    ```shell 
-    bash ./infra/scripts/process_sample_data.sh <Storage-Account-name> <Storgae-Account-container-name> <Key-Vault-name> <CosmosDB-Account-name> <Resource-Group-name>
-    ```
-
-6. Open the [Azure Portal](https://portal.azure.com/), go to the deployed resource group, find the App Service and get the app URL from `Default domain`.
-
-6. You can now delete the resources by running `azd down`, if you are done trying out the application. 
-<!-- 6. You can now proceed to run the [development server](#development-server) to test the app locally, or if you are done trying out the app, you can delete the resources by running `azd down`. -->
-
-<h2>
-Additional Steps
+<br /><br />
+<h2><img src="./docs/images/readme/business-scenario.png" width="48" />
+Business use case
 </h2>
 
-1. **Add App Authentication**
-   
-    Follow steps in [App Authentication](./docs/AppAuthentication.md) to configure authenitcation in app service.
 
-    Note: Authentication changes can take up to 10 minutes 
+|![image](./docs/images/landing_page.png)|
+|---|
 
-2. **Deleting Resources After a Failed Deployment**
+<br/>
 
-     Follow steps in [Delete Resource Group](./docs/DeleteResourceGroup.md) If your deployment fails and you need to clean up the resources.
+Put your data to work by reducing blank page anxiety, speeding up document drafting, improving draft document quality, and reference information quickly - keeping experts in their expertise. Draft document templates for your organization including Invoices, End-user Contracts, Purchase Orders, Investment Proposals, and Grant Submissions.
 
-## Sample Questions
+⚠️ The sample data used in this repository is synthetic and generated using Azure OpenAI Service. The data is intended for use as sample data only.
 
-To help you get started, here are some [Sample Questions](./docs/SampleQuestions.md) you can follow once your application is up and running.
 
-<!-- 
+### Business value
+<details>
+  <summary>Click to learn more about what value this solution provides</summary>
 
-### **How to install/deploy**
+  - **Draft templates quickly** <br/>
+  Put your data to work to create any kind of document that is supported by a large data library.
 
-1. Please check the link [Azure Products by Region](
-https://azure.microsoft.com/en-us/explore/global-infrastructure/products-by-region/?products=all&regions=all) and choose a region where Azure AI Search, Azure OpenAI Service, and Azure AI Foundry are available. If you are using the included sample data set, verify Document Intelligence (Form Recognizer) is available.
+  - **Share** <br/>
+  Share with coauthors, contributors and approvers quickly. 
 
-2. Click the following deployment button to create the required resources for this accelerator in your Azure Subscription.
+  - **Contextualize information** <br/>
+  Provide context using natural language. Primary and secondary queries allow for access to supplemental detail – reducing cognitive load, increasing efficiency, and enabling focus on higher value work.
 
-   [![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fmicrosoft%2Fdocument-generation-solution-accelerator%2Fmain%2Finfrastructure%2Fdeployment.json)
+  - **Gain confidence in responses** <br/>
+  Trust responses to queries by customizing how data is referenced and returned to users, reducing the risk of hallucinated responses.<br /><br />Access reference documents in the same chat window to get more detail and confirm accuracy.
 
-3. You will need to select an Azure Subscription, create/select a Resource group, and Region. If your intention is to deploy this solution accelerator and the corresponding sample data set, the default settings will suffice.
+  - **Secure data and responsible AI for innovation** <br/>
+  Improve data security to minimize breaches, fostering a culture of responsible AI adoption, maximize innovation opportunities, and sustain competitive edge.
 
-If you are using your own data, the next step is optional.
+     
+</details>
 
-4. Follow steps in [Sample data guide](./scripts/SAMPLE_DATA.md) to ingest the sample Promissory Note PDFs into the search index.
+<br /><br />
 
-If you want to enable authentication, you will need to add an identity provider.
-
-#### Add an identity provider
-After deployment, you will need to add an identity provider to provide authentication support in your app. See [this tutorial](https://learn.microsoft.com/en-us/azure/app-service/scenario-secure-app-authentication-app-service) for more information.
-
-If you don't add an identity provider, the chat functionality will allow anyone to access the chat functionality of your app. **This is not recommended for production apps.** To enable this restriction, you can add `AUTH_ENABLED=True` to the environment variables. This will enable authentication and prevent unauthorized access to the chat functionality of your app.
-
-To add further access controls, update the logic in `getUserInfoList` in `frontend/src/pages/chat/Chat.tsx`. 
-
-#### Recommended practices
-1. **For enhanced relevance and accuracy**, we recommend implementing [Azure hybrid search](https://learn.microsoft.com/en-us/azure/search/hybrid-search-overview) over full-text search. Azure hybrid search provides superior relevance, accuracy, support for complex queries, improved user experience, scalability, performance, advanced features, and integration with AI services. These advantages make it the ideal choice for modern applications that require robust and intelligent search capabilities.
-2. **Importance of prompt engineering**. Prompt engineering is a critical aspect of working with AI models, especially when leveraging advanced capabilities such as those provided by Azure AI services. Proper prompt engineering ensures that the AI models generate accurate, relevant, and contextually appropriate responses. It involves carefully crafting and refining prompts to guide the model's behavior and output effectively. Neglecting prompt engineering can result in suboptimal performance, irrelevant outputs, and increased frustration for users. Therefore, it is essential to invest time and effort in prompt engineering to fully harness the potential of AI models
-
-### Local deployment
-Review the local deployment [README](./docs/README_LOCAL.md). -->
-
-<h2>
-</br>
-Responsible AI Transparency FAQ 
-</h2>
-
-Please refer to [Transparency FAQ](./docs/TRANSPARENCY_FAQ.md) for responsible AI transparency details of this solution accelerator.
-
-<h2>
+<h2><img src="./docs/images/readme/supporting-documentation.png" width="48" />
 Supporting documentation
 </h2>
-
-### Costs
-
-Pricing varies per region and usage, so it isn't possible to predict exact costs for your usage.
-The majority of the Azure resources used in this infrastructure are on usage-based pricing tiers.
-However, Azure Container Registry has a fixed cost per registry per day.
-
-You can try the [Azure pricing calculator](https://azure.microsoft.com/en-us/pricing/calculator) for the resources:
-
-* Azure AI Foundry: Free tier. [Pricing](https://azure.microsoft.com/pricing/details/ai-studio/)
-* Azure AI Search: Standard tier, S1. Pricing is based on the number of documents and operations. [Pricing](https://azure.microsoft.com/pricing/details/search/)
-* Azure Storage Account: Standard tier, LRS. Pricing is based on storage and operations. [Pricing](https://azure.microsoft.com/pricing/details/storage/blobs/)
-* Azure Key Vault: Standard tier. Pricing is based on the number of operations. [Pricing](https://azure.microsoft.com/pricing/details/key-vault/)
-* Azure AI Services: S0 tier, defaults to gpt-4o and text-embedding-ada-002 models. Pricing is based on token count. [Pricing](https://azure.microsoft.com/pricing/details/cognitive-services/)
-* Azure Container App: Consumption tier with 0.5 CPU, 1GiB memory/storage. Pricing is based on resource allocation, and each month allows for a certain amount of free usage. [Pricing](https://azure.microsoft.com/pricing/details/container-apps/)
-* Azure Container Registry: Basic tier. [Pricing](https://azure.microsoft.com/pricing/details/container-registry/)
-* Log analytics: Pay-as-you-go tier. Costs based on data ingested. [Pricing](https://azure.microsoft.com/pricing/details/monitor/)
-* Azure Cosmos DB: [Pricing](https://azure.microsoft.com/en-us/pricing/details/cosmos-db/autoscale-provisioned/)
-
-
-⚠️ To avoid unnecessary costs, remember to take down your app if it's no longer in use,
-either by deleting the resource group in the Portal or running `azd down`.
 
 ### Security guidelines
 
@@ -304,12 +169,31 @@ You may want to consider additional security measures, such as:
 * Enabling Microsoft Defender for Cloud to [secure your Azure resources](https://learn.microsoft.com/azure/security-center/defender-for-cloud).
 * Protecting the Azure Container Apps instance with a [firewall](https://learn.microsoft.com/azure/container-apps/waf-app-gateway) and/or [Virtual Network](https://learn.microsoft.com/azure/container-apps/networking?tabs=workload-profiles-env%2Cazure-cli).
 
+<br/>
+
+### Cross references
+Check out similar solution accelerators
+ 
+| Solution Accelerator | Description |
+|---|---|
+| [Chat&nbsp;with&nbsp;your&nbsp;data](https://github.com/Azure-Samples/chat-with-your-data-solution-accelerator) | Chat with their own data by combining Azure Cognitive Search and Large Language Models (LLMs) to create a conversational search experience. It enables increased user efficiency by minimizing endpoints required to access internal company knowledgebases. |
+| [Document&nbsp;knowledge&nbsp;mining](https://github.com/microsoft/Document-Knowledge-Mining-Solution-Accelerator) | Built on Azure OpenAI Service and Azure AI Document Intelligence to process and extract summaries, entities, and metadata from unstructured, multi-modal documents and enable searching and chatting over this data. |
+| [Build&nbsp;your&nbsp;own&nbsp;copilot](https://github.com/microsoft/Build-your-own-copilot-Solution-Accelerator) | Helps client advisors to save time and prepare relevant discussion topics for scheduled meetings with overviews, client profile views, and chatting with structured data. |
 
 
-### Additional Resources
-1. [Azure OpenAI Service](https://learn.microsoft.com/en-us/azure/ai-services/openai/) 
-2. [Azure AI Search](https://learn.microsoft.com/en-us/azure/search/) 
-3. [Azure AI Foundry](https://learn.microsoft.com/en-us/azure/ai-studio/)
+<br/>   
+
+
+## Provide feedback
+
+Have questions, find a bug, or want to request a feature? [Submit a new issue](https://github.com/microsoft/document-generation-solution-accelerator/issues) on this repo and we'll connect.
+
+<br/>
+
+## Responsible AI Transparency FAQ 
+Please refer to [Transparency FAQ](./TRANSPARENCY_FAQ.md) for responsible AI transparency details of this solution accelerator.
+
+<br/>
 
 ## Disclaimers
 

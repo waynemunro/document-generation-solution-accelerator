@@ -48,7 +48,7 @@ param gptDeploymentCapacity int = 30
 ])
 param embeddingModel string = 'text-embedding-ada-002'
 
-
+var abbrs = loadJsonContent('./abbreviations.json')
 @minValue(10)
 @description('Capacity of the Embedding Model deployment')
 param embeddingDeploymentCapacity int = 80
@@ -62,8 +62,8 @@ var solutionPrefix = 'dg${padLeft(take(uniqueId, 12), 12, '0')}'
 
 var baseUrl = 'https://raw.githubusercontent.com/microsoft/document-generation-solution-accelerator/main/'
 
-var ApplicationInsightsName = 'appi-${solutionPrefix}'
-var WorkspaceName = 'log-${solutionPrefix}'
+var ApplicationInsightsName ='${abbrs.managementGovernance.applicationInsights}${solutionPrefix}'
+var WorkspaceName = '${abbrs.managementGovernance.logAnalyticsWorkspace}${solutionPrefix}'
 
 // ========== Managed Identity ========== //
 module managedIdentityModule 'deploy_managed_identity.bicep' = {
@@ -71,6 +71,7 @@ module managedIdentityModule 'deploy_managed_identity.bicep' = {
   params: {
     solutionName: solutionPrefix
     solutionLocation: solutionLocation
+    miName: '${abbrs.security.managedIdentity}${solutionPrefix}'
   }
   scope: resourceGroup(resourceGroup().name)
 }
@@ -82,6 +83,7 @@ module kvault 'deploy_keyvault.bicep' = {
     solutionName: solutionPrefix
     solutionLocation: solutionLocation
     managedIdentityObjectId:managedIdentityModule.outputs.managedIdentityOutput.objectId
+    keyvaultName:'${abbrs.security.keyVault}${solutionPrefix}'
   }
   scope: resourceGroup(resourceGroup().name)
 }
@@ -112,6 +114,7 @@ module storageAccount 'deploy_storage_account.bicep' = {
     solutionLocation: solutionLocation
     keyVaultName: kvault.outputs.keyvaultName
     managedIdentityObjectId:managedIdentityModule.outputs.managedIdentityOutput.objectId
+    saName:'${abbrs.storage.storageAccount}${ solutionPrefix}' 
   }
   scope: resourceGroup(resourceGroup().name)
 }
@@ -383,6 +386,8 @@ module appserviceModule 'deploy_app_service.bicep' = {
     AZURE_COSMOSDB_CONVERSATIONS_CONTAINER: cosmosDBModule.outputs.cosmosContainerName
     AZURE_COSMOSDB_DATABASE: cosmosDBModule.outputs.cosmosDatabaseName
     AZURE_COSMOSDB_ENABLE_FEEDBACK:'True'
+    HostingPlanName:'${abbrs.compute.appServicePlan}${solutionPrefix}'
+    WebsiteName:'${abbrs.compute.webApp}${solutionPrefix}'
   }
   scope: resourceGroup(resourceGroup().name)
   // dependsOn:[sqlDBModule]
@@ -421,6 +426,7 @@ module cosmosDBModule 'deploy_cosmos_db.bicep' = {
     solutionName: solutionPrefix
     solutionLocation: secondaryLocation
     keyVaultName: kvault.outputs.keyvaultName
+    accountName: '${abbrs.databases.cosmosDBDatabase}${solutionPrefix}'
   }
   scope: resourceGroup(resourceGroup().name)
 }
