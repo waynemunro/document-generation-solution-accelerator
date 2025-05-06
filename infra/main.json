@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.35.1.17967",
-      "templateHash": "12021810066891829779"
+      "templateHash": "13536585236097147854"
     }
   },
   "parameters": {
@@ -619,7 +619,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.35.1.17967",
-              "templateHash": "12505669566676288842"
+              "templateHash": "6302547316976018886"
             }
           },
           "parameters": {
@@ -1041,6 +1041,7 @@
               },
               "kind": "AIServices",
               "properties": {
+                "publicNetworkAccess": "Enabled",
                 "customSubDomainName": "[variables('aiServicesName')]",
                 "apiProperties": {}
               }
