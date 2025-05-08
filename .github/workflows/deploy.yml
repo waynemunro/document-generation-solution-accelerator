@@ -4,8 +4,13 @@ on:
     push:
       branches:
         - main
+        - fix-deploy-pipeline
     schedule:
       - cron: '0 9,21 * * *'  # Runs at 9:00 AM and 9:00 PM GMT
+
+env:
+  GPT_MIN_CAPACITY: 10
+  TEXT_EMBEDDING_MIN_CAPACITY: 10
 
 jobs:
   deploy:
@@ -30,8 +35,8 @@ jobs:
           export AZURE_TENANT_ID=${{ secrets.AZURE_TENANT_ID }}
           export AZURE_CLIENT_SECRET=${{ secrets.AZURE_CLIENT_SECRET }}
           export AZURE_SUBSCRIPTION_ID="${{ secrets.AZURE_SUBSCRIPTION_ID }}"
-          export GPT_MIN_CAPACITY="30"
-          export TEXT_EMBEDDING_MIN_CAPACITY="30"
+          export GPT_MIN_CAPACITY=${{ env.GPT_MIN_CAPACITY }}
+          export TEXT_EMBEDDING_MIN_CAPACITY=${{ env.TEXT_EMBEDDING_MIN_CAPACITY }}
           export AZURE_REGIONS="${{ vars.AZURE_REGIONS }}"
 
           chmod +x scripts/checkquota.sh
@@ -114,17 +119,17 @@ jobs:
             --template-file infra/main.json \
             --parameters \
                 environmentName="${{ env.SOLUTION_PREFIX }}" \
-                secondaryLocation="eastus2" \
+                secondaryLocation="northcentralus" \
                 deploymentType="GlobalStandard" \
                 gptModelName="gpt-4o" \
                 azureOpenaiAPIVersion="2024-05-01-preview" \
-                gptDeploymentCapacity="10" \
+                gptDeploymentCapacity=${{ env.GPT_MIN_CAPACITY }} \
                 embeddingModel="text-embedding-ada-002" \
-                embeddingDeploymentCapacity="30" \
+                embeddingDeploymentCapacity=${{ env.TEXT_EMBEDDING_MIN_CAPACITY }} \
                 imageTag="latest"
       
       - name: Extract AI Services and Key Vault Names
-        if: always()
+        if: always() && steps.check_create_rg.outcome == 'success'
         run: |
           echo "Fetching AI Services and Key Vault names before deletion..."
           
@@ -145,7 +150,7 @@ jobs:
           echo "AI_SERVICES=$AI_SERVICES" >> $GITHUB_ENV
       
       - name: Delete Bicep Deployment
-        if: success()
+        if: always()
         run: |
           set -e  
           echo "Checking if resource group exists..."
@@ -162,6 +167,7 @@ jobs:
           fi
 
       - name: Wait for Resource Deletion to Complete
+        if: always()
         run: |
           echo "Waiting for all deployed resources (including AI Services) to be deleted..."
       
