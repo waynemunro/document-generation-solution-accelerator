@@ -4,8 +4,8 @@
   "metadata": {
     "_generator": {
       "name": "bicep",
-      "version": "0.33.93.31351",
-      "templateHash": "9193996033474742848"
+      "version": "0.35.1.17967",
+      "templateHash": "13536585236097147854"
     }
   },
   "parameters": {
@@ -85,6 +85,10 @@
     "imageTag": {
       "type": "string",
       "defaultValue": "latest"
+    },
+    "AZURE_LOCATION": {
+      "type": "string",
+      "defaultValue": ""
     }
   },
   "variables": {
@@ -316,10 +320,9 @@
       }
     },
     "abbrs": "[variables('$fxv#0')]",
-    "uniqueId": "[toLower(uniqueString(parameters('environmentName'), subscription().id, resourceGroup().location))]",
+    "solutionLocation": "[if(empty(parameters('AZURE_LOCATION')), resourceGroup().location, parameters('AZURE_LOCATION'))]",
+    "uniqueId": "[toLower(uniqueString(parameters('environmentName'), subscription().id, variables('solutionLocation')))]",
     "solutionPrefix": "[format('dg{0}', padLeft(take(variables('uniqueId'), 12), 12, '0'))]",
-    "resourceGroupLocation": "[resourceGroup().location]",
-    "solutionLocation": "[variables('resourceGroupLocation')]",
     "baseUrl": "https://raw.githubusercontent.com/microsoft/document-generation-solution-accelerator/main/",
     "ApplicationInsightsName": "[format('{0}{1}', variables('abbrs').managementGovernance.applicationInsights, variables('solutionPrefix'))]",
     "WorkspaceName": "[format('{0}{1}', variables('abbrs').managementGovernance.logAnalyticsWorkspace, variables('solutionPrefix'))]"
@@ -329,7 +332,7 @@
       "type": "Microsoft.OperationalInsights/workspaces",
       "apiVersion": "2020-08-01",
       "name": "[variables('WorkspaceName')]",
-      "location": "[resourceGroup().location]",
+      "location": "[variables('solutionLocation')]",
       "properties": {
         "sku": {
           "name": "PerGB2018"
@@ -341,7 +344,7 @@
       "type": "Microsoft.Insights/components",
       "apiVersion": "2020-02-02",
       "name": "[variables('ApplicationInsightsName')]",
-      "location": "[resourceGroup().location]",
+      "location": "[variables('solutionLocation')]",
       "tags": {
         "[format('hidden-link:{0}', resourceId('Microsoft.Web/sites', variables('ApplicationInsightsName')))]": "Resource"
       },
@@ -381,8 +384,8 @@
           "metadata": {
             "_generator": {
               "name": "bicep",
-              "version": "0.33.93.31351",
-              "templateHash": "611206203144819710"
+              "version": "0.35.1.17967",
+              "templateHash": "14416829741819681429"
             }
           },
           "parameters": {
@@ -461,7 +464,7 @@
             "value": "[variables('solutionPrefix')]"
           },
           "solutionLocation": {
-            "value": "[variables('resourceGroupLocation')]"
+            "value": "[variables('solutionLocation')]"
           },
           "managedIdentityObjectId": {
             "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, resourceGroup().name), 'Microsoft.Resources/deployments', 'deploy_managed_identity'), '2022-09-01').outputs.managedIdentityOutput.value.objectId]"
@@ -476,8 +479,8 @@
           "metadata": {
             "_generator": {
               "name": "bicep",
-              "version": "0.33.93.31351",
-              "templateHash": "3632224099881800620"
+              "version": "0.35.1.17967",
+              "templateHash": "14711167186840027914"
             }
           },
           "parameters": {
@@ -582,7 +585,7 @@
             "value": "[variables('solutionPrefix')]"
           },
           "solutionLocation": {
-            "value": "[variables('resourceGroupLocation')]"
+            "value": "[variables('solutionLocation')]"
           },
           "keyVaultName": {
             "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, resourceGroup().name), 'Microsoft.Resources/deployments', 'deploy_keyvault'), '2022-09-01').outputs.keyvaultName.value]"
@@ -593,7 +596,7 @@
           "gptModelName": {
             "value": "[parameters('gptModelName')]"
           },
-          "gptModelVersion": {
+          "azureOpenaiAPIVersion": {
             "value": "[parameters('azureOpenaiAPIVersion')]"
           },
           "gptDeploymentCapacity": {
@@ -615,8 +618,8 @@
           "metadata": {
             "_generator": {
               "name": "bicep",
-              "version": "0.33.93.31351",
-              "templateHash": "5677298996620527677"
+              "version": "0.35.1.17967",
+              "templateHash": "6302547316976018886"
             }
           },
           "parameters": {
@@ -635,7 +638,7 @@
             "gptModelName": {
               "type": "string"
             },
-            "gptModelVersion": {
+            "azureOpenaiAPIVersion": {
               "type": "string"
             },
             "gptDeploymentCapacity": {
@@ -1038,6 +1041,7 @@
               },
               "kind": "AIServices",
               "properties": {
+                "publicNetworkAccess": "Enabled",
                 "customSubDomainName": "[variables('aiServicesName')]",
                 "apiProperties": {}
               }
@@ -1227,7 +1231,7 @@
               "apiVersion": "2021-11-01-preview",
               "name": "[format('{0}/{1}', parameters('keyVaultName'), 'AZURE-OPENAI-PREVIEW-API-VERSION')]",
               "properties": {
-                "value": "[parameters('gptModelVersion')]"
+                "value": "[parameters('azureOpenaiAPIVersion')]"
               }
             },
             {
@@ -1442,8 +1446,8 @@
           "metadata": {
             "_generator": {
               "name": "bicep",
-              "version": "0.33.93.31351",
-              "templateHash": "13045600307649215289"
+              "version": "0.35.1.17967",
+              "templateHash": "12684246002053954621"
             }
           },
           "parameters": {
@@ -1617,6 +1621,9 @@
           "solutionName": {
             "value": "[variables('solutionPrefix')]"
           },
+          "solutionLocation": {
+            "value": "[variables('solutionLocation')]"
+          },
           "aiSearchService": {
             "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, resourceGroup().name), 'Microsoft.Resources/deployments', 'deploy_ai_foundry'), '2022-09-01').outputs.aiSearchService.value]"
           },
@@ -1676,8 +1683,8 @@
           "metadata": {
             "_generator": {
               "name": "bicep",
-              "version": "0.33.93.31351",
-              "templateHash": "7381410699255969358"
+              "version": "0.35.1.17967",
+              "templateHash": "2607460382594511507"
             }
           },
           "parameters": {
@@ -1687,6 +1694,12 @@
               "maxLength": 15,
               "metadata": {
                 "description": "Solution Name"
+              }
+            },
+            "solutionLocation": {
+              "type": "string",
+              "metadata": {
+                "description": "Solution Location"
               }
             },
             "HostingPlanName": {
@@ -1930,7 +1943,7 @@
               "type": "Microsoft.Web/serverfarms",
               "apiVersion": "2020-06-01",
               "name": "[parameters('HostingPlanName')]",
-              "location": "[resourceGroup().location]",
+              "location": "[parameters('solutionLocation')]",
               "sku": {
                 "name": "[parameters('HostingPlanSku')]"
               },
@@ -1944,7 +1957,7 @@
               "type": "Microsoft.Web/sites",
               "apiVersion": "2020-06-01",
               "name": "[parameters('WebsiteName')]",
-              "location": "[resourceGroup().location]",
+              "location": "[parameters('solutionLocation')]",
               "identity": {
                 "type": "SystemAssigned"
               },
@@ -2163,8 +2176,8 @@
           "metadata": {
             "_generator": {
               "name": "bicep",
-              "version": "0.33.93.31351",
-              "templateHash": "9207539553523638326"
+              "version": "0.35.1.17967",
+              "templateHash": "12799194170352887919"
             }
           },
           "parameters": {

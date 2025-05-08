@@ -41,7 +41,7 @@ The sample data is sourced from generic AI-generated promissory notes.The docume
 
 ### Key features
 <details open>
-  <summary>Click to learn more about the key features this solution enables</summary>
+  <summary>Click to learn more about the key features this solution enables</summary>
 
   - **Semantic search** <br/>
   Azure AI Search to enable RAG and grounding of the application on the processed dataset.​
@@ -62,7 +62,7 @@ Quick deploy
 </h2>
 
 ### How to install or deploy
-Follow the quick deploy steps on the deployment guide to deploy this solution to your own Azure subscription.
+Follow the quick deploy steps on the deployment guide to deploy this solution to your own Azure subscription.
 
 [Click here to launch the deployment guide](./docs/DeploymentGuide.md)
 <br/><br/>
@@ -130,7 +130,7 @@ Put your data to work by reducing blank page anxiety, speeding up document draft
 
 ### Business value
 <details>
-  <summary>Click to learn more about what value this solution provides</summary>
+  <summary>Click to learn more about what value this solution provides</summary>
 
   - **Draft templates quickly** <br/>
   Put your data to work to create any kind of document that is supported by a large data library.

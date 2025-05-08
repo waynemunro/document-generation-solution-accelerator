@@ -72,6 +72,15 @@ if [ -n "$managedIdentityClientId" ]; then
     sed -i "s/mici_to-be-replaced/${managedIdentityClientId}/g" "infra/scripts/index_scripts/02_process_data.py"
 fi
 
+# Determine the correct Python command
+if command -v python3 &> /dev/null; then
+    PYTHON_CMD="python3"
+elif command -v python &> /dev/null; then
+    PYTHON_CMD="python"
+else
+    echo "Python is not installed on this system. Or it is not added in the PATH."
+    exit 1
+fi
 
 # create virtual environment
 # Check if the virtual environment already exists
@@ -79,13 +88,18 @@ if [ -d "infra/scripts/scriptenv" ]; then
     echo "Virtual environment already exists. Skipping creation."
 else
     echo "Creating virtual environment"
-    python3 -m venv infra/scripts/scriptenv
+    $PYTHON_CMD -m venv infra/scripts/scriptenv
 fi
 
-# handling virtual environment activation for different OS
-activate_env_output=$(source infra/scripts/scriptenv/bin/activate 2>&1)
-if [ -n "$activate_env_output" ]; then
-    source infra/scripts/scriptenv/Scripts/activate
+# Activate the virtual environment
+if [ -f "infra/scripts/scriptenv/bin/activate" ]; then
+    echo "Activating virtual environment (Linux/macOS)"
+    source "infra/scripts/scriptenv/bin/activate"
+elif [ -f "infra/scripts/scriptenv/Scripts/activate" ]; then
+    echo "Activating virtual environment (Windows)"
+    source "infra/scripts/scriptenv/Scripts/activate"
+else
+    echo "Error activating virtual environment. Requirements may be installed globally."
 fi
 
 # Install the requirements
@@ -93,19 +107,36 @@ echo "Installing requirements"
 pip install --quiet -r infra/scripts/index_scripts/requirements.txt
 echo "Requirements installed"
 
+error_flag=false
 # Run the scripts
 echo "Running the python scripts"
 echo "Creating the search index"
 python infra/scripts/index_scripts/01_create_search_index.py
 if [ $? -ne 0 ]; then
     echo "Error: 01_create_search_index.py failed."
+    error_flag=true
+fi
+
+if [ "$error_flag" = false ]; then
+    echo "Processing the data"
+    python infra/scripts/index_scripts/02_process_data.py
+    if [ $? -ne 0 ]; then
+        echo "Error: 02_process_data.py failed."
+        error_flag=true
+    fi
+fi
+
+# revert the key vault name and managed identity client id in the python files
+sed -i "s/${keyvaultName}/kv_to-be-replaced/g" "infra/scripts/index_scripts/01_create_search_index.py"
+sed -i "s/${keyvaultName}/kv_to-be-replaced/g" "infra/scripts/index_scripts/02_process_data.py"
+if [ -n "$managedIdentityClientId" ]; then
+    sed -i "s/${managedIdentityClientId}/mici_to-be-replaced/g" "infra/scripts/index_scripts/01_create_search_index.py"
+    sed -i "s/${managedIdentityClientId}/mici_to-be-replaced/g" "infra/scripts/index_scripts/02_process_data.py"
+fi
+
+if [ "$error_flag" = true ]; then
+    echo "Error: One or more scripts failed during the script execution."
     exit 1
 fi
 
-echo "Processing the data"
-python infra/scripts/index_scripts/02_process_data.py
-if [ $? -ne 0 ]; then
-    echo "Error: 02_process_data.py failed."
-    exit 1
-fi
 echo "Scripts completed"

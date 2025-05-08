@@ -4,7 +4,7 @@ param solutionLocation string
 param keyVaultName string
 param deploymentType string
 param gptModelName string
-param gptModelVersion string
+param azureOpenaiAPIVersion string
 param gptDeploymentCapacity int
 param embeddingModel string
 param embeddingDeploymentCapacity int
@@ -141,6 +141,7 @@ resource aiServices 'Microsoft.CognitiveServices/accounts@2021-10-01' = {
   }
   kind: 'AIServices'
   properties: {
+    publicNetworkAccess: 'Enabled'
     customSubDomainName: aiServicesName
     apiProperties: {
       //statisticsEnabled: false
@@ -363,7 +364,7 @@ resource azureOpenAIApiVersionEntry 'Microsoft.KeyVault/vaults/secrets@2021-11-0
   parent: keyVault
   name: 'AZURE-OPENAI-PREVIEW-API-VERSION'
   properties: {
-    value: gptModelVersion  //'2024-02-15-preview'
+    value: azureOpenaiAPIVersion  //'2024-02-15-preview'
   }
 }
 
