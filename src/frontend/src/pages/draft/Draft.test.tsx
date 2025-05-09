@@ -124,6 +124,13 @@ describe('Draft Component', () => {
       isLoadedSections: [{ title: 'Section 1', content: 'Content of section 1' },
       { title: 'Section 2', content: 'Content of section 2.' }
       ],
+      draftedDocument: {
+        sections: [
+          { title: 'Section 1', content: 'Content of section 1' },
+          { title: 'Section 2', content: 'Content of section 2.' }
+        ]
+      },
+      draftedDocumentTitle: '', // this must be explicitly ''
     }
     renderComponent(mockStateWithIncompleteLoad)
     await waitFor(() => {
@@ -139,6 +146,13 @@ describe('Draft Component', () => {
       isLoadedSections: [{ title: 'Section 1', content: 'Content of section 1' },
       { title: 'Section 2', content: 'Content of section 2.' }
       ], 
+      draftedDocument: {
+        sections: [
+          { title: 'Section 1', content: 'Content of section 1' },
+          { title: 'Section 2', content: 'Content of section 2.' }
+        ]
+      },
+      draftedDocumentTitle: '', // critical for button to be enabled
     }
     renderComponent(mockStateWithIncompleteLoad)
 
@@ -231,6 +245,13 @@ describe('Draft Component', () => {
       isLoadedSections: [{ title: 'Section 1', content: 'Content of section 1' },
       { title: 'Section 2', content: 'Content of section 2.' }
       ], // One section not loaded
+      draftedDocument: {
+        sections: [
+          { title: 'Section 1', content: 'Content of section 1' },
+          { title: 'Section 2', content: 'Content of section 2.' }
+        ]
+      },
+      draftedDocumentTitle: '', // must be empty string
     }
     renderComponent(mockStateWithIncompleteLoad)
 
@@ -253,7 +274,13 @@ describe('Draft Component', () => {
       isLoadedSections: [{ title: 'Section 1', content: 'Content of section 1' },
       { title: 'Section 2', content: 'Content of section 2.' }
       ],
-      draftedDocumentTitle: null
+      draftedDocument: {
+        sections: [
+          { title: 'Section 1', content: 'Content of section 1' },
+          { title: 'Section 2', content: 'Content of section 2.' }
+        ]
+      },
+      draftedDocumentTitle: null // allow null here
     }
     renderComponent(mockStateWithIncompleteLoad)
     await waitFor(async () => {
