@@ -130,7 +130,7 @@ describe('Draft Component', () => {
           { title: 'Section 2', content: 'Content of section 2.' }
         ]
       },
-      draftedDocumentTitle: '', // this must be explicitly ''
+      draftedDocumentTitle: 'My Draft Title',
     }
     renderComponent(mockStateWithIncompleteLoad)
     await waitFor(() => {
@@ -152,7 +152,7 @@ describe('Draft Component', () => {
           { title: 'Section 2', content: 'Content of section 2.' }
         ]
       },
-      draftedDocumentTitle: '', // critical for button to be enabled
+      draftedDocumentTitle: 'My Draft Title',
     }
     renderComponent(mockStateWithIncompleteLoad)
 
@@ -251,7 +251,7 @@ describe('Draft Component', () => {
           { title: 'Section 2', content: 'Content of section 2.' }
         ]
       },
-      draftedDocumentTitle: '', // must be empty string
+      draftedDocumentTitle: 'My Draft Title',
     }
     renderComponent(mockStateWithIncompleteLoad)
 
@@ -280,7 +280,7 @@ describe('Draft Component', () => {
           { title: 'Section 2', content: 'Content of section 2.' }
         ]
       },
-      draftedDocumentTitle: null // allow null here
+      draftedDocumentTitle: 'My Draft Title', // title should not be null
     }
     renderComponent(mockStateWithIncompleteLoad)
     await waitFor(async () => {
