@@ -50,7 +50,7 @@ const Draft = (): JSX.Element => {
 
   useEffect(() => {
     const title = draftedDocumentTitle ?? '' // Normalize null to ''
-    if (isLoadedSections?.length === sections.length && title === '') {
+    if (isLoadedSections?.length === sections.length && title.length > 0) {
       setIsExportButtonDisable(false);
     }
     else {
