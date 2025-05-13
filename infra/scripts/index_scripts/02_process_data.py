@@ -10,6 +10,7 @@ from azure.search.documents import SearchClient
 from azure.storage.filedatalake import DataLakeServiceClient
 from azure.search.documents.indexes import SearchIndexClient
 
+
 key_vault_name = 'kv_to-be-replaced'
 managed_identity_client_id = 'mici_to-be-replaced'
 file_system_client_name = "data"
@@ -58,7 +59,7 @@ def clean_spaces_with_regex(text):
 
 
 def chunk_data(text):
-    tokens_per_chunk = 1024  # 500
+    tokens_per_chunk = 256 # 1024 # 500
     text = clean_spaces_with_regex(text)
 
     sentences = text.split('. ')  # Split text into sentences
@@ -115,6 +116,7 @@ index_client = SearchIndexClient(endpoint=search_endpoint, credential=search_cre
 
 def prepare_search_doc(content, document_id):
     chunks = chunk_data(content)
+    results = []
     chunk_num = 0
     for chunk in chunks:
         chunk_num += 1
@@ -138,7 +140,8 @@ def prepare_search_doc(content, document_id):
             "sourceurl": path.name.split('/')[-1],
             "contentVector": v_contentVector
         }
-    return result
+        results.append(result)
+    return results
 
 
 # conversationIds = []
@@ -163,13 +166,14 @@ for path in paths:
         page = pdf_reader.pages[page_num]
         text += page.extract_text()
     result = prepare_search_doc(text, document_id)
-    docs.append(result)
+    docs.extend(result)
 
     counter += 1
     if docs != [] and counter % 10 == 0:
         result = search_client.upload_documents(documents=docs)
         docs = []
-        print(f' {str(counter)} uploaded')
 
 if docs != []:
     results = search_client.upload_documents(documents=docs)
+
+print(f'{str(counter)} files processed.')
