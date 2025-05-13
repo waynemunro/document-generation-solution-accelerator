@@ -59,7 +59,7 @@ def clean_spaces_with_regex(text):
 
 
 def chunk_data(text):
-    tokens_per_chunk = 256 # 1024 # 500
+    tokens_per_chunk = 256  # 1024 # 500
     text = clean_spaces_with_regex(text)
 
     sentences = text.split('. ')  # Split text into sentences
