@@ -4,30 +4,49 @@
 # https://docs.github.com/github/administering-a-repository/configuration-options-for-dependency-updates
 
 version: 2
+ 
 updates:
-  - package-ecosystem: "npm" # for frontend dependencies
-    directory: "/src/frontend"  
+# 1) All frontend (npm) deps in ONE PR
+  - package-ecosystem: "npm"
+    directory: "/src/frontend"
     schedule:
-      interval: "monthly"
-    commit-message:
-      prefix: "build"
+      interval: "monthly"               
     target-branch: "dependabotchanges"
-    open-pull-requests-limit: 100
-
-  - package-ecosystem: "pip" # for backend dependencies
-    directory: "/src"   
-    schedule:
-      interval: "monthly"
+    open-pull-requests-limit: 10        
     commit-message:
-      prefix: "build"
-    target-branch: "dependabotchanges"
-    open-pull-requests-limit: 100
+      prefix: "build(deps)"
     
+    groups:
+      all-frontend-deps:
+        patterns:
+          - "*"                         
+    
+ 
+# 2) All backend (pip) deps in ONE PR  
+  - package-ecosystem: "pip"
+    directory: "/src"
+    schedule:
+      interval: "monthly"
+    target-branch: "dependabotchanges"
+    open-pull-requests-limit: 10
+    commit-message:
+      prefix: "build(deps)"
+    groups:
+      all-backend-deps:
+        patterns:
+          - "*"                         
+ 
+# 3) All GitHub Actions in ONE PR  
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "monthly"
-    commit-message:
-      prefix: "build"
     target-branch: "dependabotchanges"
-    open-pull-requests-limit: 100
+    open-pull-requests-limit: 10
+    commit-message:
+      prefix: "build(deps)"
+    groups:
+      all-actions:
+        patterns:
+          - "*"                         
+
