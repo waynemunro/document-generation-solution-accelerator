@@ -1,15 +1,15 @@
-azure-identity==1.21.0
+azure-identity==1.22.0
 # Flask[async]==2.3.2
-openai==1.74.0
+openai==1.78.1
 azure-search-documents==11.6.0b9
 azure-storage-blob==12.25.1
 python-dotenv==1.1.0
 azure-cosmos==4.9.0
 quart==0.20.0
-uvicorn==0.34.1
-aiohttp==3.11.16
+uvicorn==0.34.2
+aiohttp==3.11.18
 gunicorn==23.0.0
-pydantic-settings==2.8.1
+pydantic-settings==2.9.1
 flake8==7.2.0
 black==25.1.0
 autoflake==2.3.1
