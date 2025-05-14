@@ -57,11 +57,11 @@ jobs:
             mergeable=$(gh pr view "$pr_number" --json mergeable --jq '.mergeable')
             if [[ "$mergeable" == "CONFLICTING" ]]; then
               echo "❌ Merge conflicts detected. Rebasing PR #$pr_number"
-              gh pr rebase "$pr_url" || echo "❗ Rebase failed."
+              gh pr update-branch "$pr_url" || echo "❗ Rebase (update-branch) failed."
             fi
           done < matched_prs.txt
 
-      - name: Approve and Auto-Merge if Mergeable
+      - name: Auto-Merge if Mergeable
         if: success()
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -81,8 +81,6 @@ jobs:
               mergeable=$(gh pr view "$pr_number" --json mergeable --jq '.mergeable' 2>/dev/null || echo "UNKNOWN")
               echo "🔁 Attempt $((attempt+1))/$max_attempts: mergeable=$mergeable"
               if [[ "$mergeable" == "MERGEABLE" ]]; then
-                echo "✅ PR is mergeable. Approving..."
-                gh pr review --approve "$pr_url" || echo "❗ Approval failed."
                 echo "🚀 Enabling auto-merge..."
                 set -x
                 merge_output=$(gh pr merge --auto --merge "$pr_url" 2>&1)
