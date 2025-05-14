@@ -22,6 +22,8 @@ from backend.utils import (ChatType, format_as_ndjson,
                            format_stream_response)
 from event_utils import track_event_if_configured
 from azure.monitor.opentelemetry import configure_azure_monitor
+from opentelemetry import trace
+from opentelemetry.trace import Status, StatusCode
 
 bp = Blueprint("routes", __name__, static_folder="static", template_folder="static")
 
@@ -169,6 +171,10 @@ def init_openai_client():
         return azure_openai_client
     except Exception as e:
         logging.exception("Exception in Azure OpenAI initialization", e)
+        span = trace.get_current_span()
+        if span is not None:
+            span.record_exception(e)
+            span.set_status(Status(StatusCode.ERROR, str(e)))
         azure_openai_client = None
         raise e
 
@@ -188,6 +194,10 @@ def init_ai_search_client():
         return client
     except Exception as e:
         logging.exception("Exception in Azure AI Client initialization", e)
+        span = trace.get_current_span()
+        if span is not None:
+            span.record_exception(e)
+            span.set_status(Status(StatusCode.ERROR, str(e)))
         raise e
 
 
@@ -213,6 +223,10 @@ def init_cosmosdb_client():
             )
         except Exception as e:
             logging.exception("Exception in CosmosDB initialization", e)
+            span = trace.get_current_span()
+            if span is not None:
+                span.record_exception(e)
+                span.set_status(Status(StatusCode.ERROR, str(e)))
             cosmos_conversation_client = None
             raise e
     else:
@@ -375,9 +389,10 @@ async def send_chat_request(request_body, request_headers):
 
     except Exception as e:
         logging.exception("Exception in send_chat_request")
-        track_event_if_configured("ChatCompletionError", {
-            "error": str(e)
-        })
+        span = trace.get_current_span()
+        if span is not None:
+            span.record_exception(e)
+            span.set_status(Status(StatusCode.ERROR, str(e)))
         raise e
 
     return response, apim_request_id
@@ -439,10 +454,11 @@ async def conversation_internal(request_body, request_headers):
 
     except Exception as ex:
         logging.exception(ex)
-        track_event_if_configured("ConversationRequestFailed", {
-            "error": str(ex),
-            "chat_type": str(request_body.get("chat_type", "unknown"))
-        })
+        span = trace.get_current_span()
+        if span is not None:
+            span.record_exception(ex)
+            span.set_status(Status(StatusCode.ERROR, str(ex)))
+
         if hasattr(ex, "status_code"):
             return jsonify({"error": str(ex)}), ex.status_code
         else:
@@ -468,6 +484,10 @@ def get_frontend_settings():
         return jsonify(frontend_settings), 200
     except Exception as e:
         logging.exception("Exception in /frontend_settings")
+        span = trace.get_current_span()
+        if span is not None:
+            span.record_exception(e)
+            span.set_status(Status(StatusCode.ERROR, str(e)))
         return jsonify({"error": str(e)}), 500
 
 
@@ -540,6 +560,10 @@ async def add_conversation():
 
     except Exception as e:
         logging.exception("Exception in /history/generate")
+        span = trace.get_current_span()
+        if span is not None:
+            span.record_exception(e)
+            span.set_status(Status(StatusCode.ERROR, str(e)))
         return jsonify({"error": str(e)}), 500
 
 
@@ -598,6 +622,10 @@ async def update_conversation():
 
     except Exception as e:
         logging.exception("Exception in /history/update")
+        span = trace.get_current_span()
+        if span is not None:
+            span.record_exception(e)
+            span.set_status(Status(StatusCode.ERROR, str(e)))
         return jsonify({"error": str(e)}), 500
 
 
@@ -659,6 +687,10 @@ async def update_message():
 
     except Exception as e:
         logging.exception("Exception in /history/message_feedback")
+        span = trace.get_current_span()
+        if span is not None:
+            span.record_exception(e)
+            span.set_status(Status(StatusCode.ERROR, str(e)))
         return jsonify({"error": str(e)}), 500
 
 
@@ -711,6 +743,10 @@ async def delete_conversation():
         )
     except Exception as e:
         logging.exception("Exception in /history/delete")
+        span = trace.get_current_span()
+        if span is not None:
+            span.record_exception(e)
+            span.set_status(Status(StatusCode.ERROR, str(e)))
         return jsonify({"error": str(e)}), 500
 
 
@@ -951,6 +987,10 @@ async def delete_all_conversations():
 
     except Exception as e:
         logging.exception("Exception in /history/delete_all")
+        span = trace.get_current_span()
+        if span is not None:
+            span.record_exception(e)
+            span.set_status(Status(StatusCode.ERROR, str(e)))
         return jsonify({"error": str(e)}), 500
 
 
@@ -987,6 +1027,10 @@ async def clear_messages():
         )
     except Exception as e:
         logging.exception("Exception in /history/clear_messages")
+        span = trace.get_current_span()
+        if span is not None:
+            span.record_exception(e)
+            span.set_status(Status(StatusCode.ERROR, str(e)))
         return jsonify({"error": str(e)}), 500
 
 
@@ -1054,6 +1098,10 @@ async def generate_section_content():
         return jsonify({"section_content": content}), 200
     except Exception as e:
         logging.exception("Exception in /section/generate")
+        span = trace.get_current_span()
+        if span is not None:
+            span.record_exception(e)
+            span.set_status(Status(StatusCode.ERROR, str(e)))
         return jsonify({"error": str(e)}), 500
 
 
@@ -1066,10 +1114,10 @@ async def get_document(filepath):
         return jsonify(document), 200
     except Exception as e:
         logging.exception("Exception in /document/<filepath>")
-        track_event_if_configured("DocumentRetrieveFailed", {
-            "filepath": filepath,
-            "error": str(e)
-        })
+        span = trace.get_current_span()
+        if span is not None:
+            span.record_exception(e)
+            span.set_status(Status(StatusCode.ERROR, str(e)))
         return jsonify({"error": str(e)}), 500
 
 
@@ -1125,6 +1173,10 @@ async def get_section_content(request_body, request_headers):
 
     except Exception as e:
         logging.exception("Exception in send_chat_request")
+        span = trace.get_current_span()
+        if span is not None:
+            span.record_exception(e)
+            span.set_status(Status(StatusCode.ERROR, str(e)))
         raise e
 
     return response.choices[0].message.content
@@ -1143,6 +1195,10 @@ def retrieve_document(filepath):
         return document
     except Exception as e:
         logging.exception("Exception in retrieve_document")
+        span = trace.get_current_span()
+        if span is not None:
+            span.record_exception(e)
+            span.set_status(Status(StatusCode.ERROR, str(e)))
         raise e
 
 
