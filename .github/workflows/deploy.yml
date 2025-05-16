@@ -152,7 +152,7 @@ jobs:
         id: post_deploy
         run: |
           set -e
-          az account set --subscription "${{env.AZURE_SUBSCRIPTION_ID}}"
+          az account set --subscription "${{ secrets.AZURE_SUBSCRIPTION_ID }}"
 
           echo "Running post-deployment script..."
           bash ./infra/scripts/process_sample_data.sh \
