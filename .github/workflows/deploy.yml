@@ -3,13 +3,14 @@ name: Validate Deployment
 on:
     push:
       branches:
-        - main
-    schedule:
-      - cron: '0 9,21 * * *'  # Runs at 9:00 AM and 9:00 PM GMT
+        - deploy-and-test
+    #     - main
+    # schedule:
+    #   - cron: '0 9,21 * * *'  # Runs at 9:00 AM and 9:00 PM GMT
 
 env:
-  GPT_MIN_CAPACITY: 10
-  TEXT_EMBEDDING_MIN_CAPACITY: 10
+  GPT_MIN_CAPACITY: 250
+  TEXT_EMBEDDING_MIN_CAPACITY: 40
 
 jobs:
   deploy:
@@ -102,9 +103,9 @@ jobs:
         id: generate_solution_prefix
         run: |
           set -e
-          COMMON_PART="pslr"
+          COMMON_PART="psldg"
           TIMESTAMP=$(date +%s)  
-          UPDATED_TIMESTAMP=$(echo $TIMESTAMP | tail -c 3) 
+          UPDATED_TIMESTAMP=$(echo $TIMESTAMP | tail -c 6) 
           UNIQUE_SOLUTION_PREFIX="${COMMON_PART}${UPDATED_TIMESTAMP}"
           echo "SOLUTION_PREFIX=${UNIQUE_SOLUTION_PREFIX}" >> $GITHUB_ENV
           echo "Generated SOLUTION_PREFIX: ${UNIQUE_SOLUTION_PREFIX}" 
@@ -114,6 +115,7 @@ jobs:
         run: |
           set -e
           az deployment group create \
+            --name ${{ env.SOLUTION_PREFIX }}-deployment \
             --resource-group ${{ env.RESOURCE_GROUP_NAME }} \
             --template-file infra/main.json \
             --parameters \
@@ -126,7 +128,49 @@ jobs:
                 embeddingModel="text-embedding-ada-002" \
                 embeddingDeploymentCapacity=${{ env.TEXT_EMBEDDING_MIN_CAPACITY }} \
                 imageTag="latest"
-      
+
+      - name: Get Deployment Output
+        id: get_output
+        run: |
+          set -e
+          echo "Fetching deployment output..."
+          BICEP_OUTPUT=$(az deployment group show --name ${{ env.SOLUTION_PREFIX }}-deployment --resource-group ${{ env.RESOURCE_GROUP_NAME }} --query "properties.outputs" -o json)
+          echo "BICEP_OUTPUT=$BICEP_OUTPUT" >> $GITHUB_ENV
+          echo "Deployment output: $BICEP_OUTPUT"
+
+      - name: Run Post-Deployment Script
+        id: post_deploy
+        run: |
+          set -e
+          echo "Extracting deployment output..."
+          WEBAPP_URL=$(echo $BICEP_OUTPUT | jq -r '.WEB_APP_URL.value')
+          STORAGE_ACCOUNT_NAME=$(echo $BICEP_OUTPUT | jq -r '.STORAGE_ACCOUNT_NAME.value')
+          STORAGE_CONTAINER_NAME=$(echo $BICEP_OUTPUT | jq -r '.STORAGE_CONTAINER_NAME.value')
+          KEY_VAULT_NAME=$(echo $BICEP_OUTPUT | jq -r '.KEY_VAULT_NAME.value')
+          COSMOSDB_ACCOUNT_NAME=$(echo $BICEP_OUTPUT | jq -r '.COSMOSDB_ACCOUNT_NAME.value')
+
+          echo "Opening webapp URL in browser..."
+          xdg-open "$WEBAPP_URL" || echo "xdg-open command not found."
+          echo "Webapp URL: $WEBAPP_URL" >> $GITHUB_ENV
+
+          az account set --subscription "$SUBSCRIPTION_ID"
+
+          echo "Running post-deployment script..."
+          bash ./infra/scripts/process_sample_data.sh \
+            "$STORAGE_ACCOUNT_NAME" \
+            "$STORAGE_CONTAINER_NAME" \
+            "$KEY_VAULT_NAME" \
+            "$COSMOSDB_ACCOUNT_NAME" \
+            "${{ env.RESOURCE_GROUP_NAME }}" \
+
+      - name: Call Test Automation Workflow
+        if: success()
+        id: call_test_automation
+        uses: ./.github/workflows/gp-test-automation.yml
+        with:
+          webapp_url: ${{ env.WEBAPP_URL }}
+
+
       - name: Extract AI Services and Key Vault Names
         if: always() && steps.check_create_rg.outcome == 'success'
         run: |
