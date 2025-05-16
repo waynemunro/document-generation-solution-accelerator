@@ -143,11 +143,11 @@ jobs:
         run: |
           set -e
           echo "Extracting deployment output..."
-          WEBAPP_URL=$(echo $BICEP_OUTPUT | jq -r '.WEB_APP_URL.value')
-          STORAGE_ACCOUNT_NAME=$(echo $BICEP_OUTPUT | jq -r '.STORAGE_ACCOUNT_NAME.value')
-          STORAGE_CONTAINER_NAME=$(echo $BICEP_OUTPUT | jq -r '.STORAGE_CONTAINER_NAME.value')
-          KEY_VAULT_NAME=$(echo $BICEP_OUTPUT | jq -r '.KEY_VAULT_NAME.value')
-          COSMOSDB_ACCOUNT_NAME=$(echo $BICEP_OUTPUT | jq -r '.COSMOSDB_ACCOUNT_NAME.value')
+          WEBAPP_URL=$(echo $BICEP_OUTPUT | jq -r '.weB_APP_URL.value')
+          STORAGE_ACCOUNT_NAME=$(echo $BICEP_OUTPUT | jq -r '.storagE_ACCOUNT_NAME.value')
+          STORAGE_CONTAINER_NAME=$(echo $BICEP_OUTPUT | jq -r '.storagE_CONTAINER_NAME.value')
+          KEY_VAULT_NAME=$(echo $BICEP_OUTPUT | jq -r '.keY_VAULT_NAME.value')
+          COSMOSDB_ACCOUNT_NAME=$(echo $BICEP_OUTPUT | jq -r '.cosmosdB_ACCOUNT_NAME.value')
 
           echo "Opening webapp URL in browser..."
           xdg-open "$WEBAPP_URL" || echo "xdg-open command not found."
