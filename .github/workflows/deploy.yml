@@ -155,12 +155,13 @@ jobs:
           az account set --subscription "${{ secrets.AZURE_SUBSCRIPTION_ID }}"
 
           echo "Running post-deployment script..."
-          bash ./infra/scripts/process_sample_data.sh \
+          bash ./infra/scripts/copy_kb_files.sh \
             "${{ env.STORAGE_ACCOUNT_NAME }}" \
             "${{ env.STORAGE_CONTAINER_NAME }}" \
+            "${{ secrets.AZURE_CLIENT_ID }}"
+          bash ./infra/scripts/run_create_index_scripts.sh \
             "${{ env.KEY_VAULT_NAME }}" \
-            "${{ env.COSMOSDB_ACCOUNT_NAME }}" \
-            "${{ env.RESOURCE_GROUP_NAME }}" \
+            "${{ secrets.AZURE_CLIENT_ID }}"
 
       - name: Call Test Automation Workflow
         if: success()
