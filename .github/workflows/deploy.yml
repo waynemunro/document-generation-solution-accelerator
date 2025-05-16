@@ -152,11 +152,7 @@ jobs:
         id: post_deploy
         run: |
           set -e
-
-          echo "Opening webapp URL in browser..."
-          xdg-open "${{ env.WEBAPP_URL }}" || echo "xdg-open command not found."
-
-          az account set --subscription "$SUBSCRIPTION_ID"
+          az account set --subscription "${{env.AZURE_SUBSCRIPTION_ID}}"
 
           echo "Running post-deployment script..."
           bash ./infra/scripts/process_sample_data.sh \
