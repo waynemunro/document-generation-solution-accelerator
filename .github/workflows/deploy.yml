@@ -129,38 +129,41 @@ jobs:
                 embeddingDeploymentCapacity=${{ env.TEXT_EMBEDDING_MIN_CAPACITY }} \
                 imageTag="latest"
 
-      - name: Get Deployment Output
+      - name: Get Deployment Output and extract Values
         id: get_output
         run: |
           set -e
           echo "Fetching deployment output..."
           BICEP_OUTPUT=$(az deployment group show --name ${{ env.SOLUTION_PREFIX }}-deployment --resource-group ${{ env.RESOURCE_GROUP_NAME }} --query "properties.outputs" -o json)
-          echo "BICEP_OUTPUT=$BICEP_OUTPUT" >> $GITHUB_ENV
+          echo "Extracting deployment output..."
+          WEBAPP_URL=$(echo $BICEP_OUTPUT | jq -r '.weB_APP_URL.value')
+          echo "WEBAPP_URL=$WEBAPP_URL" >> $GITHUB_ENV
+          STORAGE_ACCOUNT_NAME=$(echo $BICEP_OUTPUT | jq -r '.storagE_ACCOUNT_NAME.value')
+          echo "STORAGE_ACCOUNT_NAME=$STORAGE_ACCOUNT_NAME" >> $GITHUB_ENV
+          STORAGE_CONTAINER_NAME=$(echo $BICEP_OUTPUT | jq -r '.storagE_CONTAINER_NAME.value')
+          echo "STORAGE_CONTAINER_NAME=$STORAGE_CONTAINER_NAME" >> $GITHUB_ENV
+          KEY_VAULT_NAME=$(echo $BICEP_OUTPUT | jq -r '.keY_VAULT_NAME.value')
+          echo "KEY_VAULT_NAME=$KEY_VAULT_NAME" >> $GITHUB_ENV
+          COSMOSDB_ACCOUNT_NAME=$(echo $BICEP_OUTPUT | jq -r '.cosmosdB_ACCOUNT_NAME.value')
+          echo "COSMOSDB_ACCOUNT_NAME=$COSMOSDB_ACCOUNT_NAME" >> $GITHUB_ENV
           echo "Deployment output: $BICEP_OUTPUT"
 
       - name: Run Post-Deployment Script
         id: post_deploy
         run: |
           set -e
-          echo "Extracting deployment output..."
-          WEBAPP_URL=$(echo $BICEP_OUTPUT | jq -r '.weB_APP_URL.value')
-          STORAGE_ACCOUNT_NAME=$(echo $BICEP_OUTPUT | jq -r '.storagE_ACCOUNT_NAME.value')
-          STORAGE_CONTAINER_NAME=$(echo $BICEP_OUTPUT | jq -r '.storagE_CONTAINER_NAME.value')
-          KEY_VAULT_NAME=$(echo $BICEP_OUTPUT | jq -r '.keY_VAULT_NAME.value')
-          COSMOSDB_ACCOUNT_NAME=$(echo $BICEP_OUTPUT | jq -r '.cosmosdB_ACCOUNT_NAME.value')
 
           echo "Opening webapp URL in browser..."
-          xdg-open "$WEBAPP_URL" || echo "xdg-open command not found."
-          echo "Webapp URL: $WEBAPP_URL" >> $GITHUB_ENV
+          xdg-open "${{ env.WEBAPP_URL }}" || echo "xdg-open command not found."
 
           az account set --subscription "$SUBSCRIPTION_ID"
 
           echo "Running post-deployment script..."
           bash ./infra/scripts/process_sample_data.sh \
-            "$STORAGE_ACCOUNT_NAME" \
-            "$STORAGE_CONTAINER_NAME" \
-            "$KEY_VAULT_NAME" \
-            "$COSMOSDB_ACCOUNT_NAME" \
+            "${{ env.STORAGE_ACCOUNT_NAME }}" \
+            "${{ env.STORAGE_CONTAINER_NAME }}" \
+            "${{ env.KEY_VAULT_NAME }}" \
+            "${{ env.COSMOSDB_ACCOUNT_NAME }}" \
             "${{ env.RESOURCE_GROUP_NAME }}" \
 
       - name: Call Test Automation Workflow
@@ -168,7 +171,7 @@ jobs:
         id: call_test_automation
         uses: ./.github/workflows/gp-test-automation.yml
         with:
-          webapp_url: ${{ env.WEBAPP_URL }}
+          DOCGEN_URL: ${{ env.WEBAPP_URL }}
 
 
       - name: Extract AI Services and Key Vault Names
