@@ -29,8 +29,8 @@ def test_DKM_GOLDENPATH(login_logout):
     generate_page = GeneratePage(page)
     generate_page.enter_a_question(generate_question1)
     generate_page.click_send_button()
-    generate_page.click_generate_draft_button()
     generate_page.validate_response_status(question_api=generate_question1)
+    generate_page.click_generate_draft_button()
     draft_page = DraftPage(page)
     draft_page.check_draft_Sections()
     
