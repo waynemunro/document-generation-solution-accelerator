@@ -115,8 +115,7 @@ def init_openai_client():
         if (
             app_settings.azure_openai.preview_api_version
             < MINIMUM_SUPPORTED_AZURE_OPENAI_PREVIEW_API_VERSION
-        ):
-            
+        ):    
             raise ValueError(
                 f"The minimum supported Azure OpenAI preview API version is"
                 f"'{MINIMUM_SUPPORTED_AZURE_OPENAI_PREVIEW_API_VERSION}'"
@@ -245,12 +244,9 @@ def prepare_model_args(request_body, request_headers):
             )
             else ChatType.TEMPLATE
         )
-        
         track_event_if_configured("ChatTypeDetected", {"chat_type": str(chat_type)})
-    
 
     request_messages = request_body.get("messages", [])
-
     messages = []
     if not app_settings.datasource:
         messages = [
@@ -265,7 +261,6 @@ def prepare_model_args(request_body, request_headers):
         ]
         track_event_if_configured("NoDatasourceConfigured", {"system_message_used": messages[0]["content"]})
 
-
     for message in request_messages:
         if message:
             messages.append({"role": message["role"], "content": message["content"]})
@@ -276,7 +271,6 @@ def prepare_model_args(request_body, request_headers):
         user_json = get_msdefender_user_json(
             authenticated_user_details, request_headers
         )
-
         track_event_if_configured("MSDefenderUserJsonGenerated", {
             "user_id": authenticated_user_details.get("user_principal_id")
         })
@@ -367,7 +361,6 @@ async def send_chat_request(request_body, request_headers):
         "original_count": len(messages),
         "filtered_count": len(filtered_messages)
     })
-
     request_body["messages"] = filtered_messages
     model_args = prepare_model_args(request_body, request_headers)
 
@@ -766,9 +759,7 @@ async def list_conversations():
         raise Exception("CosmosDB is not configured or not working")
 
     # get the conversations from cosmos
-    conversations = await cosmos_conversation_client.get_conversations(
-        user_id, offset=offset, limit=25
-    )
+    conversations = await cosmos_conversation_client.get_conversations(user_id, offset=offset, limit=25)
     await cosmos_conversation_client.cosmosdb_client.close()
     if not isinstance(conversations, list):
         track_event_if_configured("NoConversationsFound", {
@@ -782,7 +773,7 @@ async def list_conversations():
             "user_id": user_id,
             "conversation_count": len(conversations),
             "status": "success"
-     })
+        })
     return jsonify(conversations), 200
 
 
