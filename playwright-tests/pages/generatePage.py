@@ -17,7 +17,7 @@ class GeneratePage(BasePage):
     def click_send_button(self ):
         # Type a question in the text area
         self.page.locator(self.SEND_BUTTON).click()
-        self.page.wait_for_timeout(25000)
+        self.page.wait_for_timeout(20000)
 
     def click_generate_draft_button(self ):
         # Type a question in the text area
