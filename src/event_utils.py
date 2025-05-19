@@ -2,7 +2,6 @@ import logging
 import os
 from azure.monitor.events.extension import track_event
 from dotenv import load_dotenv
-
 load_dotenv()
 
 def track_event_if_configured(event_name: str, event_data: dict):

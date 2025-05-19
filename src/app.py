@@ -848,7 +848,6 @@ async def get_conversation():
             "message_count": len(messages),
             "status": "success"
         })
-    
     await cosmos_conversation_client.cosmosdb_client.close()
     return jsonify({"conversation_id": conversation_id, "messages": messages}), 200
 
