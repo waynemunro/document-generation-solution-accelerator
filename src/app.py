@@ -310,7 +310,6 @@ def prepare_model_args(request_body, request_headers):
                 "template_system_message": app_settings.azure_openai.template_system_message
             })
 
-
     model_args_clean = copy.deepcopy(model_args)
     if model_args_clean.get("extra_body"):
         secret_params = [
@@ -356,7 +355,6 @@ async def send_chat_request(request_body, request_headers):
     for message in messages:
         if message.get("role") != "tool":
             filtered_messages.append(message)
-    
     track_event_if_configured("MessagesFiltered", {
         "original_count": len(messages),
         "filtered_count": len(filtered_messages)
@@ -410,7 +408,7 @@ async def stream_chat_request(request_body, request_headers):
                 completionChunk, history_metadata, apim_request_id
             )
         track_event_if_configured("StreamChatRequestInitialized", {
-        "apim_request_id": apim_request_id
+            "apim_request_id": apim_request_id
         })
 
     return generate()
@@ -753,8 +751,8 @@ async def list_conversations():
     cosmos_conversation_client = init_cosmosdb_client()
     if not cosmos_conversation_client:
         track_event_if_configured("CosmosDBNotConfigured", {
-                "user_id": user_id,
-                "error": "CosmosDB is not configured or not working"
+            "user_id": user_id,
+            "error": "CosmosDB is not configured or not working"
         })
         raise Exception("CosmosDB is not configured or not working")
 
@@ -763,17 +761,17 @@ async def list_conversations():
     await cosmos_conversation_client.cosmosdb_client.close()
     if not isinstance(conversations, list):
         track_event_if_configured("NoConversationsFound", {
-                "user_id": user_id,
-                "status": "No conversations found"
-            })
+            "user_id": user_id,
+            "status": "No conversations found"
+        })
         return jsonify({"error": f"No conversations for {user_id} were found"}), 404
 
     # return the conversation ids
     track_event_if_configured("ConversationsListed", {
-            "user_id": user_id,
-            "conversation_count": len(conversations),
-            "status": "success"
-        })
+        "user_id": user_id,
+        "conversation_count": len(conversations),
+        "status": "success"
+    })
     return jsonify(conversations), 200
 
 
@@ -797,9 +795,9 @@ async def get_conversation():
     cosmos_conversation_client = init_cosmosdb_client()
     if not cosmos_conversation_client:
         track_event_if_configured("CosmosDBNotConfigured", {
-                "user_id": user_id,
-                "error": "CosmosDB is not configured or not working"
-            })
+            "user_id": user_id,
+            "error": "CosmosDB is not configured or not working"
+        })
         raise Exception("CosmosDB is not configured or not working")
 
     # get the conversation object and the related messages from cosmos
@@ -809,10 +807,10 @@ async def get_conversation():
     # return the conversation id and the messages in the bot frontend format
     if not conversation:
         track_event_if_configured("ConversationNotFound", {
-                "user_id": user_id,
-                "conversation_id": conversation_id,
-                "error": "Conversation not found or access denied"
-            })
+            "user_id": user_id,
+            "conversation_id": conversation_id,
+            "error": "Conversation not found or access denied"
+        })
         return (
             jsonify(
                 {
@@ -843,11 +841,11 @@ async def get_conversation():
     ]
 
     track_event_if_configured("ConversationRead", {
-            "user_id": user_id,
-            "conversation_id": conversation_id,
-            "message_count": len(messages),
-            "status": "success"
-        })
+        "user_id": user_id,
+        "conversation_id": conversation_id,
+        "message_count": len(messages),
+        "status": "success"
+    })
     await cosmos_conversation_client.cosmosdb_client.close()
     return jsonify({"conversation_id": conversation_id, "messages": messages}), 200
 
