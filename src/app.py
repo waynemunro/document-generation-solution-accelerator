@@ -120,7 +120,6 @@ def init_openai_client():
                 f"The minimum supported Azure OpenAI preview API version is"
                 f"'{MINIMUM_SUPPORTED_AZURE_OPENAI_PREVIEW_API_VERSION}'"
             )
-        
         # Endpoint
         if (
             not app_settings.azure_openai.endpoint
