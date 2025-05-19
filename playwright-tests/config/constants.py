@@ -1,12 +1,13 @@
-from dotenv import load_dotenv
 import os
 
-load_dotenv()
-URL = os.getenv('url')
+from dotenv import load_dotenv
 
-if URL.endswith('/'):
+load_dotenv()
+URL = os.getenv("url")
+
+if URL.endswith("/"):
     URL = URL[:-1]
-    
+
 
 # browse input data
 browse_question1 = "What are typical sections in a promissory note?"

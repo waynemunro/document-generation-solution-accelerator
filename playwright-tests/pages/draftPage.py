@@ -1,5 +1,6 @@
-from base.base import BasePage
 from pytest_check import check
+
+from base.base import BasePage
 
 
 class DraftPage(BasePage):
@@ -10,8 +11,7 @@ class DraftPage(BasePage):
     Draft_headings = "//span[@class='fui-Text ___nl2uoq0 fk6fouc f4ybsrx f1i3iumi f16wzh4i fpgzoln f1w7gpdv f6juhto f1gl81tg f2jf649 fepr9ql febqm8h']"
     invalid_response = "The requested information is not available in the retrieved data. Please try another query or topic."
     invalid_response1 = "There was an issue fetching your data. Please try again."
-    invalid_response2 = " " 
-
+    invalid_response2 = " "
 
     def __init__(self, page):
         self.page = page
@@ -21,6 +21,17 @@ class DraftPage(BasePage):
             for i in range(self.page.locator(self.Draft_Sections).count()):
                 draft_sections_response = self.page.locator(self.Draft_Sections).nth(i)
                 draft_heading = self.page.locator(self.Draft_headings).nth(i).text_content()
-                check.not_equal(self.invalid_response, draft_sections_response.text_content(),f'Invalid response for {draft_heading} section')
-                check.not_equal(self.invalid_response1, draft_sections_response.text_content(), f'Invalid response for {draft_heading} section' )
-                check.is_not_none(draft_sections_response.text_content(), f'Invalid response for {draft_heading} section')
+                check.not_equal(
+                    self.invalid_response,
+                    draft_sections_response.text_content(),
+                    f"Invalid response for {draft_heading} section",
+                )
+                check.not_equal(
+                    self.invalid_response1,
+                    draft_sections_response.text_content(),
+                    f"Invalid response for {draft_heading} section",
+                )
+                check.is_not_none(
+                    draft_sections_response.text_content(),
+                    f"Invalid response for {draft_heading} section",
+                )

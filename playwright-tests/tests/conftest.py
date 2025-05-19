@@ -1,10 +1,10 @@
 from pathlib import Path
+
 import pytest
 from playwright.sync_api import sync_playwright
-from config.constants import *
 from slugify import slugify
-from dotenv import load_dotenv
-import os
+
+from config.constants import URL
 
 
 @pytest.fixture(scope="session")
@@ -18,7 +18,7 @@ def login_logout():
         # Navigate to the login URL
         page.goto(URL)
         # Wait for the login form to appear
-        #page.wait_for_load_state('networkidle')
+        # page.wait_for_load_state('networkidle')
         yield page
 
         # perform close the browser
@@ -34,7 +34,7 @@ def pytest_html_report_title(report):
 def pytest_runtest_makereport(item, call):
     pytest_html = item.config.pluginmanager.getplugin("html")
     outcome = yield
-    screen_file = ''
+    screen_file = ""
     report = outcome.get_result()
     extra = getattr(report, "extra", [])
     if report.when == "call":
