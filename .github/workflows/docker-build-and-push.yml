@@ -48,10 +48,10 @@ jobs:
         id: registry
         run: |
           if [[ "${{ github.ref_name }}" == "main" ]]; then
-            echo "ext_registry=${{ secrets.ACR_LOGIN_SERVER }}" >> $GITHUB_OUTPUT
-            echo "int_registry=${{ secrets.ACR_DEV_LOGIN_SERVER }}" >> $GITHUB_OUTPUT
+            echo "ext_registry=${{ secrets.ACR_LOGIN_SERVER || 'acrlogin.azurecr.io'}}" >> $GITHUB_OUTPUT
+            echo "int_registry=${{ secrets.ACR_DEV_LOGIN_SERVER || 'acrlogin.azurecr.io'}}" >> $GITHUB_OUTPUT
           else
-            echo "int_registry=${{ secrets.ACR_DEV_LOGIN_SERVER }}" >> $GITHUB_OUTPUT
+            echo "int_registry=${{ secrets.ACR_DEV_LOGIN_SERVER || 'acrlogin.azurecr.io'}}" >> $GITHUB_OUTPUT
           fi
 
       - name: Determine Tag Name Based on Branch
