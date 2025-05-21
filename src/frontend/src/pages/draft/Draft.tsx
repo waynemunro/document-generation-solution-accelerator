@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState } from 'react'
+import { useContext, useEffect, useMemo, useState } from 'react'
 import styles from './Draft.module.css'
 import { useLocation, useNavigate } from 'react-router-dom'
 import TitleCard from '../../components/DraftCards/TitleCard'
@@ -16,6 +16,8 @@ const Draft = (): JSX.Element => {
 
   // get draftedDocument from context
   const draftedDocument = appStateContext?.state.draftedDocument
+  const currentChat = appStateContext?.state.currentChat
+  const draftedDocumentTitle = appStateContext?.state.draftedDocumentTitle;
   const sections = draftedDocument?.sections ?? []
 
   const isLoadedSections = appStateContext?.state.isLoadedSections
@@ -27,7 +29,9 @@ const Draft = (): JSX.Element => {
 
   const [isExportButtonDisable, setIsExportButtonDisable] = useState<boolean>(false)
 
-
+  useMemo(() => {
+      currentChat?.title && appStateContext?.dispatch({ type: 'UPDATE_DRAFTED_DOCUMENT_TITLE', payload: currentChat.title })
+  }, [currentChat?.title])
 
   useEffect(() => {
     sections.forEach((item, index) => {
@@ -45,13 +49,14 @@ const Draft = (): JSX.Element => {
 
 
   useEffect(() => {
-    if (isLoadedSections?.length === sections.length) {
+    const title = draftedDocumentTitle ?? '' // Normalize null to ''
+    if (isLoadedSections?.length === sections.length && title.length > 0) {
       setIsExportButtonDisable(false);
     }
     else {
       setIsExportButtonDisable(true);
     }
-  }, [isLoadedSections])
+  }, [isLoadedSections, draftedDocumentTitle])
 
 
   if (!draftedDocument) {

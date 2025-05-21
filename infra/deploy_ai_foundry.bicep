@@ -35,6 +35,7 @@ var aiModelDeployments = [
       name: deploymentType
       capacity: gptDeploymentCapacity
     }
+    version: '2024-05-13'
     raiPolicyName: 'Microsoft.Default'
   }
   {
@@ -44,6 +45,7 @@ var aiModelDeployments = [
       name: 'Standard'
       capacity: embeddingDeploymentCapacity
     }
+    version: '2'
     raiPolicyName: 'Microsoft.Default'
   }
 ]
@@ -159,8 +161,10 @@ resource aiServicesDeployments 'Microsoft.CognitiveServices/accounts/deployments
     model: {
       format: 'OpenAI'
       name: aiModeldeployment.model
+      version: aiModeldeployment.version
     }
     raiPolicyName: aiModeldeployment.raiPolicyName
+    versionUpgradeOption: 'OnceCurrentVersionExpired'
   }
   sku:{
     name: aiModeldeployment.sku.name
@@ -481,4 +485,5 @@ output aiProjectName string = aiHubProject.name
 output applicationInsightsId string = applicationInsights.id
 output logAnalyticsWorkspaceResourceName string = logAnalytics.name
 output storageAccountName string = storageNameCleaned
+output applicationInsightsConnectionString string = applicationInsights.properties.ConnectionString
 
