@@ -1,8 +1,8 @@
-from pathlib import Path
+import os
 
 import pytest
 from playwright.sync_api import sync_playwright
-from slugify import slugify
+from py.xml import html  # type: ignore
 
 from config.constants import URL
 
@@ -11,9 +11,9 @@ from config.constants import URL
 def login_logout():
     # perform login and browser close once in a session
     with sync_playwright() as p:
-        browser = p.chromium.launch(headless=False)
-        context = browser.new_context()
-        context.set_default_timeout(80000)
+        browser = p.chromium.launch(headless=False, args=["--start-maximized"])
+        context = browser.new_context(no_viewport=True)
+        context.set_default_timeout(120000)
         page = context.new_page()
         # Navigate to the login URL
         page.goto(URL)
@@ -27,25 +27,24 @@ def login_logout():
 
 @pytest.hookimpl(tryfirst=True)
 def pytest_html_report_title(report):
-    report.title = "Automation_DOCGEN"
+    report.title = "Automation_DocGen"
 
 
+# Add a column for descriptions
+def pytest_html_results_table_header(cells):
+    cells.insert(1, html.th("Description"))
+
+
+def pytest_html_results_table_row(report, cells):
+    cells.insert(1, html.td(report.description if hasattr(report, "description") else ""))
+
+
+# Add logs and docstring to report
 @pytest.hookimpl(hookwrapper=True)
 def pytest_runtest_makereport(item, call):
-    pytest_html = item.config.pluginmanager.getplugin("html")
     outcome = yield
-    screen_file = ""
     report = outcome.get_result()
-    extra = getattr(report, "extra", [])
-    if report.when == "call":
-        if report.failed and "page" in item.funcargs:
-            page = item.funcargs["page"]
-            screenshot_dir = Path("screenshots")
-            screenshot_dir.mkdir(exist_ok=True)
-            screen_file = str(screenshot_dir / f"{slugify(item.nodeid)}.png")
-            page.screenshot(path=screen_file)
-        xfail = hasattr(report, "wasxfail")
-        if (report.skipped and xfail) or (report.failed and not xfail):
-            # add the screenshots to the html report
-            extra.append(pytest_html.extras.png(screen_file))
-        report.extra = extra
+    report.description = str(item.function.__doc__)
+    os.makedirs("logs", exist_ok=True)
+    extra = getattr(report, 'extra', [])
+    report.extra = extra
