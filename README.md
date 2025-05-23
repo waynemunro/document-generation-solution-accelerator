@@ -8,7 +8,7 @@ This example focuses on a generic use case - chat with your own data, generate a
 
 <div align="center">
   
-[**SOLUTION OVERVIEW**](#solution-overview)  \| [**QUICK DEPLOY**](#quick-deploy)  \| [**BUSINESS USE CASE**](#business-use-case)  \| [**SUPPORTING DOCUMENTATION**](#supporting-documentation)
+[**SOLUTION OVERVIEW**](#solution-overview)  \| [**QUICK DEPLOY**](#quick-deploy)  \| [**BUSINESS SCENARIO**](#business-scenario)  \| [**SUPPORTING DOCUMENTATION**](#supporting-documentation)
 
 </div>
 <br/>
@@ -114,7 +114,7 @@ either by deleting the resource group in the Portal or running `azd down`.
 
 <br /><br />
 <h2><img src="./docs/images/readme/business-scenario.png" width="48" />
-Business use case
+Business Scenario
 </h2>
 
 
