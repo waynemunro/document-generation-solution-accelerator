@@ -55,15 +55,24 @@ param embeddingDeploymentCapacity int = 80
 
 param imageTag string = 'latest'
 param AZURE_LOCATION string=''
+
+@description('Optional: Existing Log Analytics Workspace Resource ID')
+param existingLogAnalyticsWorkspaceId string = ''
+
 var solutionLocation = empty(AZURE_LOCATION) ? resourceGroup().location : AZURE_LOCATION
 
 var uniqueId = toLower(uniqueString(environmentName, subscription().id, solutionLocation))
 var solutionPrefix = 'dg${padLeft(take(uniqueId, 12), 12, '0')}'
 
-var baseUrl = 'https://raw.githubusercontent.com/microsoft/document-generation-solution-accelerator/main/'
+// var baseUrl = 'https://raw.githubusercontent.com/microsoft/document-generation-solution-accelerator/main/'
 
-var ApplicationInsightsName ='${abbrs.managementGovernance.applicationInsights}${solutionPrefix}'
-var WorkspaceName = '${abbrs.managementGovernance.logAnalyticsWorkspace}${solutionPrefix}'
+// var ApplicationInsightsName ='${abbrs.managementGovernance.applicationInsights}${solutionPrefix}'
+// var WorkspaceName = '${abbrs.managementGovernance.logAnalyticsWorkspace}${solutionPrefix}'
+
+// var useExisting = !empty(existingLogAnalyticsWorkspaceId)
+// var existingLawResourceGroup = useExisting ? split(existingLogAnalyticsWorkspaceId, '/')[4] : ''
+// var existingLawName = useExisting ? split(existingLogAnalyticsWorkspaceId, '/')[8] : ''
+
 
 // ========== Managed Identity ========== //
 module managedIdentityModule 'deploy_managed_identity.bicep' = {
@@ -101,7 +110,8 @@ module aifoundry 'deploy_ai_foundry.bicep' = {
     gptDeploymentCapacity: gptDeploymentCapacity
     embeddingModel: embeddingModel
     embeddingDeploymentCapacity: embeddingDeploymentCapacity
-    managedIdentityObjectId:managedIdentityModule.outputs.managedIdentityOutput.objectId
+    managedIdentityObjectId: managedIdentityModule.outputs.managedIdentityOutput.objectId
+    existingLogAnalyticsWorkspaceId: existingLogAnalyticsWorkspaceId
   }
   scope: resourceGroup(resourceGroup().name)
 }
@@ -396,29 +406,34 @@ module appserviceModule 'deploy_app_service.bicep' = {
 
 output WEB_APP_URL string = appserviceModule.outputs.webAppUrl
 
-resource Workspace 'Microsoft.OperationalInsights/workspaces@2020-08-01' = {
-  name: WorkspaceName
-  location: solutionLocation
-  properties: {
-    sku: {
-      name: 'PerGB2018'
-    }
-    retentionInDays: 30
-  }
-}
+// resource existingWorkspace 'Microsoft.OperationalInsights/workspaces@2020-08-01' existing = if (useExisting) {
+//   name: existingLawName
+//   scope: resourceGroup(existingLawResourceGroup)
+// }
 
-resource ApplicationInsights 'Microsoft.Insights/components@2020-02-02' = {
-  name: ApplicationInsightsName
-  location: solutionLocation
-  tags: {
-    'hidden-link:${resourceId('Microsoft.Web/sites',ApplicationInsightsName)}': 'Resource'
-  }
-  properties: {
-    Application_Type: 'web'
-    WorkspaceResourceId: Workspace.id
-  }
-  kind: 'web'
-}
+// resource Workspace 'Microsoft.OperationalInsights/workspaces@2020-08-01' = if (!useExisting) {
+//   name: WorkspaceName
+//   location: solutionLocation
+//   properties: {
+//     sku: {
+//       name: 'PerGB2018'
+//     }
+//     retentionInDays: 30
+//   }
+// }
+
+// resource ApplicationInsights 'Microsoft.Insights/components@2020-02-02' = {
+//   name: ApplicationInsightsName
+//   location: solutionLocation
+//   tags: {
+//     'hidden-link:${resourceId('Microsoft.Web/sites',ApplicationInsightsName)}': 'Resource'
+//   }
+//   properties: {
+//     Application_Type: 'web'
+//     WorkspaceResourceId: useExisting ? existingWorkspace.id : Workspace.id
+//   }
+//   kind: 'web'
+// }
 
 
 // ========== Cosmos DB module ========== //
