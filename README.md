@@ -50,7 +50,7 @@ The sample data is sourced from generic AI-generated promissory notes. The docum
   Azure OpenAI Service and GPT models to help summarize the search content and answer questions.​
 
   - **Content generation** <br/>
-  Azure OpenAI Service and GPT models tohelp generate relevant content with Prompt Flow.​
+  Azure OpenAI Service and GPT models to help generate relevant content with Prompt Flow.​
      
 </details>
 
