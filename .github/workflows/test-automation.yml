@@ -9,7 +9,7 @@ on:
             description: "Web URL for DocGen"
         secrets:
           EMAILNOTIFICATION_LOGICAPP_URL_TA:
-            required: true
+            required: false
             description: "Logic App URL for email notifications"
 
 env:
