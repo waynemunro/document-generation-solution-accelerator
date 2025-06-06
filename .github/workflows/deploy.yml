@@ -133,6 +133,7 @@ jobs:
             IMAGE_TAG="dev"
           else
             IMAGE_TAG="latest"
+          fi
           az deployment group create \
             --name ${{ env.SOLUTION_PREFIX }}-deployment \
             --resource-group ${{ env.RESOURCE_GROUP_NAME }} \
