@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main  # Trigger on push to the main branch
-      - deploy-and-test  # Also trigger on deploy-and-test branch
   pull_request:
     branches:
       - main  # Trigger on pull requests to the main branch
