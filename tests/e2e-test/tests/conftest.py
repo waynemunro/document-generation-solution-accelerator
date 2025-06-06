@@ -1,10 +1,9 @@
 import os
 
 import pytest
+from config.constants import URL
 from playwright.sync_api import sync_playwright
 from py.xml import html  # type: ignore
-
-from config.constants import URL
 
 
 @pytest.fixture(scope="session")
@@ -27,7 +26,7 @@ def login_logout():
 
 @pytest.hookimpl(tryfirst=True)
 def pytest_html_report_title(report):
-    report.title = "Automation_DocGen"
+    report.title = "Automation_DOCGEN"
 
 
 # Add a column for descriptions
@@ -36,7 +35,9 @@ def pytest_html_results_table_header(cells):
 
 
 def pytest_html_results_table_row(report, cells):
-    cells.insert(1, html.td(report.description if hasattr(report, "description") else ""))
+    cells.insert(
+        1, html.td(report.description if hasattr(report, "description") else "")
+    )
 
 
 # Add logs and docstring to report
@@ -46,5 +47,5 @@ def pytest_runtest_makereport(item, call):
     report = outcome.get_result()
     report.description = str(item.function.__doc__)
     os.makedirs("logs", exist_ok=True)
-    extra = getattr(report, 'extra', [])
+    extra = getattr(report, "extra", [])
     report.extra = extra

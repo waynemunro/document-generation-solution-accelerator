@@ -1,6 +1,5 @@
-from pytest_check import check
-
 from base.base import BasePage
+from pytest_check import check
 
 
 class DraftPage(BasePage):
@@ -17,10 +16,13 @@ class DraftPage(BasePage):
         self.page = page
 
     def check_draft_Sections(self):
+        self.page.wait_for_timeout(10000)
         if self.page.locator(self.Draft_Sections).count() >= 1:
             for i in range(self.page.locator(self.Draft_Sections).count()):
                 draft_sections_response = self.page.locator(self.Draft_Sections).nth(i)
-                draft_heading = self.page.locator(self.Draft_headings).nth(i).text_content()
+                draft_heading = (
+                    self.page.locator(self.Draft_headings).nth(i).text_content()
+                )
                 check.not_equal(
                     self.invalid_response,
                     draft_sections_response.text_content(),

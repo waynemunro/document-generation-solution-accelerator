@@ -1,9 +1,17 @@
-name: Validate Deployment
+name: DocGen Deploy-Test-Cleanup Pipeline
 
 on:
-    push:
+    workflow_run:
+      workflows: [ Build Docker and Optional Push ]
       branches:
+        - main
+        - dev
         - deploy-and-test
+      types:
+        - completed
+    # push:
+    #   branches:
+    #     - deploy-and-test
     #     - main
     # schedule:
     #   - cron: '0 9,21 * * *'  # Runs at 9:00 AM and 9:00 PM GMT
@@ -11,6 +19,7 @@ on:
 env:
   GPT_MIN_CAPACITY: 250
   TEXT_EMBEDDING_MIN_CAPACITY: 40
+  BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
 
 jobs:
   deploy:
@@ -118,6 +127,13 @@ jobs:
         id: deploy
         run: |
           set -e
+          # get right image tag based on branch
+          if [[ "${{ env.BRANCH_NAME }}" == "main" ]]; then
+            IMAGE_TAG="latest"
+          elif [[ "${{ env.BRANCH_NAME }}" == "dev" ]]; then
+            IMAGE_TAG="dev"
+          else
+            IMAGE_TAG="latest"
           az deployment group create \
             --name ${{ env.SOLUTION_PREFIX }}-deployment \
             --resource-group ${{ env.RESOURCE_GROUP_NAME }} \
@@ -131,7 +147,7 @@ jobs:
                 gptDeploymentCapacity=${{ env.GPT_MIN_CAPACITY }} \
                 embeddingModel="text-embedding-ada-002" \
                 embeddingDeploymentCapacity=${{ env.TEXT_EMBEDDING_MIN_CAPACITY }} \
-                imageTag="latest"
+                imageTag="${IMAGE_TAG}"
 
       - name: Get Deployment Output and extract Values
         id: get_output
@@ -174,15 +190,15 @@ jobs:
           echo "Logged out from Azure."
 
   
-  gp-tests:
+  e2e-test:
     needs: deploy
-    uses: ./.github/workflows/gp-test-automation.yml
+    uses: ./.github/workflows/test-automation.yml
     with:
       DOCGEN_URL: ${{ needs.deploy.outputs.WEBAPP_URL }}
 
   cleanup-deployment:
     if: always() && needs.deploy.outputs.RESOURCE_GROUP_NAME != ''
-    needs: [deploy, gp-tests]
+    needs: [deploy, e2e-test]
     runs-on: ubuntu-latest
     env:
       RESOURCE_GROUP_NAME: ${{ needs.deploy.outputs.RESOURCE_GROUP_NAME }}
@@ -364,7 +380,7 @@ jobs:
 
           EMAIL_BODY=$(cat <<EOF
           {
-            "body": "<p>Dear Team,</p><p>We would like to inform you that the DocGen Deployment Automation process has encountered an issue and has failed to complete successfully.</p><p><strong>Build URL:</strong> ${RUN_URL}<br> ${OUTPUT}</p><p>Please investigate the matter at your earliest convenience.</p><p>Best regards,<br>Your Automation Team</p>"
+            "body": "<p>Dear Team,</p><p>We would like to inform you that the DocGen Deployment Automation process has encountered an issue and has failed to complete successfully.</p><p><strong>Build URL:</strong> <a href=\"${RUN_URL}\">${RUN_URL}</a><br></p><p>Please investigate the matter at your earliest convenience.</p><p>Best regards,<br>Your Automation Team</p>"
           }
           EOF
           )
