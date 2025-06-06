@@ -2,7 +2,7 @@
 
 Before deploying the accelerator, **ensure sufficient quota availability** for the required model.
 
-> **For Global Standard | GPT-4o |GPT-4.1- the capacity to at least 150k tokens post-deployment for optimal performance.**
+> **For Global Standard |GPT-4.1- the capacity to at least 150k tokens post-deployment for optimal performance.**
 
 > **For Standard | GPT-4 - ensure a minimum of 30k–40k tokens for best results.**
 
@@ -14,7 +14,7 @@ azd auth login
 
 ### 📌 Default Models & Capacities:
 ```
-gpt-4.1:30, text-embedding-ada-002:80, gpt-4:30, gpt-4o:30
+gpt-4.1:30, text-embedding-ada-002:80, gpt-4:30
 ```
 ### 📌 Default Regions:
 ```
@@ -40,7 +40,7 @@ eastus, uksouth, eastus2, northcentralus, swedencentral, westus, westus2, southc
    ```
 ✔️ Check specific model(s) in default regions:
   ```
-  ./quota_check_params.sh --models gpt-4o:30,text-embedding-ada-002:80
+  ./quota_check_params.sh --models gpt-4.1:30,text-embedding-ada-002:80
   ```
 ✔️ Check default models in specific region(s):
   ```
@@ -48,7 +48,7 @@ eastus, uksouth, eastus2, northcentralus, swedencentral, westus, westus2, southc
   ```
 ✔️ Passing Both models and regions:  
   ```
-  ./quota_check_params.sh --models gpt-4o:30 --regions eastus,westus2
+  ./quota_check_params.sh --models gpt-4.1:30 --regions eastus,westus2
   ```
 ✔️ All parameters combined:
   ```

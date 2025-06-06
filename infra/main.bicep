@@ -385,7 +385,7 @@ module appserviceModule 'deploy_app_service.bicep' = {
     aiSearchService: aifoundry.outputs.aiSearchService
     AzureSearchKey: keyVault.getSecret('AZURE-SEARCH-KEY')
     AzureOpenAIEndpoint:aifoundry.outputs.aiServicesTarget
-    AzureOpenAIModel: gptModelName //'gpt-4o-mini'
+    AzureOpenAIModel: gptModelName 
     AzureOpenAIKey:keyVault.getSecret('AZURE-OPENAI-KEY')
     azureOpenAIApiVersion: azureOpenaiAPIVersion //'2024-02-15-preview'
     AZURE_OPENAI_RESOURCE:aifoundry.outputs.aiServicesName
