@@ -9,12 +9,8 @@ on:
         - main
         - dev
         - demo
-    push:
-      branches:
-        - deploy-and-test
-    #     - main
-    # schedule:
-    #   - cron: '0 9,21 * * *'  # Runs at 9:00 AM and 9:00 PM GMT
+    schedule:
+      - cron: '0 9,21 * * *'  # Runs at 9:00 AM and 9:00 PM GMT
 
 env:
   GPT_MIN_CAPACITY: 250
@@ -67,7 +63,7 @@ jobs:
           RUN_URL="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
           EMAIL_BODY=$(cat <<EOF
           {
-            "body": "<p>Dear Team,</p><p>The quota check has failed, and the pipeline cannot proceed.</p><p><strong>Build URL:</strong> ${RUN_URL}</p><p>Please take necessary action.</p><p>Best regards,<br>Your Automation Team</p>"
+            "body": "<p>Dear Team,</p><p>The quota check has failed, and the pipeline cannot proceed.</p><p><strong>Build URL:</strong> <a href=\"${RUN_URL}\">${RUN_URL}</a></p><p>Please take necessary action.</p><p>Best regards,<br>Your Automation Team</p>"
           }
           EOF
           )
@@ -127,7 +123,7 @@ jobs:
         id: deploy
         run: |
           set -e
-          # get right image tag based on branch
+          # set image tag based on branch
           if [[ "${{ env.BRANCH_NAME }}" == "main" ]]; then
             IMAGE_TAG="latest"
           elif [[ "${{ env.BRANCH_NAME }}" == "dev" ]]; then
@@ -135,8 +131,9 @@ jobs:
           elif [[ "${{ env.BRANCH_NAME }}" == "demo" ]]; then
             IMAGE_TAG="demo"
           else
-            IMAGE_TAG="dev"
+            IMAGE_TAG="latest"
           fi
+
           az deployment group create \
             --name ${{ env.SOLUTION_PREFIX }}-deployment \
             --resource-group ${{ env.RESOURCE_GROUP_NAME }} \
@@ -198,6 +195,7 @@ jobs:
     uses: ./.github/workflows/test-automation.yml
     with:
       DOCGEN_URL: ${{ needs.deploy.outputs.WEBAPP_URL }}
+    secrets: inherit
 
   cleanup-deployment:
     if: always() && needs.deploy.outputs.RESOURCE_GROUP_NAME != ''
