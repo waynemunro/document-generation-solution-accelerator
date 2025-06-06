@@ -361,8 +361,8 @@
           "metadata": {
             "_generator": {
               "name": "bicep",
-              "version": "0.35.1.17967",
-              "templateHash": "14416829741819681429"
+              "version": "0.34.44.8038",
+              "templateHash": "17718433303911294858"
             }
           },
           "parameters": {
@@ -456,8 +456,8 @@
           "metadata": {
             "_generator": {
               "name": "bicep",
-              "version": "0.35.1.17967",
-              "templateHash": "14711167186840027914"
+              "version": "0.34.44.8038",
+              "templateHash": "10936025922757970234"
             }
           },
           "parameters": {
@@ -888,6 +888,7 @@
             "aiSearchName": "[format('{0}{1}', variables('abbrs').ai.aiSearch, parameters('solutionName'))]",
             "workspaceName": "[format('{0}{1}', variables('abbrs').managementGovernance.logAnalyticsWorkspace, parameters('solutionName'))]",
             "useExisting": "[not(empty(parameters('existingLogAnalyticsWorkspaceId')))]",
+            "existingLawSubscription": "[if(variables('useExisting'), split(parameters('existingLogAnalyticsWorkspaceId'), '/')[2], '')]",
             "existingLawResourceGroup": "[if(variables('useExisting'), split(parameters('existingLogAnalyticsWorkspaceId'), '/')[4], '')]",
             "existingLawName": "[if(variables('useExisting'), split(parameters('existingLogAnalyticsWorkspaceId'), '/')[8], '')]",
             "aiModelDeployments": [
@@ -989,7 +990,7 @@
                 "Application_Type": "web",
                 "publicNetworkAccessForIngestion": "Enabled",
                 "publicNetworkAccessForQuery": "Enabled",
-                "WorkspaceResourceId": "[if(variables('useExisting'), extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('existingLawResourceGroup')), 'Microsoft.OperationalInsights/workspaces', variables('existingLawName')), resourceId('Microsoft.OperationalInsights/workspaces', variables('workspaceName')))]"
+                "WorkspaceResourceId": "[if(variables('useExisting'), extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', variables('existingLawSubscription'), variables('existingLawResourceGroup')), 'Microsoft.OperationalInsights/workspaces', variables('existingLawName')), resourceId('Microsoft.OperationalInsights/workspaces', variables('workspaceName')))]"
               },
               "dependsOn": [
                 "[resourceId('Microsoft.OperationalInsights/workspaces', variables('workspaceName'))]"
@@ -1406,6 +1407,10 @@
             "applicationInsightsConnectionString": {
               "type": "string",
               "value": "[reference(resourceId('Microsoft.Insights/components', variables('applicationInsightsName')), '2020-02-02').ConnectionString]"
+            },
+            "azureProjectConnString": {
+              "type": "string",
+              "value": "[format('{0};{1};{2};{3}', split(reference(resourceId('Microsoft.MachineLearningServices/workspaces', variables('aiProjectName')), '2024-01-01-preview').discoveryUrl, '/')[2], subscription().subscriptionId, resourceGroup().name, variables('aiProjectName'))]"
             }
           }
         }
@@ -1448,8 +1453,8 @@
           "metadata": {
             "_generator": {
               "name": "bicep",
-              "version": "0.35.1.17967",
-              "templateHash": "12684246002053954621"
+              "version": "0.34.44.8038",
+              "templateHash": "14155463992250872710"
             }
           },
           "parameters": {
@@ -1657,6 +1662,12 @@
           "AZURE_OPENAI_RESOURCE": {
             "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, resourceGroup().name), 'Microsoft.Resources/deployments', 'deploy_ai_foundry'), '2022-09-01').outputs.aiServicesName.value]"
           },
+          "AzureOpenAIProjectConnString": {
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, resourceGroup().name), 'Microsoft.Resources/deployments', 'deploy_ai_foundry'), '2022-09-01').outputs.azureProjectConnString.value]"
+          },
+          "AzureAIProjectName": {
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, resourceGroup().name), 'Microsoft.Resources/deployments', 'deploy_ai_foundry'), '2022-09-01').outputs.aiProjectName.value]"
+          },
           "USE_CHAT_HISTORY_ENABLED": {
             "value": "True"
           },
@@ -1680,6 +1691,9 @@
           },
           "WebsiteName": {
             "value": "[format('{0}{1}', variables('abbrs').compute.webApp, variables('solutionPrefix'))]"
+          },
+          "useAiFoundrySdk": {
+            "value": "False"
           }
         },
         "template": {
@@ -1688,8 +1702,8 @@
           "metadata": {
             "_generator": {
               "name": "bicep",
-              "version": "0.35.1.17967",
-              "templateHash": "16988932665267526316"
+              "version": "0.34.44.8038",
+              "templateHash": "11947266873515406477"
             }
           },
           "parameters": {
@@ -1758,6 +1772,18 @@
               "type": "securestring",
               "metadata": {
                 "description": "Azure OpenAI Key"
+              }
+            },
+            "AzureOpenAIProjectConnString": {
+              "type": "string",
+              "metadata": {
+                "description": "Azure Open AI Project Connection String"
+              }
+            },
+            "AzureAIProjectName": {
+              "type": "string",
+              "metadata": {
+                "description": "Azure AI project name"
               }
             },
             "azureOpenAIApiVersion": {
@@ -1905,6 +1931,13 @@
               "defaultValue": "True",
               "metadata": {
                 "description": "Enable feedback in Cosmos DB"
+              }
+            },
+            "useAiFoundrySdk": {
+              "type": "string",
+              "defaultValue": "False",
+              "metadata": {
+                "description": "Use AI Foundry SDK"
               }
             },
             "imageTag": {
@@ -2091,6 +2124,10 @@
                       "value": "[variables('azureOpenAISystemMessage')]"
                     },
                     {
+                      "name": "AZURE_OPENAI_PROJECT_CONN_STRING",
+                      "value": "[parameters('AzureOpenAIProjectConnString')]"
+                    },
+                    {
                       "name": "USE_CHAT_HISTORY_ENABLED",
                       "value": "[parameters('USE_CHAT_HISTORY_ENABLED')]"
                     },
@@ -2125,6 +2162,10 @@
                     {
                       "name": "UWSGI_THREADS",
                       "value": "2"
+                    },
+                    {
+                      "name": "USE_AI_FOUNDRY_SDK",
+                      "value": "[parameters('useAiFoundrySdk')]"
                     }
                   ],
                   "linuxFxVersion": "[variables('imageName')]"
@@ -2142,6 +2183,19 @@
                 "principalId": "[reference(resourceId('Microsoft.Web/sites', parameters('WebsiteName')), '2020-06-01', 'full').identity.principalId]",
                 "roleDefinitionId": "[resourceId('Microsoft.DocumentDB/databaseAccounts/sqlRoleDefinitions', parameters('AZURE_COSMOSDB_ACCOUNT'), '00000000-0000-0000-0000-000000000002')]",
                 "scope": "[resourceId('Microsoft.DocumentDB/databaseAccounts', parameters('AZURE_COSMOSDB_ACCOUNT'))]"
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('WebsiteName'))]"
+              ]
+            },
+            {
+              "type": "Microsoft.Authorization/roleAssignments",
+              "apiVersion": "2022-04-01",
+              "scope": "[format('Microsoft.MachineLearningServices/workspaces/{0}', parameters('AzureAIProjectName'))]",
+              "name": "[guid(parameters('WebsiteName'), resourceId('Microsoft.MachineLearningServices/workspaces', parameters('AzureAIProjectName')), resourceId('Microsoft.Authorization/roleDefinitions', '64702f94-c441-49e6-a78b-ef80e0188fee'))]",
+              "properties": {
+                "roleDefinitionId": "[resourceId('Microsoft.Authorization/roleDefinitions', '64702f94-c441-49e6-a78b-ef80e0188fee')]",
+                "principalId": "[reference(resourceId('Microsoft.Web/sites', parameters('WebsiteName')), '2020-06-01', 'full').identity.principalId]"
               },
               "dependsOn": [
                 "[resourceId('Microsoft.Web/sites', parameters('WebsiteName'))]"
@@ -2191,8 +2245,8 @@
           "metadata": {
             "_generator": {
               "name": "bicep",
-              "version": "0.35.1.17967",
-              "templateHash": "12799194170352887919"
+              "version": "0.34.44.8038",
+              "templateHash": "9693594232553540170"
             }
           },
           "parameters": {

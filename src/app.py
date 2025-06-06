@@ -3,6 +3,7 @@ import json
 import logging
 import os
 import uuid
+import re
 
 from azure.core.credentials import AzureKeyCredential
 from azure.identity.aio import (DefaultAzureCredential,
@@ -24,6 +25,7 @@ from event_utils import track_event_if_configured
 from azure.monitor.opentelemetry import configure_azure_monitor
 from opentelemetry import trace
 from opentelemetry.trace import Status, StatusCode
+from azure.ai.projects.aio import AIProjectClient
 
 bp = Blueprint("routes", __name__, static_folder="static", template_folder="static")
 
@@ -110,6 +112,7 @@ MS_DEFENDER_ENABLED = os.environ.get("MS_DEFENDER_ENABLED", "true").lower() == "
 # Initialize Azure OpenAI Client
 def init_openai_client():
     azure_openai_client = None
+    track_event_if_configured("OpenAIClientInitializationStart", {"status": "success"})
     try:
         # API version check
         if (
@@ -174,6 +177,44 @@ def init_openai_client():
             span.record_exception(e)
             span.set_status(Status(StatusCode.ERROR, str(e)))
         azure_openai_client = None
+        raise e
+
+
+# Initialize Azure Foundry SDK client
+async def init_ai_foundry_client():
+    ai_foundry_client = None
+    try:
+        track_event_if_configured("AIFoundryClientInitializationStart", {"status": "success"})
+        # API version check
+        if (
+            app_settings.azure_openai.preview_api_version
+            < MINIMUM_SUPPORTED_AZURE_OPENAI_PREVIEW_API_VERSION
+        ):
+            raise ValueError(
+                f"The minimum supported Azure OpenAI preview API version is"
+                f"'{MINIMUM_SUPPORTED_AZURE_OPENAI_PREVIEW_API_VERSION}'"
+            )
+
+        # Project Connection String check
+        if (
+            not app_settings.azure_openai.project_conn_string
+        ):
+            raise ValueError(
+                "AZURE_OPENAI_PROJECT_CONN_STRING is required"
+            )
+
+        project_conn_string = app_settings.azure_openai.project_conn_string
+        ai_project_client = AIProjectClient.from_connection_string(
+            conn_str=project_conn_string,
+            credential=DefaultAzureCredential()
+        )
+        ai_foundry_client = await ai_project_client.inference.get_azure_openai_client(
+            api_version=app_settings.azure_openai.preview_api_version
+        )
+        return ai_foundry_client
+    except Exception as e:
+        logging.exception("Exception in AI Foundry initialization", e)
+        ai_foundry_client = None
         raise e
 
 
@@ -362,20 +403,35 @@ async def send_chat_request(request_body, request_headers):
     model_args = prepare_model_args(request_body, request_headers)
 
     try:
-        azure_openai_client = init_openai_client()
-        track_event_if_configured("OpenAIClientInitialized", {"status": "success"})
-        raw_response = (
-            await azure_openai_client.chat.completions.with_raw_response.create(
+        if app_settings.base_settings.use_ai_foundry_sdk:
+            # Use AI Foundry SDK for response
+            track_event_if_configured("Foundry_sdk_for_response", {"status": "success"})
+            ai_foundry_client = await init_ai_foundry_client()
+            raw_response = await ai_foundry_client.chat.completions.with_raw_response.create(
                 **model_args
             )
-        )
-        response = raw_response.parse()
-        apim_request_id = raw_response.headers.get("apim-request-id")
+            response = raw_response.parse()
+            apim_request_id = raw_response.headers.get("apim-request-id")
+            track_event_if_configured("ChatCompletionSuccess", {
+                "apim_request_id": apim_request_id,
+                "message_count": len(filtered_messages)
+            })
+        else:
+            # Use Azure Open AI client for response
+            track_event_if_configured("Openai_sdk_for_response", {"status": "success"})
+            azure_openai_client = init_openai_client()
+            raw_response = (
+                await azure_openai_client.chat.completions.with_raw_response.create(
+                    **model_args
+                )
+            )
+            response = raw_response.parse()
+            apim_request_id = raw_response.headers.get("apim-request-id")
 
-        track_event_if_configured("ChatCompletionSuccess", {
-            "apim_request_id": apim_request_id,
-            "message_count": len(filtered_messages)
-        })
+            track_event_if_configured("ChatCompletionSuccess", {
+                "apim_request_id": apim_request_id,
+                "message_count": len(filtered_messages)
+            })
 
     except Exception as e:
         logging.exception("Exception in send_chat_request")
@@ -1119,18 +1175,39 @@ async def generate_title(conversation_messages):
     messages.append({"role": "user", "content": title_prompt})
 
     try:
-        azure_openai_client = init_openai_client(use_data=False)
-        response = await azure_openai_client.chat.completions.create(
-            model=app_settings.azure_openai.model,
-            messages=messages,
-            temperature=1,
-            max_tokens=64,
-        )
+        response = None
+        if app_settings.base_settings.use_ai_foundry_sdk:
+            # Use Foundry SDK for title generation
+            track_event_if_configured("Foundry_sdk_for_title", {"status": "success"})
+            ai_foundry_client = await init_ai_foundry_client()
+            response = await ai_foundry_client.chat.completions.create(
+                model=app_settings.azure_openai.model,
+                messages=messages,
+                temperature=1,
+                max_tokens=64,
+            )
+        else:
+            # Use Azure OpenAI client for title generation
+            track_event_if_configured("Openai_sdk_for_title", {"status": "success"})
+            azure_openai_client = init_openai_client()
+            response = await azure_openai_client.chat.completions.create(
+                model=app_settings.azure_openai.model,
+                messages=messages,
+                temperature=1,
+                max_tokens=64,
+            )
+        raw_content = response.choices[0].message.content
+        # Extract the first JSON-like object from the content
+        json_match = re.search(r"\{.*\}", raw_content, re.DOTALL)
+        if not json_match:
+            raise ValueError("No JSON object found in response")
 
-        title = json.loads(response.choices[0].message.content)["title"]
+        json_str = json_match.group()
+        title = json.loads(json_str)["title"]
         track_event_if_configured("TitleGenerated", {"title": title})
         return title
-    except Exception:
+    except Exception as e:
+        logging.exception("Exception in generate_title" + str(e))
         return messages[-2]["content"]
 
 
@@ -1147,12 +1224,23 @@ async def get_section_content(request_body, request_headers):
     model_args = prepare_model_args(request_body, request_headers)
 
     try:
-        azure_openai_client = init_openai_client()
-        raw_response = (
-            await azure_openai_client.chat.completions.with_raw_response.create(
+        raw_response = None
+        if app_settings.base_settings.use_ai_foundry_sdk:
+            # Use Foundry SDK for section content generation
+            track_event_if_configured("Foundry_sdk_for_section", {"status": "success"})
+            ai_foundry_client = await init_ai_foundry_client()
+            raw_response = await ai_foundry_client.chat.completions.with_raw_response.create(
                 **model_args
             )
-        )
+        else:
+            # Use Azure OpenAI client for section content generation
+            track_event_if_configured("Openai_sdk_for_section", {"status": "success"})
+            azure_openai_client = init_openai_client()
+            raw_response = (
+                await azure_openai_client.chat.completions.with_raw_response.create(
+                    **model_args
+                )
+            )
         response = raw_response.parse()
         track_event_if_configured("SectionContentGenerated", {
             "sectionTitle": request_body["sectionTitle"]

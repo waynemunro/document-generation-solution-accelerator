@@ -500,4 +500,4 @@ output applicationInsightsId string = applicationInsights.id
 output logAnalyticsWorkspaceResourceName string = useExisting ? existingLogAnalyticsWorkspace.name : logAnalytics.name
 output storageAccountName string = storageNameCleaned
 output applicationInsightsConnectionString string = applicationInsights.properties.ConnectionString
-
+output azureProjectConnString string = '${split(aiHubProject.properties.discoveryUrl, '/')[2]};${subscription().subscriptionId};${resourceGroup().name};${aiHubProject.name}'

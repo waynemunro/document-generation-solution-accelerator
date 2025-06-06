@@ -389,6 +389,8 @@ module appserviceModule 'deploy_app_service.bicep' = {
     AzureOpenAIKey:keyVault.getSecret('AZURE-OPENAI-KEY')
     azureOpenAIApiVersion: azureOpenaiAPIVersion //'2024-02-15-preview'
     AZURE_OPENAI_RESOURCE:aifoundry.outputs.aiServicesName
+    AzureOpenAIProjectConnString:aifoundry.outputs.azureProjectConnString
+    AzureAIProjectName: aifoundry.outputs.aiProjectName
     USE_CHAT_HISTORY_ENABLED:'True'
     AZURE_COSMOSDB_ACCOUNT: cosmosDBModule.outputs.cosmosAccountName
     // AZURE_COSMOSDB_ACCOUNT_KEY: keyVault.getSecret('AZURE-COSMOSDB-ACCOUNT-KEY')
@@ -398,6 +400,7 @@ module appserviceModule 'deploy_app_service.bicep' = {
     AZURE_COSMOSDB_ENABLE_FEEDBACK:'True'
     HostingPlanName:'${abbrs.compute.appServicePlan}${solutionPrefix}'
     WebsiteName:'${abbrs.compute.webApp}${solutionPrefix}'
+    useAiFoundrySdk: 'False'
   }
   scope: resourceGroup(resourceGroup().name)
   // dependsOn:[sqlDBModule]

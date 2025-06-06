@@ -5,6 +5,8 @@ azure-search-documents==11.6.0b9
 azure-storage-blob==12.25.1
 python-dotenv==1.1.0
 azure-cosmos==4.9.0
+azure-ai-projects==1.0.0b9
+azure-ai-inference==1.0.0b9
 quart==0.20.0
 uvicorn==0.34.1
 aiohttp==3.11.16

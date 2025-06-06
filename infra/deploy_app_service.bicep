@@ -39,6 +39,12 @@ param AzureOpenAIEndpoint string = ''
 @secure()
 param AzureOpenAIKey string
 
+@description('Azure Open AI Project Connection String')
+param AzureOpenAIProjectConnString string
+
+@description('Azure AI project name')
+param AzureAIProjectName string
+
 param azureOpenAIApiVersion string
 param AZURE_OPENAI_RESOURCE string = ''
 param USE_CHAT_HISTORY_ENABLED string = ''
@@ -101,6 +107,9 @@ param AZURE_COSMOSDB_DATABASE string = ''
 
 @description('Enable feedback in Cosmos DB')
 param AZURE_COSMOSDB_ENABLE_FEEDBACK string = 'True'
+
+@description('Use AI Foundry SDK')
+param useAiFoundrySdk string = 'False'
 
 param imageTag string
 param applicationInsightsId string
@@ -258,6 +267,10 @@ resource Website 'Microsoft.Web/sites@2020-06-01' = {
           value: azureOpenAISystemMessage
         }
         {
+          name: 'AZURE_OPENAI_PROJECT_CONN_STRING'
+          value: AzureOpenAIProjectConnString
+        }
+        {
           name: 'USE_CHAT_HISTORY_ENABLED'
           value: USE_CHAT_HISTORY_ENABLED
         }
@@ -287,6 +300,10 @@ resource Website 'Microsoft.Web/sites@2020-06-01' = {
         {
           name: 'UWSGI_THREADS'
           value: '2'
+        }
+        {
+          name: 'USE_AI_FOUNDRY_SDK'
+          value: useAiFoundrySdk
         }
       ]
       linuxFxVersion: imageName
@@ -337,5 +354,23 @@ resource role 'Microsoft.DocumentDB/databaseAccounts/sqlRoleAssignments@2022-05-
     scope: cosmos.id
   }
 }
+
+resource aiHubProject 'Microsoft.MachineLearningServices/workspaces@2024-01-01-preview' existing = {
+  name: AzureAIProjectName
+}
+
+resource aiDeveloper 'Microsoft.Authorization/roleDefinitions@2022-04-01' existing = {
+  name: '64702f94-c441-49e6-a78b-ef80e0188fee'
+}
+
+resource aiDeveloperAccessProj 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  name: guid(Website.name, aiHubProject.id, aiDeveloper.id)
+  scope: aiHubProject
+  properties: {
+    roleDefinitionId: aiDeveloper.id
+    principalId: Website.identity.principalId
+  }
+}
+
 
 output webAppUrl string = 'https://${WebsiteName}.azurewebsites.net'
