@@ -8,6 +8,7 @@ on:
       branches:
         - main
         - dev
+        - demo
     push:
       branches:
         - deploy-and-test
@@ -131,8 +132,10 @@ jobs:
             IMAGE_TAG="latest"
           elif [[ "${{ env.BRANCH_NAME }}" == "dev" ]]; then
             IMAGE_TAG="dev"
+          elif [[ "${{ env.BRANCH_NAME }}" == "demo" ]]; then
+            IMAGE_TAG="demo"
           else
-            IMAGE_TAG="latest"
+            IMAGE_TAG="dev"
           fi
           az deployment group create \
             --name ${{ env.SOLUTION_PREFIX }}-deployment \
