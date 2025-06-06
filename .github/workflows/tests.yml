@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main  # Trigger on push to the main branch
+      - deploy-and-test  # Also trigger on deploy-and-test branch
   pull_request:
     branches:
       - main  # Trigger on pull requests to the main branch
@@ -35,7 +36,7 @@ jobs:
 
       - name: Run Backend Tests with Coverage
         run: |
-          if python -m pytest --cov=. --cov-report=xml --cov-report=html --cov-report=term-missing --junitxml=coverage-junit.xml; then
+          if python -m pytest --cov=. --cov-report=xml --cov-report=html --cov-report=term-missing --junitxml=coverage-junit.xml ./src/tests; then
             echo "Tests completed, checking coverage."
             # Only fail if coverage does not meet criteria
             if [ -f coverage.xml ]; then

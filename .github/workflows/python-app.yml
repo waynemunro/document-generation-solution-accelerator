@@ -5,7 +5,7 @@ name: Python application
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main", "deploy-and-test" ]
   pull_request:
     branches: [ "main" ]
 
@@ -47,4 +47,4 @@ jobs:
     - name: Test with pytest
       run: |
         $env:PYTHONPATH="$pwd\src"
-        pytest -v --show-capture=stdout -k "not integration"
+        pytest -v --show-capture=stdout -k "not integration" ./src/tests
