@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.35.1.17967",
-      "templateHash": "5708668410773165410"
+      "templateHash": "3433053339326968482"
     }
   },
   "parameters": {
@@ -42,13 +42,15 @@
     "gptModelName": {
       "type": "string",
       "defaultValue": "gpt-4o",
-      "allowedValues": [
-        "gpt-4o",
-        "gpt-4"
-      ],
-      "minLength": 1,
       "metadata": {
         "description": "Name of the GPT model to deploy:"
+      }
+    },
+    "gptModelVersion": {
+      "type": "string",
+      "defaultValue": "2024-05-13",
+      "metadata": {
+        "description": "Version of the GPT model to deploy:"
       }
     },
     "azureOpenaiAPIVersion": {
@@ -89,6 +91,13 @@
     "AZURE_LOCATION": {
       "type": "string",
       "defaultValue": ""
+    },
+    "existingLogAnalyticsWorkspaceId": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "Optional: Existing Log Analytics Workspace Resource ID"
+      }
     }
   },
   "variables": {
@@ -322,41 +331,9 @@
     "abbrs": "[variables('$fxv#0')]",
     "solutionLocation": "[if(empty(parameters('AZURE_LOCATION')), resourceGroup().location, parameters('AZURE_LOCATION'))]",
     "uniqueId": "[toLower(uniqueString(parameters('environmentName'), subscription().id, variables('solutionLocation')))]",
-    "solutionPrefix": "[format('dg{0}', padLeft(take(variables('uniqueId'), 12), 12, '0'))]",
-    "baseUrl": "https://raw.githubusercontent.com/microsoft/document-generation-solution-accelerator/main/",
-    "ApplicationInsightsName": "[format('{0}{1}', variables('abbrs').managementGovernance.applicationInsights, variables('solutionPrefix'))]",
-    "WorkspaceName": "[format('{0}{1}', variables('abbrs').managementGovernance.logAnalyticsWorkspace, variables('solutionPrefix'))]"
+    "solutionPrefix": "[format('dg{0}', padLeft(take(variables('uniqueId'), 12), 12, '0'))]"
   },
   "resources": [
-    {
-      "type": "Microsoft.OperationalInsights/workspaces",
-      "apiVersion": "2020-08-01",
-      "name": "[variables('WorkspaceName')]",
-      "location": "[variables('solutionLocation')]",
-      "properties": {
-        "sku": {
-          "name": "PerGB2018"
-        },
-        "retentionInDays": 30
-      }
-    },
-    {
-      "type": "Microsoft.Insights/components",
-      "apiVersion": "2020-02-02",
-      "name": "[variables('ApplicationInsightsName')]",
-      "location": "[variables('solutionLocation')]",
-      "tags": {
-        "[format('hidden-link:{0}', resourceId('Microsoft.Web/sites', variables('ApplicationInsightsName')))]": "Resource"
-      },
-      "properties": {
-        "Application_Type": "web",
-        "WorkspaceResourceId": "[resourceId('Microsoft.OperationalInsights/workspaces', variables('WorkspaceName'))]"
-      },
-      "kind": "web",
-      "dependsOn": [
-        "[resourceId('Microsoft.OperationalInsights/workspaces', variables('WorkspaceName'))]"
-      ]
-    },
     {
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "2022-09-01",
@@ -596,6 +573,9 @@
           "gptModelName": {
             "value": "[parameters('gptModelName')]"
           },
+          "gptModelVersion": {
+            "value": "[parameters('gptModelVersion')]"
+          },
           "azureOpenaiAPIVersion": {
             "value": "[parameters('azureOpenaiAPIVersion')]"
           },
@@ -610,6 +590,9 @@
           },
           "managedIdentityObjectId": {
             "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, resourceGroup().name), 'Microsoft.Resources/deployments', 'deploy_managed_identity'), '2022-09-01').outputs.managedIdentityOutput.value.objectId]"
+          },
+          "existingLogAnalyticsWorkspaceId": {
+            "value": "[parameters('existingLogAnalyticsWorkspaceId')]"
           }
         },
         "template": {
@@ -619,7 +602,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.35.1.17967",
-              "templateHash": "1643731277148896194"
+              "templateHash": "3118038315112495212"
             }
           },
           "parameters": {
@@ -638,6 +621,9 @@
             "gptModelName": {
               "type": "string"
             },
+            "gptModelVersion": {
+              "type": "string"
+            },
             "azureOpenaiAPIVersion": {
               "type": "string"
             },
@@ -652,6 +638,10 @@
             },
             "managedIdentityObjectId": {
               "type": "string"
+            },
+            "existingLogAnalyticsWorkspaceId": {
+              "type": "string",
+              "defaultValue": ""
             }
           },
           "variables": {
@@ -897,6 +887,9 @@
             "aiProjectFriendlyName": "[variables('aiProjectName')]",
             "aiSearchName": "[format('{0}{1}', variables('abbrs').ai.aiSearch, parameters('solutionName'))]",
             "workspaceName": "[format('{0}{1}', variables('abbrs').managementGovernance.logAnalyticsWorkspace, parameters('solutionName'))]",
+            "useExisting": "[not(empty(parameters('existingLogAnalyticsWorkspaceId')))]",
+            "existingLawResourceGroup": "[if(variables('useExisting'), split(parameters('existingLogAnalyticsWorkspaceId'), '/')[4], '')]",
+            "existingLawName": "[if(variables('useExisting'), split(parameters('existingLogAnalyticsWorkspaceId'), '/')[8], '')]",
             "aiModelDeployments": [
               {
                 "name": "[parameters('gptModelName')]",
@@ -905,7 +898,7 @@
                   "name": "[parameters('deploymentType')]",
                   "capacity": "[parameters('gptDeploymentCapacity')]"
                 },
-                "version": "2024-05-13",
+                "version": "[parameters('gptModelVersion')]",
                 "raiPolicyName": "Microsoft.Default"
               },
               {
@@ -915,6 +908,7 @@
                   "name": "Standard",
                   "capacity": "[parameters('embeddingDeploymentCapacity')]"
                 },
+                "version": "2",
                 "version": "2",
                 "raiPolicyName": "Microsoft.Default"
               }
@@ -973,6 +967,7 @@
               ]
             },
             {
+              "condition": "[not(variables('useExisting'))]",
               "type": "Microsoft.OperationalInsights/workspaces",
               "apiVersion": "2023-09-01",
               "name": "[variables('workspaceName')]",
@@ -995,7 +990,7 @@
                 "Application_Type": "web",
                 "publicNetworkAccessForIngestion": "Enabled",
                 "publicNetworkAccessForQuery": "Enabled",
-                "WorkspaceResourceId": "[resourceId('Microsoft.OperationalInsights/workspaces', variables('workspaceName'))]"
+                "WorkspaceResourceId": "[if(variables('useExisting'), extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('existingLawResourceGroup')), 'Microsoft.OperationalInsights/workspaces', variables('existingLawName')), resourceId('Microsoft.OperationalInsights/workspaces', variables('workspaceName')))]"
               },
               "dependsOn": [
                 "[resourceId('Microsoft.OperationalInsights/workspaces', variables('workspaceName'))]"
@@ -1403,7 +1398,7 @@
             },
             "logAnalyticsWorkspaceResourceName": {
               "type": "string",
-              "value": "[variables('workspaceName')]"
+              "value": "[if(variables('useExisting'), variables('existingLawName'), variables('workspaceName'))]"
             },
             "storageAccountName": {
               "type": "string",
