@@ -105,8 +105,8 @@ When you start the deployment, most parameters will have **default values**, but
 | **Environment Name**                 | A **3–20 character alphanumeric** value used to generate a unique ID to prefix the resources. | `byctemplate`            |
 | **Secondary Location**               | A **less busy** region for **CosmosDB**, useful in case of availability constraints.          | `eastus2`                |
 | **Deployment Type**                  | Model deployment type (allowed: `Standard`, `GlobalStandard`).                                | `GlobalStandard`         |
-| **GPT Model**                        | Choose from **gpt-4**, **gpt-4o**.                                                            | `gpt-4o`                 |
-| **GPT Model Version**                | Version of the GPT model to use (e.g., `2024-08-06`).                                         | `2024-05-13`             |
+| **GPT Model**                        | The GPT model used by the app                                                                 | `gpt-4.1`                |
+| **GPT Model Version**                | The GPT Version used by the app                                                               | `2024-05-13`             |
 | **OpenAI API Version**               | Azure OpenAI API version used for deployments.                                                | `2024-05-01-preview`     |
 | **GPT Model Deployment Capacity**    | Configure the capacity for **GPT model deployments** (in thousands).                          | `30k`                    |
 | **Embedding Model**                  | The embedding model used by the app.                                                          | `text-embedding-ada-002` |
@@ -115,13 +115,14 @@ When you start the deployment, most parameters will have **default values**, but
 | **Existing Log Analytics Workspace** | If reusing a Log Analytics Workspace, specify the ID.                                         | *(none)*                 |
 
 
+
 </details>
 
 <details>
   <summary><b>[Optional] Quota Recommendations</b></summary>
 
-By default, the _Gpt-4o model capacity_ in deployment is set to _30k tokens_, so we recommend:
-- **For Global Standard | GPT-4o** - the capacity to at least 150k tokens post-deployment for optimal performance.
+By default, the _Gpt-4.1 model capacity_ in deployment is set to _30k tokens_, so we recommend:
+- **For Global Standard | GPT-4.1** - the capacity to at least 150k tokens post-deployment for optimal performance.
 
 - **For Standard | GPT-4** - ensure a minimum of 30k–40k tokens for best results.
 

@@ -26,10 +26,10 @@ param secondaryLocation string
 param deploymentType string = 'GlobalStandard'
 
 @description('Name of the GPT model to deploy:')
-param gptModelName string = 'gpt-4o'
+param gptModelName string = 'gpt-4.1'
 
 @description('Version of the GPT model to deploy:')
-param gptModelVersion string = '2024-05-13'
+param gptModelVersion string = '2025-04-14'
 
 param azureOpenaiAPIVersion string = '2024-05-01-preview'
 
@@ -385,7 +385,7 @@ module appserviceModule 'deploy_app_service.bicep' = {
     aiSearchService: aifoundry.outputs.aiSearchService
     AzureSearchKey: keyVault.getSecret('AZURE-SEARCH-KEY')
     AzureOpenAIEndpoint:aifoundry.outputs.aiServicesTarget
-    AzureOpenAIModel: gptModelName //'gpt-4o-mini'
+    AzureOpenAIModel: gptModelName 
     AzureOpenAIKey:keyVault.getSecret('AZURE-OPENAI-KEY')
     azureOpenAIApiVersion: azureOpenaiAPIVersion //'2024-02-15-preview'
     AZURE_OPENAI_RESOURCE:aifoundry.outputs.aiServicesName

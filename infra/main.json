@@ -4,8 +4,8 @@
   "metadata": {
     "_generator": {
       "name": "bicep",
-      "version": "0.35.1.17967",
-      "templateHash": "3433053339326968482"
+      "version": "0.36.1.42791",
+      "templateHash": "5449809042324258772"
     }
   },
   "parameters": {
@@ -41,14 +41,14 @@
     },
     "gptModelName": {
       "type": "string",
-      "defaultValue": "gpt-4o",
+      "defaultValue": "gpt-4.1",
       "metadata": {
         "description": "Name of the GPT model to deploy:"
       }
     },
     "gptModelVersion": {
       "type": "string",
-      "defaultValue": "2024-05-13",
+      "defaultValue": "2025-04-14",
       "metadata": {
         "description": "Version of the GPT model to deploy:"
       }
@@ -601,8 +601,8 @@
           "metadata": {
             "_generator": {
               "name": "bicep",
-              "version": "0.35.1.17967",
-              "templateHash": "3118038315112495212"
+              "version": "0.36.1.42791",
+              "templateHash": "8750828267619251070"
             }
           },
           "parameters": {
