@@ -103,7 +103,7 @@ When you start the deployment, most parameters will have **default values**, but
 | **Environment Name** | A **3-20 character alphanumeric value** used to generate a unique ID to prefix the resources. |  byctemplate |
 | **Secondary Location** | A **less busy** region for **CosmosDB**, useful in case of availability constraints. |  eastus2 |
 | **Deployment Type** | Select from a drop-down list. |  Global Standard |
-| **GPT Model** | Choose from **gpt-4, gpt-4.1** | gpt-4.1 |  
+| **GPT Model** |  Default: **gpt-4.1** | gpt-4.1 |  
 | **GPT Model Deployment Capacity** | Configure capacity for **GPT models**. | 30k |
 | **Embedding Model** | Default: **text-embedding-ada-002**. |  text-embedding-ada-002 |
 | **Embedding Model Capacity** | Set the capacity for **embedding models**. |  80k |
