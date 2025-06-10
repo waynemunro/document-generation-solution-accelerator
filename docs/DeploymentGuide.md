@@ -22,6 +22,8 @@ Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 
 This will allow the scripts to run for the current session without permanently changing your system's policy.
 
+
+
 ## Deployment Options & Steps
 
 Pick from the options below to see step-by-step instructions for GitHub Codespaces, VS Code Dev Containers, and Local Environments.
@@ -95,19 +97,24 @@ Consider the following settings during your deployment to modify specific settin
 <details>
   <summary><b>Configurable Deployment Settings</b></summary>
 
-When you start the deployment, most parameters will have **default values**, but you can update the following settings:
+When you start the deployment, most parameters will have **default values**, but you can update the following settings:[here](../docs/CustomizingAzdParameters.md):
 
-| **Setting** | **Description** |  **Default value** |
-|------------|----------------|  ------------|
-| **Azure Region** | The region where resources will be created. | eastus | 
-| **Environment Name** | A **3-20 character alphanumeric value** used to generate a unique ID to prefix the resources. |  byctemplate |
-| **Secondary Location** | A **less busy** region for **CosmosDB**, useful in case of availability constraints. |  eastus2 |
-| **Deployment Type** | Select from a drop-down list. |  Global Standard |
-| **GPT Model** |  Default: **gpt-4.1** | gpt-4.1 |  
-| **GPT Model Deployment Capacity** | Configure capacity for **GPT models**. | 30k |
-| **Embedding Model** | Default: **text-embedding-ada-002**. |  text-embedding-ada-002 |
-| **Embedding Model Capacity** | Set the capacity for **embedding models**. |  80k |
-| **Existing Log analytics workspace** | To reuse the existing Log analytics workspace Id. |  |
+| **Setting**                          | **Description**                                                                               | **Default Value**        |
+| ------------------------------------ | --------------------------------------------------------------------------------------------- | ------------------------ |
+| **Azure Region**                     | The region where resources will be created.                                                   | `eastus`                 |
+| **Environment Name**                 | A **3–20 character alphanumeric** value used to generate a unique ID to prefix the resources. | `byctemplate`            |
+| **Secondary Location**               | A **less busy** region for **CosmosDB**, useful in case of availability constraints.          | `eastus2`                |
+| **Deployment Type**                  | Model deployment type (allowed: `Standard`, `GlobalStandard`).                                | `GlobalStandard`         |
+| **GPT Model**                        | The GPT model used by the app                                                                 | `gpt-4.1`                |
+| **GPT Model Version**                | The GPT Version used by the app                                                               | `2024-05-13`             |
+| **OpenAI API Version**               | Azure OpenAI API version used for deployments.                                                | `2024-05-01-preview`     |
+| **GPT Model Deployment Capacity**    | Configure the capacity for **GPT model deployments** (in thousands).                          | `30k`                    |
+| **Embedding Model**                  | The embedding model used by the app.                                                          | `text-embedding-ada-002` |
+| **Embedding Model Capacity**         | Configure the capacity for **embedding model deployments** (in thousands).                    | `80k`                    |
+| **Image Tag**                        | Image version for deployment (allowed: `latest`, `dev`, `hotfix`).                            | `latest`                 |
+| **Existing Log Analytics Workspace** | If reusing a Log Analytics Workspace, specify the ID.                                         | *(none)*                 |
+
+
 
 </details>
 
@@ -116,7 +123,6 @@ When you start the deployment, most parameters will have **default values**, but
 
 By default, the _Gpt-4.1 model capacity_ in deployment is set to _30k tokens_, so we recommend:
 - **For Global Standard | GPT-4.1** - the capacity to at least 150k tokens post-deployment for optimal performance.
-- **For Global Standard | GPT-4.0** - the capacity to at least 150k tokens post-deployment for optimal performance.
 
 - **For Standard | GPT-4** - ensure a minimum of 30k–40k tokens for best results.
 
@@ -161,7 +167,7 @@ Once you've opened the project in [Codespaces](#github-codespaces), [Dev Contain
     ```
     If you don't have azd env then you need to pass parameters along with the command. Then the command will look like the following:
     ```shell 
-    bash ./infra/scripts/process_sample_data.sh <Storage-Account-name> <Storgae-Account-container-name> <Key-Vault-name> <CosmosDB-Account-name> <Resource-Group-name>
+    bash ./infra/scripts/process_sample_data.sh <Storage-Account-name> <Storage-Account-container-name> <Key-Vault-name> <CosmosDB-Account-name> <Resource-Group-name>
     ```
 
 6. Open the [Azure Portal](https://portal.azure.com/), go to the deployed resource group, find the App Service and get the app URL from `Default domain`.
