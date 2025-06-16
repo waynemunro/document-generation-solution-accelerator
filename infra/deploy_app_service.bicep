@@ -39,16 +39,13 @@ param AzureOpenAIEndpoint string = ''
 @secure()
 param AzureOpenAIKey string
 
-@description('Azure Open AI Project Connection String')
-param AzureOpenAIProjectConnString string
-
-@description('Azure AI project name')
-param AzureAIProjectName string
-
 param azureOpenAIApiVersion string
-param AZURE_OPENAI_RESOURCE string = ''
+param azureOpenaiResource string = ''
 param USE_CHAT_HISTORY_ENABLED string = ''
 param aiSearchService string
+param aiFoundryName string
+param aiFoundryProjectName string
+param aiFoundryProjectEndpoint string
 
 @description('Azure Search Key')
 @secure()
@@ -213,7 +210,7 @@ resource Website 'Microsoft.Web/sites@2020-06-01' = {
           name: 'AZURE_SEARCH_QUERY_TYPE'
           value: AzureSearchQueryType
         }
-      {
+        {
           name: 'AZURE_SEARCH_VECTOR_COLUMNS'
           value: AzureSearchVectorFields
         }
@@ -244,7 +241,7 @@ resource Website 'Microsoft.Web/sites@2020-06-01' = {
         }
         {
           name: 'AZURE_OPENAI_RESOURCE'
-          value: AZURE_OPENAI_RESOURCE
+          value: azureOpenaiResource
         }
         {
           name: 'AZURE_OPENAI_PREVIEW_API_VERSION'
@@ -266,9 +263,17 @@ resource Website 'Microsoft.Web/sites@2020-06-01' = {
           name: 'AZURE_OPENAI_SYSTEM_MESSAGE'
           value: azureOpenAISystemMessage
         }
+        { 
+          name: 'AZURE_AI_AGENT_ENDPOINT'
+          value: aiFoundryProjectEndpoint
+        }
+        { 
+          name: 'AZURE_AI_AGENT_MODEL_DEPLOYMENT_NAME'
+          value: AzureOpenAIModel
+        }
         {
-          name: 'AZURE_OPENAI_PROJECT_CONN_STRING'
-          value: AzureOpenAIProjectConnString
+          name: 'AZURE_AI_AGENT_API_VERSION'
+          value: azureOpenAIApiVersion
         }
         {
           name: 'USE_CHAT_HISTORY_ENABLED'
@@ -355,22 +360,45 @@ resource role 'Microsoft.DocumentDB/databaseAccounts/sqlRoleAssignments@2022-05-
   }
 }
 
-resource aiHubProject 'Microsoft.MachineLearningServices/workspaces@2024-01-01-preview' existing = {
-  name: AzureAIProjectName
+resource aiFoundry 'Microsoft.CognitiveServices/accounts@2025-04-01-preview' existing = {
+  name: aiFoundryName
 }
 
-resource aiDeveloper 'Microsoft.Authorization/roleDefinitions@2022-04-01' existing = {
-  name: '64702f94-c441-49e6-a78b-ef80e0188fee'
+resource aiFoundryProject 'Microsoft.CognitiveServices/accounts/projects@2025-04-01-preview' existing = {
+  parent: aiFoundry
+  name: aiFoundryProjectName
 }
 
-resource aiDeveloperAccessProj 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  name: guid(Website.name, aiHubProject.id, aiDeveloper.id)
-  scope: aiHubProject
+@description('This is the built-in Azure AI User role.')
+resource aiUserRoleDefinitionFoundry 'Microsoft.Authorization/roleDefinitions@2022-04-01' existing = {
+  scope: aiFoundry
+  name: '53ca6127-db72-4b80-b1b0-d745d6d5456d'
+}
+
+resource aiUserRoleAssignmentFoundry 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  name: guid(Website.id, aiFoundry.id, aiUserRoleDefinitionFoundry.id)
+  scope: aiFoundry
   properties: {
-    roleDefinitionId: aiDeveloper.id
+    roleDefinitionId: aiUserRoleDefinitionFoundry.id
     principalId: Website.identity.principalId
+    principalType: 'ServicePrincipal'
   }
 }
 
+@description('This is the built-in Azure AI User role.')
+resource aiUserRoleDefinitionFoundryProject 'Microsoft.Authorization/roleDefinitions@2022-04-01' existing = {
+  scope: aiFoundryProject
+  name: '53ca6127-db72-4b80-b1b0-d745d6d5456d'
+}
+
+resource aiUserRoleAssignmentFoundryProject 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  name: guid(Website.id, aiFoundryProject.id, aiUserRoleDefinitionFoundryProject.id)
+  scope: aiFoundryProject
+  properties: {
+    roleDefinitionId: aiUserRoleDefinitionFoundryProject.id
+    principalId: Website.identity.principalId
+    principalType: 'ServicePrincipal'
+  }
+}
 
 output webAppUrl string = 'https://${WebsiteName}.azurewebsites.net'

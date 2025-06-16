@@ -384,13 +384,14 @@ module appserviceModule 'deploy_app_service.bicep' = {
     solutionLocation: solutionLocation
     aiSearchService: aifoundry.outputs.aiSearchService
     AzureSearchKey: keyVault.getSecret('AZURE-SEARCH-KEY')
-    AzureOpenAIEndpoint:aifoundry.outputs.aiServicesTarget
+    AzureOpenAIEndpoint:aifoundry.outputs.aoaiEndpoint
     AzureOpenAIModel: gptModelName 
     AzureOpenAIKey:keyVault.getSecret('AZURE-OPENAI-KEY')
     azureOpenAIApiVersion: azureOpenaiAPIVersion //'2024-02-15-preview'
-    AZURE_OPENAI_RESOURCE:aifoundry.outputs.aiServicesName
-    AzureOpenAIProjectConnString:aifoundry.outputs.azureProjectConnString
-    AzureAIProjectName: aifoundry.outputs.aiProjectName
+    azureOpenaiResource:aifoundry.outputs.aiFoundryName
+    aiFoundryProjectName: aifoundry.outputs.aiFoundryProjectName
+    aiFoundryName: aifoundry.outputs.aiFoundryName
+    aiFoundryProjectEndpoint: aifoundry.outputs.aiFoundryProjectEndpoint
     USE_CHAT_HISTORY_ENABLED:'True'
     AZURE_COSMOSDB_ACCOUNT: cosmosDBModule.outputs.cosmosAccountName
     // AZURE_COSMOSDB_ACCOUNT_KEY: keyVault.getSecret('AZURE-COSMOSDB-ACCOUNT-KEY')
