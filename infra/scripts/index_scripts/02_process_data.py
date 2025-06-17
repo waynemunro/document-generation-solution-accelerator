@@ -1,5 +1,4 @@
 from azure.core.credentials import AzureKeyCredential
-from azure.identity import DefaultAzureCredential
 from azure.keyvault.secrets import SecretClient
 from openai import AzureOpenAI
 import re
@@ -9,8 +8,7 @@ from io import BytesIO
 from azure.search.documents import SearchClient
 from azure.storage.filedatalake import DataLakeServiceClient
 from azure.search.documents.indexes import SearchIndexClient
-from azure.identity import (DefaultAzureCredential,
-                                get_bearer_token_provider)
+from azure.identity import (DefaultAzureCredential, get_bearer_token_provider)
 
 
 key_vault_name = 'kv_to-be-replaced'
@@ -40,8 +38,8 @@ deployment = get_secrets_from_kv(key_vault_name, "AZURE-OPEN-AI-DEPLOYMENT-MODEL
 def get_embeddings(text: str, openai_api_base, openai_api_version):
     model_id = "text-embedding-ada-002"
     ad_token_provider = get_bearer_token_provider(
-            DefaultAzureCredential(), "https://cognitiveservices.azure.com/.default"
-        )
+        DefaultAzureCredential(), "https://cognitiveservices.azure.com/.default"
+    )
     client = AzureOpenAI(
         api_version=openai_api_version,
         azure_endpoint=openai_api_base,
