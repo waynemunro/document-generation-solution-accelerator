@@ -386,7 +386,6 @@ module appserviceModule 'deploy_app_service.bicep' = {
     AzureSearchKey: keyVault.getSecret('AZURE-SEARCH-KEY')
     AzureOpenAIEndpoint:aifoundry.outputs.aoaiEndpoint
     AzureOpenAIModel: gptModelName 
-    AzureOpenAIKey:keyVault.getSecret('AZURE-OPENAI-KEY')
     azureOpenAIApiVersion: azureOpenaiAPIVersion //'2024-02-15-preview'
     azureOpenaiResource:aifoundry.outputs.aiFoundryName
     aiFoundryProjectName: aifoundry.outputs.aiFoundryProjectName

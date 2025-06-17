@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.34.44.8038",
-      "templateHash": "15193785708652143745"
+      "templateHash": "11594891016150517886"
     }
   },
   "parameters": {
@@ -602,7 +602,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.34.44.8038",
-              "templateHash": "4081811946489579439"
+              "templateHash": "6457856750858199317"
             }
           },
           "parameters": {
@@ -1062,17 +1062,6 @@
             {
               "type": "Microsoft.KeyVault/vaults/secrets",
               "apiVersion": "2021-11-01-preview",
-              "name": "[format('{0}/{1}', parameters('keyVaultName'), 'AZURE-OPENAI-KEY')]",
-              "properties": {
-                "value": "[listKeys(resourceId('Microsoft.CognitiveServices/accounts', variables('aiFoundryName')), '2025-04-01-preview').key1]"
-              },
-              "dependsOn": [
-                "[resourceId('Microsoft.CognitiveServices/accounts', variables('aiFoundryName'))]"
-              ]
-            },
-            {
-              "type": "Microsoft.KeyVault/vaults/secrets",
-              "apiVersion": "2021-11-01-preview",
               "name": "[format('{0}/{1}', parameters('keyVaultName'), 'AZURE-OPEN-AI-DEPLOYMENT-MODEL')]",
               "properties": {
                 "value": "[parameters('gptModelName')]"
@@ -1494,14 +1483,6 @@
           "AzureOpenAIModel": {
             "value": "[parameters('gptModelName')]"
           },
-          "AzureOpenAIKey": {
-            "reference": {
-              "keyVault": {
-                "id": "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, resourceGroup().name), 'Microsoft.KeyVault/vaults', reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, resourceGroup().name), 'Microsoft.Resources/deployments', 'deploy_ai_foundry'), '2022-09-01').outputs.keyvaultName.value)]"
-              },
-              "secretName": "AZURE-OPENAI-KEY"
-            }
-          },
           "azureOpenAIApiVersion": {
             "value": "[parameters('azureOpenaiAPIVersion')]"
           },
@@ -1552,7 +1533,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.34.44.8038",
-              "templateHash": "12581930310509122324"
+              "templateHash": "9043383413973668437"
             }
           },
           "parameters": {
@@ -1615,12 +1596,6 @@
               "defaultValue": "",
               "metadata": {
                 "description": "Azure Open AI Endpoint"
-              }
-            },
-            "AzureOpenAIKey": {
-              "type": "securestring",
-              "metadata": {
-                "description": "Azure OpenAI Key"
               }
             },
             "azureOpenAIApiVersion": {
@@ -1940,10 +1915,6 @@
                     {
                       "name": "AZURE_OPENAI_ENDPOINT",
                       "value": "[parameters('AzureOpenAIEndpoint')]"
-                    },
-                    {
-                      "name": "AZURE_OPENAI_KEY",
-                      "value": "[parameters('AzureOpenAIKey')]"
                     },
                     {
                       "name": "AZURE_OPENAI_RESOURCE",

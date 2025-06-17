@@ -9,6 +9,8 @@ from io import BytesIO
 from azure.search.documents import SearchClient
 from azure.storage.filedatalake import DataLakeServiceClient
 from azure.search.documents.indexes import SearchIndexClient
+from azure.identity import (DefaultAzureCredential,
+                                get_bearer_token_provider)
 
 
 key_vault_name = 'kv_to-be-replaced'
@@ -29,23 +31,24 @@ def get_secrets_from_kv(kv_name, secret_name):
 
 search_endpoint = get_secrets_from_kv(key_vault_name, "AZURE-SEARCH-ENDPOINT")
 search_key = get_secrets_from_kv(key_vault_name, "AZURE-SEARCH-KEY")
-openai_api_key = get_secrets_from_kv(key_vault_name, "AZURE-OPENAI-KEY")
 openai_api_base = get_secrets_from_kv(key_vault_name, "AZURE-OPENAI-ENDPOINT")
 openai_api_version = get_secrets_from_kv(key_vault_name, "AZURE-OPENAI-PREVIEW-API-VERSION")
 deployment = get_secrets_from_kv(key_vault_name, "AZURE-OPEN-AI-DEPLOYMENT-MODEL")
 
 
 # Function: Get Embeddings
-def get_embeddings(text: str, openai_api_base, openai_api_version, openai_api_key):
+def get_embeddings(text: str, openai_api_base, openai_api_version):
     model_id = "text-embedding-ada-002"
+    ad_token_provider = get_bearer_token_provider(
+            DefaultAzureCredential(), "https://cognitiveservices.azure.com/.default"
+        )
     client = AzureOpenAI(
         api_version=openai_api_version,
         azure_endpoint=openai_api_base,
-        api_key=openai_api_key
+        azure_ad_token_provider=ad_token_provider
     )
 
     embedding = client.embeddings.create(input=text, model=model_id).data[0].embedding
-
     return embedding
 
 
@@ -123,12 +126,12 @@ def prepare_search_doc(content, document_id):
         chunk_id = document_id + '_' + str(chunk_num).zfill(2)
 
         try:
-            v_contentVector = get_embeddings(str(chunk), openai_api_base, openai_api_version, openai_api_key)
+            v_contentVector = get_embeddings(str(chunk), openai_api_base, openai_api_version)
         except Exception as e:
             print(f"Error occurred: {e}. Retrying after 30 seconds...")
             time.sleep(30)
             try:
-                v_contentVector = get_embeddings(str(chunk), openai_api_base, openai_api_version, openai_api_key)
+                v_contentVector = get_embeddings(str(chunk), openai_api_base, openai_api_version)
             except Exception as e:
                 print(f"Retry failed: {e}. Setting v_contentVector to an empty list.")
                 v_contentVector = []

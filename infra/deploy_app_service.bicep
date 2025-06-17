@@ -35,10 +35,6 @@ param AzureOpenAIModel string
 @description('Azure Open AI Endpoint')
 param AzureOpenAIEndpoint string = ''
 
-@description('Azure OpenAI Key')
-@secure()
-param AzureOpenAIKey string
-
 param azureOpenAIApiVersion string
 param azureOpenaiResource string = ''
 param USE_CHAT_HISTORY_ENABLED string = ''
@@ -234,10 +230,6 @@ resource Website 'Microsoft.Web/sites@2020-06-01' = {
         {
           name: 'AZURE_OPENAI_ENDPOINT'
           value: AzureOpenAIEndpoint
-        }
-        {
-          name: 'AZURE_OPENAI_KEY'
-          value: AzureOpenAIKey
         }
         {
           name: 'AZURE_OPENAI_RESOURCE'
