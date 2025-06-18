@@ -6,7 +6,6 @@
     These variables are required:
     - `AZURE_OPENAI_RESOURCE`
     - `AZURE_OPENAI_MODEL`
-    - `AZURE_OPENAI_KEY`
 
     These variables are optional:
     - `AZURE_OPENAI_TEMPERATURE`
@@ -174,6 +173,9 @@ Note: settings starting with `AZURE_SEARCH` are only needed when using Azure Ope
 
 | App Setting | Value | Note |
 | --- | --- | ------------- |
+|AZURE_AI_AGENT_API_VERSION|2025-01-01-preview| API version when using the Azure Foundry agent on your data.|
+|AZURE_AI_AGENT_ENDPOINT||The endpoint of the Azure AI foundry project|
+|AZURE_AI_AGENT_MODEL_DEPLOYMENT_NAME||The name of the gpt model|
 |AZURE_SEARCH_SERVICE||The name of your Azure AI Search resource|
 |AZURE_SEARCH_INDEX||The name of your Azure AI Search Index|
 |AZURE_SEARCH_KEY||An **admin key** for your Azure AI Search resource|
@@ -193,7 +195,6 @@ Note: settings starting with `AZURE_SEARCH` are only needed when using Azure Ope
 |AZURE_OPENAI_MODEL||The name of your model deployment|
 |AZURE_OPENAI_ENDPOINT||The endpoint of your Azure OpenAI resource.|
 |AZURE_OPENAI_MODEL_NAME|gpt-35-turbo-16k|The name of the model|
-|AZURE_OPENAI_KEY||One of the API keys of your Azure OpenAI resource|
 |AZURE_OPENAI_TEMPERATURE|0|What sampling temperature to use, between 0 and 2. Higher values like 0.8 will make the output more random, while lower values like 0.2 will make it more focused and deterministic. A value of 0 is recommended when using your data.|
 |AZURE_OPENAI_TOP_P|1.0|An alternative to sampling with temperature, called nucleus sampling, where the model considers the results of the tokens with top_p probability mass. We recommend setting this to 1.0 when using your data.|
 |AZURE_OPENAI_MAX_TOKENS|1000|The maximum number of tokens allowed for the generated answer.|
@@ -211,6 +212,7 @@ Note: settings starting with `AZURE_SEARCH` are only needed when using Azure Ope
 |UI_SHOW_SHARE_BUTTON|True|Share button (right-top)
 |SANITIZE_ANSWER|False|Whether to sanitize the answer from Azure OpenAI. Set to True to remove any HTML tags from the response.|
 |USE_PROMPTFLOW|False|Use existing Promptflow deployed endpoint. If set to `True` then both `PROMPTFLOW_ENDPOINT` and `PROMPTFLOW_API_KEY` also need to be set.|
+|USE_AI_FOUNDRY_SDK|False|Boolean flag to determine whether to use the AI Foundry SDK instead of the OpenAI SDK.|
 |PROMPTFLOW_ENDPOINT||URL of the deployed Promptflow endpoint e.g. https://pf-deployment-name.region.inference.ml.azure.com/score|
 |PROMPTFLOW_API_KEY||Auth key for deployed Promptflow endpoint. Note: only Key-based authentication is supported.|
 |PROMPTFLOW_RESPONSE_TIMEOUT|120|Timeout value in seconds for the Promptflow endpoint to respond.|

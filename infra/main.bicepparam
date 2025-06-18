@@ -7,7 +7,7 @@ param deploymentType = readEnvironmentVariable('AZURE_ENV_MODEL_DEPLOYMENT_TYPE'
 
 param gptModelName = readEnvironmentVariable('AZURE_ENV_MODEL_NAME', 'gpt-4.1')
 param gptModelVersion = readEnvironmentVariable('AZURE_ENV_MODEL_VERSION', '2025-04-14')
-param azureOpenaiAPIVersion = readEnvironmentVariable('AZURE_ENV_OPENAI_API_VERSION', '2024-05-01-preview')
+param azureOpenaiAPIVersion = readEnvironmentVariable('AZURE_ENV_OPENAI_API_VERSION', '2025-01-01-preview')
 
 param gptDeploymentCapacity = int(readEnvironmentVariable('AZURE_ENV_MODEL_CAPACITY', '30'))
 param embeddingModel = readEnvironmentVariable('AZURE_ENV_EMBEDDING_MODEL_NAME', 'text-embedding-ada-002')

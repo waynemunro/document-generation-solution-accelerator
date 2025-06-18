@@ -3,6 +3,7 @@ import json
 import logging
 import os
 import uuid
+import re
 
 from azure.core.credentials import AzureKeyCredential
 from azure.identity.aio import (DefaultAzureCredential,
@@ -24,6 +25,7 @@ from event_utils import track_event_if_configured
 from azure.monitor.opentelemetry import configure_azure_monitor
 from opentelemetry import trace
 from opentelemetry.trace import Status, StatusCode
+from azure.ai.projects.aio import AIProjectClient
 
 bp = Blueprint("routes", __name__, static_folder="static", template_folder="static")
 
@@ -110,6 +112,7 @@ MS_DEFENDER_ENABLED = os.environ.get("MS_DEFENDER_ENABLED", "true").lower() == "
 # Initialize Azure OpenAI Client
 def init_openai_client():
     azure_openai_client = None
+    track_event_if_configured("OpenAIClientInitializationStart", {"status": "success"})
     try:
         # API version check
         if (
@@ -137,15 +140,15 @@ def init_openai_client():
             if app_settings.azure_openai.endpoint
             else f"https://{app_settings.azure_openai.resource}.openai.azure.com/"
         )
+        track_event_if_configured("AzureOpenAIEndpointUsed", {
+            "endpoint": endpoint
+        })
 
         # Authentication
-        aoai_api_key = app_settings.azure_openai.key
         ad_token_provider = None
-        if not aoai_api_key:
-            logging.debug("No AZURE_OPENAI_KEY found, using Azure AD auth")
-            ad_token_provider = get_bearer_token_provider(
-                DefaultAzureCredential(), "https://cognitiveservices.azure.com/.default"
-            )
+        ad_token_provider = get_bearer_token_provider(
+            DefaultAzureCredential(), "https://cognitiveservices.azure.com/.default"
+        )
 
         # Deployment
         deployment = app_settings.azure_openai.model
@@ -160,7 +163,6 @@ def init_openai_client():
 
         azure_openai_client = AsyncAzureOpenAI(
             api_version=app_settings.azure_openai.preview_api_version,
-            api_key=aoai_api_key,
             azure_ad_token_provider=ad_token_provider,
             default_headers=default_headers,
             azure_endpoint=endpoint,
@@ -174,6 +176,46 @@ def init_openai_client():
             span.record_exception(e)
             span.set_status(Status(StatusCode.ERROR, str(e)))
         azure_openai_client = None
+        raise e
+
+
+# Initialize Azure Foundry SDK client
+async def init_ai_foundry_client():
+    ai_foundry_client = None
+    try:
+        track_event_if_configured("AIFoundryClientInitializationStart", {"status": "success"})
+        # API version check
+        if (
+            app_settings.azure_openai.preview_api_version
+            < MINIMUM_SUPPORTED_AZURE_OPENAI_PREVIEW_API_VERSION
+        ):
+            raise ValueError(
+                f"The minimum supported Azure OpenAI preview API version is"
+                f"'{MINIMUM_SUPPORTED_AZURE_OPENAI_PREVIEW_API_VERSION}'"
+            )
+
+        # Project Endpoint check
+        if (
+            not app_settings.azure_ai.agent_endpoint
+        ):
+            raise ValueError(
+                "AZURE_AI_AGENT_ENDPOINT is required"
+            )
+
+        ai_project_client = AIProjectClient(
+            endpoint=app_settings.azure_ai.agent_endpoint,
+            credential=DefaultAzureCredential()
+        )
+        track_event_if_configured("AIFoundryAgentEndpointUsed", {
+            "endpoint": app_settings.azure_ai.agent_endpoint
+        })
+        ai_foundry_client = await ai_project_client.inference.get_azure_openai_client(
+            api_version=app_settings.azure_openai.preview_api_version,
+        )
+        return ai_foundry_client
+    except Exception as e:
+        logging.exception("Exception in AI Foundry initialization", e)
+        ai_foundry_client = None
         raise e
 
 
@@ -247,18 +289,16 @@ def prepare_model_args(request_body, request_headers):
 
     request_messages = request_body.get("messages", [])
     messages = []
-    if not app_settings.datasource:
-        messages = [
-            {
-                "role": "system",
-                "content": (
-                    app_settings.azure_openai.system_message
-                    if chat_type == ChatType.BROWSE or not chat_type
-                    else app_settings.azure_openai.template_system_message
-                ),
-            }
-        ]
-        track_event_if_configured("NoDatasourceConfigured", {"system_message_used": messages[0]["content"]})
+    messages = [
+        {
+            "role": "system",
+            "content": (
+                app_settings.azure_openai.system_message
+                if chat_type == ChatType.BROWSE or not chat_type
+                else app_settings.azure_openai.template_system_message
+            ),
+        }
+    ]
 
     for message in request_messages:
         if message:
@@ -298,17 +338,6 @@ def prepare_model_args(request_body, request_headers):
                 app_settings.datasource.construct_payload_configuration(request=request)
             ]
         }
-
-        # change role information if template chat
-        if chat_type == ChatType.TEMPLATE:
-            model_args["extra_body"]["data_sources"][0]["parameters"][
-                "role_information"
-            ] = app_settings.azure_openai.template_system_message
-
-            track_event_if_configured("TemplateRoleInformationSet", {
-                "template_system_message": app_settings.azure_openai.template_system_message
-            })
-
     model_args_clean = copy.deepcopy(model_args)
     if model_args_clean.get("extra_body"):
         secret_params = [
@@ -362,20 +391,35 @@ async def send_chat_request(request_body, request_headers):
     model_args = prepare_model_args(request_body, request_headers)
 
     try:
-        azure_openai_client = init_openai_client()
-        track_event_if_configured("OpenAIClientInitialized", {"status": "success"})
-        raw_response = (
-            await azure_openai_client.chat.completions.with_raw_response.create(
+        if app_settings.base_settings.use_ai_foundry_sdk:
+            # Use AI Foundry SDK for response
+            track_event_if_configured("Foundry_sdk_for_response", {"status": "success"})
+            ai_foundry_client = await init_ai_foundry_client()
+            raw_response = await ai_foundry_client.chat.completions.with_raw_response.create(
                 **model_args
             )
-        )
-        response = raw_response.parse()
-        apim_request_id = raw_response.headers.get("apim-request-id")
+            response = raw_response.parse()
+            apim_request_id = raw_response.headers.get("apim-request-id")
+            track_event_if_configured("ChatCompletionSuccess", {
+                "apim_request_id": apim_request_id,
+                "message_count": len(filtered_messages)
+            })
+        else:
+            # Use Azure Open AI client for response
+            track_event_if_configured("Openai_sdk_for_response", {"status": "success"})
+            azure_openai_client = init_openai_client()
+            raw_response = (
+                await azure_openai_client.chat.completions.with_raw_response.create(
+                    **model_args
+                )
+            )
+            response = raw_response.parse()
+            apim_request_id = raw_response.headers.get("apim-request-id")
 
-        track_event_if_configured("ChatCompletionSuccess", {
-            "apim_request_id": apim_request_id,
-            "message_count": len(filtered_messages)
-        })
+            track_event_if_configured("ChatCompletionSuccess", {
+                "apim_request_id": apim_request_id,
+                "message_count": len(filtered_messages)
+            })
 
     except Exception as e:
         logging.exception("Exception in send_chat_request")
@@ -1119,18 +1163,43 @@ async def generate_title(conversation_messages):
     messages.append({"role": "user", "content": title_prompt})
 
     try:
-        azure_openai_client = init_openai_client(use_data=False)
-        response = await azure_openai_client.chat.completions.create(
-            model=app_settings.azure_openai.model,
-            messages=messages,
-            temperature=1,
-            max_tokens=64,
-        )
+        response = None
+        if app_settings.base_settings.use_ai_foundry_sdk:
+            # Use Foundry SDK for title generation
+            track_event_if_configured("Foundry_sdk_for_title", {"status": "success"})
+            ai_foundry_client = await init_ai_foundry_client()
+            response = await ai_foundry_client.chat.completions.create(
+                model=app_settings.azure_openai.model,
+                messages=messages,
+                temperature=1,
+                max_tokens=64,
+            )
+        else:
+            # Use Azure OpenAI client for title generation
+            track_event_if_configured("Openai_sdk_for_title", {"status": "success"})
+            azure_openai_client = init_openai_client()
+            response = await azure_openai_client.chat.completions.create(
+                model=app_settings.azure_openai.model,
+                messages=messages,
+                temperature=1,
+                max_tokens=64,
+            )
+        raw_content = response.choices[0].message.content
+        raw_content = raw_content.strip()
+        if raw_content.startswith("{{") and raw_content.endswith("}}"):
+            raw_content = raw_content[1:-1]  # Remove one set of braces
 
-        title = json.loads(response.choices[0].message.content)["title"]
+        # Extract JSON object
+        json_match = re.search(r"\{.*?\}", raw_content, re.DOTALL)
+        if not json_match:
+            raise ValueError("No JSON object found in response")
+
+        json_str = json_match.group()
+        title = json.loads(json_str)["title"]
         track_event_if_configured("TitleGenerated", {"title": title})
         return title
-    except Exception:
+    except Exception as e:
+        logging.exception("Exception in generate_title" + str(e))
         return messages[-2]["content"]
 
 
@@ -1147,12 +1216,23 @@ async def get_section_content(request_body, request_headers):
     model_args = prepare_model_args(request_body, request_headers)
 
     try:
-        azure_openai_client = init_openai_client()
-        raw_response = (
-            await azure_openai_client.chat.completions.with_raw_response.create(
+        raw_response = None
+        if app_settings.base_settings.use_ai_foundry_sdk:
+            # Use Foundry SDK for section content generation
+            track_event_if_configured("Foundry_sdk_for_section", {"status": "success"})
+            ai_foundry_client = await init_ai_foundry_client()
+            raw_response = await ai_foundry_client.chat.completions.with_raw_response.create(
                 **model_args
             )
-        )
+        else:
+            # Use Azure OpenAI client for section content generation
+            track_event_if_configured("Openai_sdk_for_section", {"status": "success"})
+            azure_openai_client = init_openai_client()
+            raw_response = (
+                await azure_openai_client.chat.completions.with_raw_response.create(
+                    **model_args
+                )
+            )
         response = raw_response.parse()
         track_event_if_configured("SectionContentGenerated", {
             "sectionTitle": request_body["sectionTitle"]
