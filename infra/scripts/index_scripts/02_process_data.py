@@ -38,7 +38,7 @@ deployment = get_secrets_from_kv(key_vault_name, "AZURE-OPEN-AI-DEPLOYMENT-MODEL
 def get_embeddings(text: str, openai_api_base, openai_api_version):
     model_id = "text-embedding-ada-002"
     ad_token_provider = get_bearer_token_provider(
-        DefaultAzureCredential(), "https://cognitiveservices.azure.com/.default"
+        credential, "https://cognitiveservices.azure.com/.default"
     )
     client = AzureOpenAI(
         api_version=openai_api_version,
