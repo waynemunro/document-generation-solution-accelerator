@@ -196,7 +196,7 @@ class _AzureAISettings(BaseSettings):
     )
     agent_endpoint: Optional[str] = None
     agent_model_deployment_name: Optional[str] = None
-    agent_api_version: str = None
+    agent_api_version: Optional[str] = None
 
 
 class _SearchCommonSettings(BaseSettings):
