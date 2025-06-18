@@ -162,7 +162,7 @@ def init_openai_client():
         default_headers = {"x-ms-useragent": USER_AGENT}
 
         azure_openai_client = AsyncAzureOpenAI(
-            api_version="2024-05-01-preview",
+            api_version=app_settings.azure_openai.preview_api_version,
             azure_ad_token_provider=ad_token_provider,
             default_headers=default_headers,
             azure_endpoint=endpoint,

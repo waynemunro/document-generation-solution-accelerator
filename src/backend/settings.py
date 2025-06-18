@@ -88,7 +88,6 @@ class _AzureOpenAISettings(BaseSettings):
     key: Optional[str] = None
     resource: Optional[str] = None
     endpoint: Optional[str] = None
-    project_conn_string: Optional[str] = None
     temperature: float = 0
     top_p: float = 0
     max_tokens: int = 1000
