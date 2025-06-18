@@ -9,7 +9,7 @@
 ## Create the config.json and .env
 - Within the scripts folder, create a new .env file. 
 - Copy and paste the contents from the scripts/.env.sample file. 
-- Replace the value for `<AZURE_OPENAI_RESOURCE>` with the name of the Azure OpenAI resource and either KEY 1 or KEY 2.
+- Replace the value for `<AZURE_OPENAI_RESOURCE>` with the name of the Azure OpenAI resource.
 - Save the .env file.
 - Within the scripts folder, create a config file `config.json`. The format will be a list of JSON objects, with each object specifying a configuration of local data path and target search service and index. Assuming you used "Deploy to Azure" to deploy this solution accelerator, these values can be found within the resources themselves. If you did not change the Search Index name, the default value is: promissory-notes-index. Copy and paste the following script block into the config.json file and update accordingly. 
 
