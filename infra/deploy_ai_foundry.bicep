@@ -15,8 +15,6 @@ param existingLogAnalyticsWorkspaceId string = ''
 var abbrs = loadJsonContent('./abbreviations.json')
 
 var aiFoundryName = '${abbrs.ai.aiFoundry}${solutionName}'
-// var aiServicesName_m = '${solutionName}-aiservices_m'
-// var location_m = solutionLocation
 var applicationInsightsName = '${abbrs.managementGovernance.applicationInsights}${solutionName}'
 var keyvaultName = '${abbrs.security.keyVault}${solutionName}'
 var location = solutionLocation //'eastus2'
@@ -114,7 +112,6 @@ resource aiFoundryProject 'Microsoft.CognitiveServices/accounts/projects@2025-04
   parent: aiFoundry
   name: aiProjectName
   location: location
-  // kind: 'AIServices'
   identity: {
     type: 'SystemAssigned'
   }
@@ -213,7 +210,6 @@ resource azureOpenAIEndpointEntry 'Microsoft.KeyVault/vaults/secrets@2021-11-01-
     value: aiFoundry.properties.endpoints['OpenAI Language Model Instance API'] //aiServices_m.properties.endpoint
   }
 }
-
 
 resource azureSearchAdminKeyEntry 'Microsoft.KeyVault/vaults/secrets@2021-11-01-preview' = {
   parent: keyVault

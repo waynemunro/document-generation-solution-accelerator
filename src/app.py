@@ -289,7 +289,6 @@ def prepare_model_args(request_body, request_headers):
 
     request_messages = request_body.get("messages", [])
     messages = []
-    # if not app_settings.datasource:
     messages = [
         {
             "role": "system",
@@ -300,7 +299,6 @@ def prepare_model_args(request_body, request_headers):
             ),
         }
     ]
-    # track_event_if_configured("NoDatasourceConfigured", {"system_message_used": messages[0]["content"]})
 
     for message in request_messages:
         if message:
@@ -340,15 +338,6 @@ def prepare_model_args(request_body, request_headers):
                 app_settings.datasource.construct_payload_configuration(request=request)
             ]
         }
-        # change role information if template chat
-        # if chat_type == ChatType.TEMPLATE:
-        #     model_args["extra_body"]["data_sources"][0]["parameters"][
-        #         "role_information"
-        #     ] = app_settings.azure_openai.template_system_message
-
-        #     track_event_if_configured("TemplateRoleInformationSet", {
-        #         "template_system_message": app_settings.azure_openai.template_system_message
-        #     })
     model_args_clean = copy.deepcopy(model_args)
     if model_args_clean.get("extra_body"):
         secret_params = [
@@ -1201,7 +1190,7 @@ async def generate_title(conversation_messages):
             raw_content = raw_content[1:-1]  # Remove one set of braces
 
         # Extract JSON object
-        json_match = re.search(r"\{.*\}", raw_content, re.DOTALL)
+        json_match = re.search(r"\{.*?\}", raw_content, re.DOTALL)
         if not json_match:
             raise ValueError("No JSON object found in response")
 

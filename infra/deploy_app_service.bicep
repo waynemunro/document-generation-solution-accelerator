@@ -321,18 +321,6 @@ resource Website 'Microsoft.Web/sites@2020-06-01' = {
   dependsOn: [HostingPlan]
 }
 
-// resource ApplicationInsights 'Microsoft.Insights/components@2020-02-02' = {
-//   name: ApplicationInsightsName
-//   location: resourceGroup().location
-//   tags: {
-//     'hidden-link:${resourceId('Microsoft.Web/sites',ApplicationInsightsName)}': 'Resource'
-//   }
-//   properties: {
-//     Application_Type: 'web'
-//   }
-//   kind: 'web'
-// }
-
 resource cosmos 'Microsoft.DocumentDB/databaseAccounts@2022-08-15' existing = {
   name: AZURE_COSMOSDB_ACCOUNT
 }
