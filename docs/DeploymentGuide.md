@@ -174,12 +174,12 @@ To adjust quota settings, follow these [steps](./AzureGPTQuotaSettings.md).
 
   ![Log Analytics Resource List](../docs/images/logAnalyticsList.png)
 
-  #### 3. Copy Workspace id
-  In the Overview pane, Click on **JSON View**
+  #### 3. Copy Workspace Id
+  - In the Overview pane, Click on **JSON View**
 
   ![Log Analytics](../docs/images/logAnalytics.png)
 
-  Copy the **Resource ID** (this is your Workspace ID)
+  - Copy the **Resource ID** (this is your Workspace ID)
 
   ![Log Analytics JSON](../docs/images/logAnalyticsJson.png)
 
