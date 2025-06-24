@@ -46,12 +46,14 @@ if [ -z "$role_assignment" ]; then
     MSYS_NO_PATHCONV=1 az role assignment create --assignee $signed_user_id --role "Storage Blob Data Contributor" --scope $storage_account_resource_id --output none
     if [ $? -eq 0 ]; then
         echo "Role assignment completed successfully."
+        sleep 5
         retries=3
         while [ $retries -gt 0 ]; do
             # Check if the role assignment was successful
             role_assignment_check=$(MSYS_NO_PATHCONV=1 az role assignment list --assignee $signed_user_id --role "Storage Blob Data Contributor" --scope $storage_account_resource_id --query "[].roleDefinitionId" -o tsv)
             if [ -n "$role_assignment_check" ]; then
                 echo "Role assignment verified successfully."
+                sleep 5
                 break
             else
                 echo "Role assignment not found, retrying..."
@@ -93,6 +95,27 @@ unzip -o $zipUrl1 -d infra/data/"$extractedFolder1"
 # unzip /mnt/azscripts/azscriptinput/"$zipFileName2" -d /mnt/azscripts/azscriptinput/"$extractedFolder2"
 
 # Using az storage blob upload-batch to upload files with managed identity authentication, as the az storage fs directory upload command is not working with managed identity authentication.
-echo "Uploading files to Azure Storage"
+echo "Uploading files to Azure Blob Storage"
 az storage blob upload-batch --account-name "$storageAccount" --destination "$fileSystem"/"$extractedFolder1" --source infra/data/"$extractedFolder1" --auth-mode login --pattern '*' --overwrite --output none
+if [ $? -ne 0 ]; then
+    retries=3
+    sleepTime=10
+    echo "Error: Failed to upload files to Azure Blob Storage. Retrying upload...($((4 - retries)) of 3)"
+    while [ $retries -gt 0 ]; do
+        sleep $sleepTime
+        az storage blob upload-batch --account-name "$storageAccount" --destination "$fileSystem"/"$extractedFolder1" --source infra/data/"$extractedFolder1" --auth-mode login --pattern '*' --overwrite --output none
+        if [ $? -eq 0 ]; then
+            echo "Files uploaded successfully to Azure Blob Storage."
+            break
+        else
+            ((retries--))
+            echo "Retrying upload... ($((4 - retries)) of 3)"
+            sleepTime=$((sleepTime * 2))
+            sleep $sleepTime
+        fi
+    done
+    exit 1
+else
+    echo "Files uploaded successfully to Azure Blob Storage."
+fi
 # az storage blob upload-batch --account-name "$storageAccount" --destination data/"$extractedFolder2" --source /mnt/azscripts/azscriptinput/"$extractedFolder2" --auth-mode login --pattern '*' --overwrite
