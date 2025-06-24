@@ -134,6 +134,67 @@ To adjust quota settings, follow these [steps](./AzureGPTQuotaSettings.md).
 
 </details>
 
+<details>
+
+  <summary><b>Deploy in existing Resource Group</b></summary>
+
+  To use an existing Azure Resource Group for your deployment, follow these steps:
+
+  #### 1. Identify the Resource Group
+
+  - Visit the [Azure Portal](https://portal.azure.com) and choose the Resource Group you want to reuse.
+
+  #### 2. Set the Resource Group in your Environment
+
+  Before running `azd up`, set the resource group name:
+
+  ```bash
+  azd env set AZURE_RESOURCE_GROUP <rg-name>
+  ```
+  Replace `<rg-name>` with the name of your chosen Resource Group.
+
+  #### 3. Continue Deployment
+
+  Continue with the [deploying steps](#deploying-with-azd).
+
+</details>
+
+<details>
+
+  <summary><b>Reusing an Existing Log Analytics Workspace</b></summary>
+
+  To configure your environment to use an existing Log Analytics Workspace, follow these steps:
+
+  #### 1. Navigate to Azure Portal
+  Go to [Azure Portal](https://portal.azure.com)
+
+  #### 2. Find Your Log Analytics Workspace
+  - In the search bar at the top, type "Log Analytics workspaces" and select it.
+  - Click on the workspace  you want to use.
+
+  ![Log Analytics Resource List](../docs/images/logAnalyticsList.png)
+
+  #### 3. Copy Workspace id
+  In the Overview pane, Click on **JSON View**
+
+  ![Log Analytics](../docs/images/logAnalytics.png)
+
+  Copy the **Resource ID** (this is your Workspace ID)
+
+  ![Log Analytics JSON](../docs/images/logAnalyticsJson.png)
+
+  #### 4. Set the Workspace ID in Your Environment
+  Run the following command in your terminal
+  ```bash
+  azd env set AZURE_ENV_LOG_ANALYTICS_WORKSPACE_ID '<Existing Log Analytics Workspace Id>'
+  ```
+  Replace `<Existing Log Analytics Workspace Id>` with the full Resource ID obtained from Step 3.
+
+  #### 5. Continue Deployment
+  Continue with the [deploying steps](#deploying-with-azd).
+
+</details>
+
 ### Deploying with AZD
 
 Once you've opened the project in [Codespaces](#github-codespaces), [Dev Containers](#vs-code-dev-containers), or [locally](#local-environment), you can deploy it to Azure by following these steps:
