@@ -19,7 +19,6 @@ param secondaryLocation string
     ]
   }
 })
-
 param AZURE_AI_SERVICE_LOCATION string
 
 
@@ -37,7 +36,7 @@ param gptModelName string = 'gpt-4.1'
 @description('Version of the GPT model to deploy:')
 param gptModelVersion string = '2025-04-14'
 
-param azureOpenaiAPIVersion string = '2024-05-01-preview'
+param azureOpenaiAPIVersion string = '2025-01-01-preview'
 
 @minValue(10)
 @description('Capacity of the GPT deployment:')
