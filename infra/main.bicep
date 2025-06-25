@@ -14,7 +14,7 @@ param secondaryLocation string = 'eastus2'
   azd: {
     type: 'location'
     usageName: [
-      'OpenAI.GlobalStandard.gpt4.1,200'
+      'OpenAI.GlobalStandard.gpt4.1,150'
       'OpenAI.Standard.text-embedding-ada-002,80'
     ]
   }
@@ -42,7 +42,7 @@ param azureOpenaiAPIVersion string = '2025-01-01-preview'
 @description('Capacity of the GPT deployment:')
 // You can increase this, but capacity is limited per model/region, so you will get errors if you go over
 // https://learn.microsoft.com/en-us/azure/ai-services/openai/quotas-limits
-param gptDeploymentCapacity int = 200
+param gptDeploymentCapacity int = 150
 
 @minLength(1)
 @description('Name of the Text Embedding model to deploy:')
