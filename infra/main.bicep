@@ -4,7 +4,7 @@ targetScope = 'resourceGroup'
 @minLength(3)
 @maxLength(20)
 @description('A unique prefix for all resources in this deployment. This should be 3-20 characters long:')
-param environmentName string
+param environmentName string = 'env_name'
 
 @minLength(1)
 @description('Secondary location for databases creation(example:eastus2):')
