@@ -15,7 +15,7 @@ else
     else
         # Use Azure CLI login if running locally
         echo "Authenticating with Azure CLI..."
-        az login --use-device-code
+        az login
     fi
     echo "Not authenticated with Azure. Attempting to authenticate..."
 fi
