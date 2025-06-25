@@ -19,7 +19,7 @@ param secondaryLocation string
     ]
   }
 })
-param AZURE_AI_SERVICE_LOCATION string
+param aiDeploymentsLocation string
 
 
 @minLength(1)
@@ -98,7 +98,7 @@ module aifoundry 'deploy_ai_foundry.bicep' = {
   name: 'deploy_ai_foundry'
   params: {
     solutionName: solutionPrefix
-    solutionLocation: AZURE_AI_SERVICE_LOCATION
+    solutionLocation: aiDeploymentsLocation
     keyVaultName: kvault.outputs.keyvaultName
     deploymentType: deploymentType
     gptModelName: gptModelName
