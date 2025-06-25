@@ -6,16 +6,22 @@ targetScope = 'resourceGroup'
 @description('A unique prefix for all resources in this deployment. This should be 3-20 characters long:')
 param environmentName string
 
-@metadata({
-  azd: {
-    type: 'location'
-  }
-})
-
-
 @minLength(1)
 @description('Secondary location for databases creation(example:eastus2):')
 param secondaryLocation string
+
+@metadata({
+  azd: {
+    type: 'location'
+    usageName: [
+      'OpenAI.GlobalStandard.gpt4.1,200'
+      'OpenAI.Standard.text-embedding-ada-002,80'
+    ]
+  }
+})
+
+param AZURE_AI_SERVICE_LOCATION string
+
 
 @minLength(1)
 @description('GPT model deployment type:')
@@ -37,7 +43,7 @@ param azureOpenaiAPIVersion string = '2024-05-01-preview'
 @description('Capacity of the GPT deployment:')
 // You can increase this, but capacity is limited per model/region, so you will get errors if you go over
 // https://learn.microsoft.com/en-us/azure/ai-services/openai/quotas-limits
-param gptDeploymentCapacity int = 30
+param gptDeploymentCapacity int = 200
 
 @minLength(1)
 @description('Name of the Text Embedding model to deploy:')
@@ -61,6 +67,8 @@ var solutionLocation = empty(AZURE_LOCATION) ? resourceGroup().location : AZURE_
 
 var uniqueId = toLower(uniqueString(environmentName, subscription().id, solutionLocation))
 var solutionPrefix = 'dg${padLeft(take(uniqueId, 12), 12, '0')}'
+
+
 
 
 // ========== Managed Identity ========== //
@@ -91,7 +99,7 @@ module aifoundry 'deploy_ai_foundry.bicep' = {
   name: 'deploy_ai_foundry'
   params: {
     solutionName: solutionPrefix
-    solutionLocation: solutionLocation
+    solutionLocation: AZURE_AI_SERVICE_LOCATION
     keyVaultName: kvault.outputs.keyvaultName
     deploymentType: deploymentType
     gptModelName: gptModelName
