@@ -8,7 +8,7 @@ param environmentName string
 
 @minLength(1)
 @description('Secondary location for databases creation(example:eastus2):')
-param secondaryLocation string
+param secondaryLocation string = 'eastus2'
 
 @metadata({
   azd: {
