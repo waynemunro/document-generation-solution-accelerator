@@ -29,3 +29,4 @@ add_section = "Add Payment acceleration clause after the payment terms sections"
 
 # Response Text Data
 invalid_response = "I was unable to find content related to your query and could not generate a template. Please try again."
+invalid_response1 = "An error occurred. Answers can't be saved at this time. If the problem persists, please contact the site administrator."

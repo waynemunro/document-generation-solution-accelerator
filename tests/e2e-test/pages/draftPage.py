@@ -1,7 +1,5 @@
 from base.base import BasePage
 from pytest_check import check
-import time
-from collections import defaultdict
 
 
 class DraftPage(BasePage):
@@ -23,10 +21,10 @@ class DraftPage(BasePage):
         Scrolls into view if needed, retries until timeout.
         Raises clear errors if validation fails.
         """
-        from collections import defaultdict
         import time
-        start_time = time.time()
+        from collections import defaultdict
 
+        start_time = time.time()
 
         while time.time() - start_time < timeout:
             section_elements = self.page.locator(self.Draft_Sections)
@@ -55,7 +53,10 @@ class DraftPage(BasePage):
 
                     if not section_text:
                         failed_sections[i] = "Empty"
-                    elif section_text in (self.invalid_response, self.invalid_response1):
+                    elif section_text in (
+                        self.invalid_response,
+                        self.invalid_response1,
+                    ):
                         failed_sections[i] = f"Invalid: {repr(section_text[:30])}"
 
                 except Exception as e:
@@ -68,7 +69,9 @@ class DraftPage(BasePage):
                 time.sleep(poll_interval)
 
         else:
-            raise TimeoutError(f"❌ Timeout: These sections did not load valid content: {failed_sections}")
+            raise TimeoutError(
+                f"❌ Timeout: These sections did not load valid content: {failed_sections}"
+            )
 
         # ✅ Final validations after loading
         for i in range(section_count):
@@ -81,10 +84,20 @@ class DraftPage(BasePage):
             heading_text = heading.inner_text(timeout=3000).strip()
             content = section.input_value().strip()
 
-            print(f"[VALIDATING] Section {i}: '{heading_text}' → {repr(content[:60])}...")
+            print(
+                f"[VALIDATING] Section {i}: '{heading_text}' → {repr(content[:60])}..."
+            )
 
             with check:
                 check.is_not_none(content, f"❌ Section '{heading_text}' is None")
                 check.not_equal(content, "", f"❌ Section '{heading_text}' is empty")
-                check.not_equal(content, self.invalid_response, f"❌ '{heading_text}' has invalid response")
-                check.not_equal(content, self.invalid_response1, f"❌ '{heading_text}' has invalid response")
+                check.not_equal(
+                    content,
+                    self.invalid_response,
+                    f"❌ '{heading_text}' has invalid response",
+                )
+                check.not_equal(
+                    content,
+                    self.invalid_response1,
+                    f"❌ '{heading_text}' has invalid response",
+                )
