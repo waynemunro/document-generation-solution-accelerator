@@ -25,7 +25,7 @@ Run the following command in your terminal
 ```bash
 azd env set AZURE_ENV_LOG_ANALYTICS_WORKSPACE_ID '<Existing Log Analytics Workspace Id>'
 ```
-Replace `<Existing Log Analytics Workspace Id>` with the value   obtained from Step 3.
+Replace `<Existing Log Analytics Workspace Id>` with the value obtained from Step 3.
 
 ### 5. Continue Deployment
 Proceed with the next steps in the [deployment guide](https://github.com/microsoft/document-generation-solution-accelerator/blob/psl-reuse-log-file/docs/DeploymentGuide.md#deployment-options--steps).
