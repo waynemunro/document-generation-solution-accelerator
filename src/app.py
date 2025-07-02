@@ -1362,6 +1362,51 @@ async def get_document(filepath):
             span.set_status(Status(StatusCode.ERROR, str(e)))
         return jsonify({"error": str(e)}), 500
 
+@bp.route("/fetch-azure-search-content", methods=["POST"])
+async def fetch_azure_search_content():
+    try:
+        print("Fetching content from Azure Search")
+        request_json = await request.get_json()
+        url = request_json.get("url")
+        
+        if not url:
+            track_event_if_configured("FetchAzureSearchContentFailed", {"error": "URL is required"})
+            return jsonify({"error": "URL is required"}), 400
+        
+        #Get Azure AD token
+        credential = DefaultAzureCredentialSync()
+        token = credential.get_token("https://search.azure.com/.default")
+        access_token = token.token
+        
+        def fetch_content():
+            try:
+                response = requests.get(
+                    url,
+                    headers={
+                        "Authorization": f"Bearer {access_token}",
+                        "Content-Type": "application/json"
+                    },
+                    timeout=10
+                )
+                if response.status_code == 200:
+                    data = response.json()
+                    content = data.get("content", "")
+                    return content
+                else:
+                    return 
+            except Exception as e:
+                logging.exception("Error fetching content from Azure Search")
+                print(f"Error fetching content from Azure Search: {str(e)}")
+                return f"Error: {str(e)}"
+        
+        content = await asyncio.to_thread(fetch_content)
+        return jsonify({"content": content}), 200
+                
+    except Exception as e:
+        logging.exception("Exception in /fetch-azure-search-content")
+        return jsonify({"error": str(e)}), 500
+
+
 async def generate_title(conversation_messages):
     # make sure the messages are sorted by _ts descending
     title_prompt = app_settings.azure_openai.title_prompt
