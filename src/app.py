@@ -5,7 +5,8 @@ import os
 import uuid
 import re
 import ast
-import requests, asyncio
+import requests
+import asyncio
 from typing import Dict, Any, AsyncGenerator
 
 from azure.core.credentials import AzureKeyCredential
@@ -31,20 +32,15 @@ from opentelemetry import trace
 from opentelemetry.trace import Status, StatusCode
 from azure.ai.projects.aio import AIProjectClient
 from azure.ai.agents.models import (
-    AzureAISearchQueryType, 
+    AzureAISearchQueryType,
     AzureAISearchTool,
-    AgentEventHandler,
     MessageRole,
     RunStepToolCallDetails,
     MessageDeltaChunk,
-    RunStep,
-    ThreadMessage,
     ThreadRun,
-    AgentStreamEvent,
-    RunStepDeltaChunk,
     MessageDeltaTextContent,
     MessageDeltaTextUrlCitationAnnotation
-    )
+)
 
 bp = Blueprint("routes", __name__, static_folder="static", template_folder="static")
 
@@ -237,6 +233,7 @@ async def init_ai_foundry_client():
         ai_foundry_client = None
         raise e
 
+
 async def setup_agent_thread_with_search(user_messages: list, system_instruction: str, field_mapping: dict):
     project_client = AIProjectClient(
         endpoint=app_settings.azure_ai.agent_endpoint,
@@ -245,12 +242,11 @@ async def setup_agent_thread_with_search(user_messages: list, system_instruction
     )
 
     print(f"Project Client: {project_client}", flush=True)
-
-    print(f"Creating project index...", flush=True)
+    print("Creating project index...", flush=True)
     print(f"Datasource connection name: {app_settings.datasource.connection_name}", flush=True)
     print(f"Index name: {app_settings.datasource.index}", flush=True)
     project_index = await project_client.indexes.create_or_update(
-        name=f"project-index-{app_settings.datasource.connection_name}-{app_settings.datasource.index}", 
+        name=f"project-index-{app_settings.datasource.connection_name}-{app_settings.datasource.index}",
         version="1",
         body={
             "connectionName": app_settings.datasource.connection_name,
@@ -286,14 +282,14 @@ async def setup_agent_thread_with_search(user_messages: list, system_instruction
     for msg in user_messages:
         if not msg or "role" not in msg or "content" not in msg:
             continue  # skip malformed messages
-        
+
         if msg["role"] != "tool":
             await project_client.agents.messages.create(
                 thread_id=thread.id,
                 role=msg["role"],
                 content=msg["content"],
             )
-            
+
     # print("Messages in thread after creation:")
     # messages = project_client.agents.messages.list(thread_id=thread.id)
 
@@ -303,6 +299,7 @@ async def setup_agent_thread_with_search(user_messages: list, system_instruction
     print(f"Message sent to thread: {thread.id}", flush=True)
 
     return project_client, agent, thread
+
 
 def init_ai_search_client():
     client = None
@@ -461,6 +458,7 @@ def prepare_model_args(request_body, request_headers):
 
     return model_args
 
+
 # Conversion of citation markers
 def convert_citation_markers(text, doc_mapping):
     def replace_marker(match):
@@ -471,9 +469,11 @@ def convert_citation_markers(text, doc_mapping):
 
     return re.sub(r'【(\d+:\d+)†source】', replace_marker, text)
 
+
+# Extract citations from run steps
 async def extract_citations_from_run_steps(project_client, thread_id, run_id, answer, streamed_titles=None):
     streamed_titles = streamed_titles or set()
-    
+
     async for run_step in project_client.agents.run_steps.list(thread_id=thread_id, run_id=run_id):
         if isinstance(run_step.step_details, RunStepToolCallDetails):
             for tool_call in run_step.step_details.tool_calls:
@@ -509,12 +509,12 @@ async def send_chat_request(request_body, request_headers) -> AsyncGenerator[Dic
     request_body["messages"] = filtered_messages
     model_args = prepare_model_args(request_body, request_headers)
     chat_type = (
-            ChatType.BROWSE
-            if not (
-                request_body["chat_type"] and request_body["chat_type"] == "template"
-            )
-            else ChatType.TEMPLATE
+        ChatType.BROWSE
+        if not (
+            request_body["chat_type"] and request_body["chat_type"] == "template"
         )
+        else ChatType.TEMPLATE
+    )
 
     try:
         if app_settings.base_settings.use_ai_foundry_sdk:
@@ -616,7 +616,6 @@ async def send_chat_request(request_body, request_headers) -> AsyncGenerator[Dic
                     except Exception as cleanup_error:
                         print(f"Failed to clean up agent: {cleanup_error}", flush=True)
 
-        
         else:
             # Use Azure Open AI client for response
             track_event_if_configured("Openai_sdk_for_response", {"status": "success"})
@@ -642,16 +641,16 @@ async def send_chat_request(request_body, request_headers) -> AsyncGenerator[Dic
             span.set_status(Status(StatusCode.ERROR, str(e)))
         raise e
 
+
 async def complete_chat_request(request_body, request_headers):
     # response, apim_request_id = await send_chat_request(request_body, request_headers)
     response = None
     history_metadata = request_body.get("history_metadata", {})
-    
+
     async for chunk in send_chat_request(request_body, request_headers):
         response = chunk  # Only the last chunk matters for non-streaming
 
     return format_non_streaming_response(response, history_metadata)
-
 
 
 async def stream_chat_request(request_body, request_headers):
@@ -1362,22 +1361,24 @@ async def get_document(filepath):
             span.set_status(Status(StatusCode.ERROR, str(e)))
         return jsonify({"error": str(e)}), 500
 
+
+# Fetch content from Azure Search API
 @bp.route("/fetch-azure-search-content", methods=["POST"])
 async def fetch_azure_search_content():
     try:
         print("Fetching content from Azure Search")
         request_json = await request.get_json()
         url = request_json.get("url")
-        
+
         if not url:
             track_event_if_configured("FetchAzureSearchContentFailed", {"error": "URL is required"})
             return jsonify({"error": "URL is required"}), 400
-        
-        #Get Azure AD token
+
+        # Get Azure AD token
         credential = DefaultAzureCredentialSync()
         token = credential.get_token("https://search.azure.com/.default")
         access_token = token.token
-        
+
         def fetch_content():
             try:
                 response = requests.get(
@@ -1393,15 +1394,15 @@ async def fetch_azure_search_content():
                     content = data.get("content", "")
                     return content
                 else:
-                    return 
+                    return
             except Exception as e:
                 logging.exception("Error fetching content from Azure Search")
                 print(f"Error fetching content from Azure Search: {str(e)}")
                 return f"Error: {str(e)}"
-        
+
         content = await asyncio.to_thread(fetch_content)
         return jsonify({"content": content}), 200
-                
+
     except Exception as e:
         logging.exception("Exception in /fetch-azure-search-content")
         return jsonify({"error": str(e)}), 500
@@ -1458,7 +1459,7 @@ async def generate_title(conversation_messages):
         return messages[-2]["content"]
 
 
-async def get_section_content(request_body, request_headers):    
+async def get_section_content(request_body, request_headers):
     user_prompt = f"""sectionTitle: {request_body['sectionTitle']}
     sectionDescription: {request_body['sectionDescription']}
     """
@@ -1485,20 +1486,20 @@ async def get_section_content(request_body, request_headers):
             print("Draft system prompt")
             print(app_settings.azure_openai.generate_section_content_prompt)
             field_mapping = {
-                    "contentFields": ["content"],
-                    "urlField": "sourceurl",       # make sure your index has this field
-                    "titleField": "sourceurl",     # fallback to filename if needed
-                }
+                "contentFields": ["content"],
+                "urlField": "sourceurl",
+                "titleField": "sourceurl",
+            }
             project_client, agent, thread = await setup_agent_thread_with_search(
                 user_messages=request_body["messages"],
                 system_instruction=app_settings.azure_openai.generate_section_content_prompt,
                 field_mapping=field_mapping
             )
             run = await project_client.agents.runs.create_and_process(
-                        thread_id=thread.id,
-                        agent_id=agent.id,
-                        tool_choice={"type": "azure_ai_search"}
-                    )
+                thread_id=thread.id,
+                agent_id=agent.id,
+                tool_choice={"type": "azure_ai_search"}
+            )
             if run.status == "failed":
                 print(f"Run failed: {run.error_message}")
                 raise Exception(f"Run failed: {run.error_message}")
@@ -1531,7 +1532,7 @@ async def get_section_content(request_body, request_headers):
             span.record_exception(e)
             span.set_status(Status(StatusCode.ERROR, str(e)))
         raise e
-    
+
     finally:
         if agent:
             try:
@@ -1539,7 +1540,6 @@ async def get_section_content(request_body, request_headers):
                 print(f"Agent deleted: {agent.id}", flush=True)
             except Exception as cleanup_error:
                 print(f"Failed to clean up agent: {cleanup_error}", flush=True)
-            
 
     return response_text
 

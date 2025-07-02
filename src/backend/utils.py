@@ -4,9 +4,10 @@ import logging
 import os
 from enum import Enum
 from typing import List
-
 import requests
-import uuid, time
+import uuid
+import time
+
 DEBUG = os.environ.get("DEBUG", "false")
 if DEBUG.lower() == "true":
     logging.basicConfig(level=logging.DEBUG)
