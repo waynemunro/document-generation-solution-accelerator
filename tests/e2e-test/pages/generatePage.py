@@ -1,7 +1,8 @@
 from asyncio.log import logger
-
 from base.base import BasePage
 from playwright.sync_api import expect
+import logging
+logger = logging.getLogger(__name__)
 
 
 class GeneratePage(BasePage):
@@ -37,16 +38,16 @@ class GeneratePage(BasePage):
             # Wait up to 60s for the element to become **hidden**
             locator.wait_for(state="hidden", timeout=60000)
         except TimeoutError:
-            # Raise a custom failure if it's still visible after 60s
-            raise AssertionError("❌ TIMED-OUT: Not recieved response within specific time limit.")
+            msg = "❌ TIMED-OUT: Not recieved response within 60 sec."
+            logger.info(msg)  # ✅ log to console/log file
+            raise AssertionError(msg)
         
         finally:
-        # Always attempt to click the stop button after test fail
             if stop_button.is_visible():
                 stop_button.click()
-                print("Clicked on 'Stop generating' button after timeout.")
+                logger.info("Clicked on 'Stop generating' button after timeout.")
             else:
-                print("'Stop generating' button not visible.")
+                logger.info("'Stop generating' button not visible.")
 
         self.page.wait_for_timeout(5000)
 
@@ -91,8 +92,10 @@ class GeneratePage(BasePage):
         else:
             self.page.locator(self.CHAT_HISTORY_OPTIONS).click()
             self.page.locator(self.CHAT_HISTORY_DELETE).click()
+            self.page.wait_for_timeout(5000)
             self.page.get_by_role("button", name="Clear All").click()
             self.page.wait_for_timeout(5000)
+            expect(self.page.locator("//span[contains(text(),'No chat history.')]")).to_be_visible()
             self.page.locator(self.CHAT_HISTORY_CLOSE).click()
             self.page.wait_for_load_state("networkidle")
             self.page.wait_for_timeout(2000)

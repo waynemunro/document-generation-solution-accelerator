@@ -1,5 +1,5 @@
 import os
-
+import json
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -10,14 +10,6 @@ if URL.endswith("/"):
 
 # Get the absolute path to the repository root
 repo_root = os.getenv("GITHUB_WORKSPACE", os.getcwd())
-
-# # Construct the absolute path to the JSON file
-# #note: may have to remove 'Doc_gen' from below when running locally
-# json_file_path = os.path.join(repo_root,'testData', 'section_title.json')
-
-# with open(json_file_path, 'r') as file:
-#     data = json.load(file)
-#     sectionTitle = data['sectionTitle']
 
 # browse input data
 browse_question1 = "What are typical sections in a promissory note?"

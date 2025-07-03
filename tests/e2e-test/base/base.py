@@ -59,7 +59,7 @@ class BasePage:
 
         # Payload (data) to be sent in the POST request
         payload = {
-            "chat_type": "browse",
+            "chat_type": "template",
             "messages": [
                 {
                     "role": "user",
@@ -75,3 +75,5 @@ class BasePage:
         assert response.status == 200, (
             "response code is " + str(response.status) + " " + str(response.json())
         )
+
+

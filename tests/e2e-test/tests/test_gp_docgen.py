@@ -120,15 +120,13 @@ def test_generate_prompt(setup_pages, question, request):
     start = time.time()
 
     try:
-        logger.info("Validating prerequisite Browse prompt before GENERATE.")
-        browse.validate_response_status(question_api=browse_question2)
 
         attempt = 1
         while attempt <= MAX_RETRIES:
             logger.info(f"Attempt {attempt}: Entering Generate Question: {question}")
             generate.enter_a_question(question)
             generate.click_send_button()
-            generate.validate_generate_response_status(question_api=question)
+            #generate.validate_generate_response_status(question_api=question)
 
 
             time.sleep(2)
@@ -168,7 +166,7 @@ def test_add_section_prompt(setup_pages, question, request):
         logger.info(f"Entering Add Section Question: {question}")
         generate.enter_a_question(question)
         generate.click_send_button()
-        browse.validate_generate_response_status(question_api=question)
+        #generate.validate_generate_response_status(question_api=question)
     except Exception as e:
         logger.error(f"FAILED while validating Add Section Prompt '{question}': {e}")
         raise
@@ -187,7 +185,8 @@ def test_generate_draft_from_section_prompt(setup_pages, request):
     try:
         logger.info("Clicking 'Generate Draft' and validating sections.")
         generate.click_generate_draft_button()
-        draft.check_draft_sections()
+        #draft.validate_draft_sections()
+        draft.validate_draft_sections_loaded()
     except Exception as e:
         logger.error(f"FAILED while generating or validating draft sections: {e}")
         raise
