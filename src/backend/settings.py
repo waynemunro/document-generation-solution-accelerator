@@ -357,7 +357,6 @@ class _BaseSettings(BaseSettings):
     auth_enabled: bool = False
     sanitize_answer: bool = False
     use_promptflow: bool = False
-    use_ai_foundry_sdk: bool = Field(default=False, validation_alias="USE_AI_FOUNDRY_SDK")
 
 
 class _AppSettings(BaseModel):

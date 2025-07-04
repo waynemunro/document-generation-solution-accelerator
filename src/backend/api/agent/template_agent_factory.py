@@ -13,10 +13,8 @@ class TemplateAgentFactory:
     async def get_template_agent(cls, system_instruction: str):
         async with cls._lock:
             if cls._agent_data is None:
-                print("🔄 Initializing template agent and index...", flush=True)
-                print(f"System Instruction: {system_instruction}", flush=True)
+                print("Initializing template agent and index...", flush=True)
 
-                print(f"AIProjectClient endpoint: {app_settings.azure_ai.agent_endpoint}", flush=True)
                 client = AIProjectClient(
                     endpoint=app_settings.azure_ai.agent_endpoint,
                     credential=DefaultAzureCredential(exclude_interactive_browser_credential=False),
@@ -24,7 +22,6 @@ class TemplateAgentFactory:
                 )
 
                 index_name = f"project-index-{app_settings.datasource.connection_name}-{app_settings.datasource.index}"
-                print(f"Using index name: {index_name}", flush=True)
                 index_version = "1"
                 field_mapping = {
                     "contentFields": ["content"],
