@@ -6,16 +6,25 @@ targetScope = 'resourceGroup'
 @description('A unique prefix for all resources in this deployment. This should be 3-20 characters long:')
 param environmentName string
 
+@minLength(1)
+@description('Secondary location for databases creation(example:eastus2):')
+param secondaryLocation string = 'eastus2'
+
+@description('Azure location for the solution. If not provided, it defaults to the resource group location.')
+param AZURE_LOCATION string=''
+
+// ========== AI Deployments Location ========== //
+@description('Location for AI deployments. This should be a valid Azure region where OpenAI services are available.')
 @metadata({
   azd: {
     type: 'location'
+    usageName: [
+      'OpenAI.GlobalStandard.gpt4.1,150'
+      'OpenAI.Standard.text-embedding-ada-002,80'
+    ]
   }
 })
-
-
-@minLength(1)
-@description('Secondary location for databases creation(example:eastus2):')
-param secondaryLocation string
+param aiDeploymentsLocation string
 
 @minLength(1)
 @description('GPT model deployment type:')
@@ -31,19 +40,17 @@ param gptModelName string = 'gpt-4.1'
 @description('Version of the GPT model to deploy:')
 param gptModelVersion string = '2025-04-14'
 
-param azureOpenaiAPIVersion string = '2024-05-01-preview'
+@description('API version for Azure OpenAI service. This should be a valid API version supported by the service.')
+param azureOpenaiAPIVersion string = '2025-01-01-preview'
 
 @minValue(10)
 @description('Capacity of the GPT deployment:')
 // You can increase this, but capacity is limited per model/region, so you will get errors if you go over
 // https://learn.microsoft.com/en-us/azure/ai-services/openai/quotas-limits
-param gptDeploymentCapacity int = 30
+param gptDeploymentCapacity int = 150
 
 @minLength(1)
 @description('Name of the Text Embedding model to deploy:')
-@allowed([
-  'text-embedding-ada-002'
-])
 param embeddingModel string = 'text-embedding-ada-002'
 
 var abbrs = loadJsonContent('./abbreviations.json')
@@ -51,8 +58,8 @@ var abbrs = loadJsonContent('./abbreviations.json')
 @description('Capacity of the Embedding Model deployment')
 param embeddingDeploymentCapacity int = 80
 
+@description('Image tag for the App Service container. Default is "latest".')
 param imageTag string = 'latest'
-param AZURE_LOCATION string=''
 
 @description('Optional: Existing Log Analytics Workspace Resource ID')
 param existingLogAnalyticsWorkspaceId string = ''
@@ -91,7 +98,7 @@ module aifoundry 'deploy_ai_foundry.bicep' = {
   name: 'deploy_ai_foundry'
   params: {
     solutionName: solutionPrefix
-    solutionLocation: solutionLocation
+    solutionLocation: aiDeploymentsLocation
     keyVaultName: kvault.outputs.keyvaultName
     deploymentType: deploymentType
     gptModelName: gptModelName
