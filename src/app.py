@@ -1351,9 +1351,10 @@ async def fetch_azure_search_content():
         print("Fetching content from Azure Search")
         request_json = await request.get_json()
         url = request_json.get("url")
+        title = request_json.get("title")
 
-        if not url:
-            return jsonify({"error": "URL is required"}), 400
+        if not url or not title:
+            return jsonify({"error": "URL and title are required"}), 400
 
         # Get Azure AD token
         credential = DefaultAzureCredentialSync()
@@ -1384,7 +1385,10 @@ async def fetch_azure_search_content():
         result = await asyncio.to_thread(fetch_content, url)
 
         if result["success"]:
-            return jsonify({"content": result["content"]}), 200
+            return jsonify({
+                "content": result["content"],
+                "title": title
+                }), 200
         else:
             return jsonify({"error": result["error"]}), 500
 
