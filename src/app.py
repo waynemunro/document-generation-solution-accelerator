@@ -1353,7 +1353,6 @@ async def fetch_azure_search_content():
         url = request_json.get("url")
 
         if not url:
-            track_event_if_configured("FetchAzureSearchContentFailed", {"error": "URL is required"})
             return jsonify({"error": "URL is required"}), 400
 
         # Get Azure AD token
@@ -1361,10 +1360,10 @@ async def fetch_azure_search_content():
         token = credential.get_token("https://search.azure.com/.default")
         access_token = token.token
 
-        def fetch_content():
+        def fetch_content(fetch_url):
             try:
                 response = requests.get(
-                    url,
+                    fetch_url,
                     headers={
                         "Authorization": f"Bearer {access_token}",
                         "Content-Type": "application/json"
@@ -1374,16 +1373,20 @@ async def fetch_azure_search_content():
                 if response.status_code == 200:
                     data = response.json()
                     content = data.get("content", "")
-                    return content
+                    return {"success": True, "content": content}
                 else:
-                    return
+                    error_msg = f"Request failed with status code {response.status_code} {response.text}"
+                    return {"success": False, "error": error_msg}
             except Exception as e:
                 logging.exception("Error fetching content from Azure Search")
-                print(f"Error fetching content from Azure Search: {str(e)}")
-                return f"Error: {str(e)}"
+                return {"success": False, "error": f"Exception: {str(e)}"}
 
-        content = await asyncio.to_thread(fetch_content)
-        return jsonify({"content": content}), 200
+        result = await asyncio.to_thread(fetch_content, url)
+
+        if result["success"]:
+            return jsonify({"content": result["content"]}), 200
+        else:
+            return jsonify({"error": result["error"]}), 500
 
     except Exception as e:
         logging.exception("Exception in /fetch-azure-search-content")
