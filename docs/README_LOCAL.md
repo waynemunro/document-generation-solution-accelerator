@@ -32,7 +32,6 @@ NOTE: You may find you need to set: MacOS: `export NODE_OPTIONS="--max-old-space
     - `DATASOURCE_TYPE` (should be set to `AzureCognitiveSearch`)
     - `AZURE_SEARCH_SERVICE`
     - `AZURE_SEARCH_INDEX`
-    - `AZURE_SEARCH_KEY`
 
     These variables are optional:
     - `AZURE_SEARCH_USE_SEMANTIC_SEARCH`
@@ -178,7 +177,6 @@ Note: settings starting with `AZURE_SEARCH` are only needed when using Azure Ope
 |AZURE_AI_AGENT_MODEL_DEPLOYMENT_NAME||The name of the gpt model|
 |AZURE_SEARCH_SERVICE||The name of your Azure AI Search resource|
 |AZURE_SEARCH_INDEX||The name of your Azure AI Search Index|
-|AZURE_SEARCH_KEY||An **admin key** for your Azure AI Search resource|
 |AZURE_SEARCH_USE_SEMANTIC_SEARCH|False|Whether or not to use semantic search|
 |AZURE_SEARCH_QUERY_TYPE|simple|Query type: simple, semantic, vector, vectorSimpleHybrid, or vectorSemanticHybrid. Takes precedence over AZURE_SEARCH_USE_SEMANTIC_SEARCH|
 |AZURE_SEARCH_SEMANTIC_SEARCH_CONFIG||The name of the semantic search configuration to use if using semantic search.|

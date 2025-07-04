@@ -436,7 +436,7 @@ const Chat = ({ type = ChatType.Browse }: Props) => {
     let conversation
     if (conversationId) {
       conversation = appStateContext?.state?.chatHistory?.find(conv => conv.id === conversationId)
-      if(!conversation){
+      if (!conversation) {
         conversation = appStateContext?.state?.currentChat
       }
       if (!conversation) {
@@ -477,7 +477,7 @@ const Chat = ({ type = ChatType.Browse }: Props) => {
         let resultConversation
         if (conversationId) {
           resultConversation = appStateContext?.state?.chatHistory?.find(conv => conv.id === conversationId)
-          if(!resultConversation){
+          if (!resultConversation) {
             resultConversation = appStateContext?.state?.currentChat
           }
           if (!resultConversation) {
@@ -550,7 +550,7 @@ const Chat = ({ type = ChatType.Browse }: Props) => {
         let resultConversation
         if (conversationId) {
           resultConversation = appStateContext?.state?.chatHistory?.find(conv => conv.id === conversationId)
-          if(!resultConversation){
+          if (!resultConversation) {
             resultConversation = appStateContext?.state?.currentChat
           }
           if (!resultConversation) {
@@ -608,7 +608,7 @@ const Chat = ({ type = ChatType.Browse }: Props) => {
         let resultConversation
         if (conversationId) {
           resultConversation = appStateContext?.state?.chatHistory?.find(conv => conv.id === conversationId)
-          if(!resultConversation){
+          if (!resultConversation) {
             resultConversation = appStateContext?.state?.currentChat
           }
           if (!resultConversation) {
@@ -808,7 +808,6 @@ const Chat = ({ type = ChatType.Browse }: Props) => {
   }, [messages])
 
   const onShowCitation = (citation: Citation) => {
-    console.log('onShowCitation url', citation.url)
     const url = citation.url
     setModalUrl(url ?? '')
     setIsModalOpen(true)
@@ -843,15 +842,15 @@ const Chat = ({ type = ChatType.Browse }: Props) => {
       ) : (
         <Stack horizontal className={styles.chatRoot}>
           <div className={styles.chatContainer}>
-            { loadingState ? (
-                <Stack horizontalAlign="center" verticalAlign="center" className={styles.chatLoadingState} style={{padding: 250, paddingBottom: 150}}>
-                  <Spinner label="Loading your chat..." size={SpinnerSize.large} />
-                </Stack>
-              ) : !messages || messages.length < 1 ? (
-                <Stack className={styles.chatEmptyState}>
-                  <h1 className={styles.chatEmptyStateTitle}>{ui?.chat_title}</h1>
-                </Stack>
-              ) : (
+            {loadingState ? (
+              <Stack horizontalAlign="center" verticalAlign="center" className={styles.chatLoadingState} style={{ padding: 250, paddingBottom: 150 }}>
+                <Spinner label="Loading your chat..." size={SpinnerSize.large} />
+              </Stack>
+            ) : !messages || messages.length < 1 ? (
+              <Stack className={styles.chatEmptyState}>
+                <h1 className={styles.chatEmptyStateTitle}>{ui?.chat_title}</h1>
+              </Stack>
+            ) : (
               // Show chat messages while loading continues in the background
               <ChatMessageContainer
                 messages={messages}
