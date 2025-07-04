@@ -32,8 +32,6 @@ from opentelemetry import trace
 from opentelemetry.trace import Status, StatusCode
 from azure.ai.projects.aio import AIProjectClient
 from azure.ai.agents.models import (
-    AzureAISearchQueryType,
-    AzureAISearchTool,
     MessageRole,
     RunStepToolCallDetails,
     MessageDeltaChunk,
@@ -41,6 +39,9 @@ from azure.ai.agents.models import (
     MessageDeltaTextContent,
     MessageDeltaTextUrlCitationAnnotation
 )
+from backend.api.agent.section_agent_factory import SectionAgentFactory
+from backend.api.agent.browse_agent_factory import BrowseAgentFactory
+from backend.api.agent.template_agent_factory import TemplateAgentFactory
 
 bp = Blueprint("routes", __name__, static_folder="static", template_folder="static")
 
@@ -232,73 +233,6 @@ async def init_ai_foundry_client():
         logging.exception("Exception in AI Foundry initialization", e)
         ai_foundry_client = None
         raise e
-
-
-async def setup_agent_thread_with_search(user_messages: list, system_instruction: str, field_mapping: dict):
-    project_client = AIProjectClient(
-        endpoint=app_settings.azure_ai.agent_endpoint,
-        credential=DefaultAzureCredential(exclude_interactive_browser_credential=False),
-        api_version="2025-05-01"
-    )
-
-    print(f"Project Client: {project_client}", flush=True)
-    print("Creating project index...", flush=True)
-    print(f"Datasource connection name: {app_settings.datasource.connection_name}", flush=True)
-    print(f"Index name: {app_settings.datasource.index}", flush=True)
-    project_index = await project_client.indexes.create_or_update(
-        name=f"project-index-{app_settings.datasource.connection_name}-{app_settings.datasource.index}",
-        version="1",
-        body={
-            "connectionName": app_settings.datasource.connection_name,
-            "indexName": app_settings.datasource.index,
-            "type": "AzureSearch",
-            "fieldMapping": field_mapping
-        }
-    )
-    print(f"Project Index: {project_index}", flush=True)
-
-    ai_search = AzureAISearchTool(
-        index_asset_id=f"{project_index.name}/versions/{project_index.version}",
-        index_connection_id=None,
-        index_name=None,
-        query_type=AzureAISearchQueryType.VECTOR_SEMANTIC_HYBRID,
-        top_k=app_settings.datasource.top_k,
-        filter="",
-    )
-    print(f"AI Search Tool: {ai_search}", flush=True)
-
-    agent = await project_client.agents.create_agent(
-        model=app_settings.azure_ai.agent_model_deployment_name,
-        name="DocGenAgent",
-        instructions=system_instruction,
-        tools=ai_search.definitions,
-        tool_resources=ai_search.resources,
-    )
-    print(f"Agent created: {agent}", flush=True)
-
-    thread = await project_client.agents.threads.create()
-    print(f"Thread created: {thread}", flush=True)
-
-    for msg in user_messages:
-        if not msg or "role" not in msg or "content" not in msg:
-            continue  # skip malformed messages
-
-        if msg["role"] != "tool":
-            await project_client.agents.messages.create(
-                thread_id=thread.id,
-                role=msg["role"],
-                content=msg["content"],
-            )
-
-    # print("Messages in thread after creation:")
-    # messages = project_client.agents.messages.list(thread_id=thread.id)
-
-    # for msg in messages:
-    #     if msg.text_messages:  # Only print if there's content
-    #         print(f"[{msg.role}] {msg.text_messages[-1].text.value}", flush=True)
-    print(f"Message sent to thread: {thread.id}", flush=True)
-
-    return project_client, agent, thread
 
 
 def init_ai_search_client():
@@ -508,113 +442,160 @@ async def send_chat_request(request_body, request_headers) -> AsyncGenerator[Dic
     })
     request_body["messages"] = filtered_messages
     model_args = prepare_model_args(request_body, request_headers)
-    chat_type = (
-        ChatType.BROWSE
-        if not (
-            request_body["chat_type"] and request_body["chat_type"] == "template"
-        )
-        else ChatType.TEMPLATE
-    )
-
     try:
         if app_settings.base_settings.use_ai_foundry_sdk:
             try:
                 # Use AI Foundry SDK for response
                 track_event_if_configured("Foundry_sdk_for_response", {"status": "success"})
                 answer: Dict[str, Any] = {"answer": "", "citations": []}
-                agent = None
                 run_id = None
                 streamed_titles = set()
                 doc_mapping = {}
-                field_mapping = {
-                    "contentFields": ["content"],
-                    "urlField": "sourceurl",       # make sure your index has this field
-                    "titleField": "sourceurl",     # fallback to filename if needed
-                }
-                project_client, agent, thread = await setup_agent_thread_with_search(
-                    user_messages=request_body["messages"],
-                    system_instruction=(
-                        app_settings.azure_openai.system_message
-                        if chat_type == ChatType.BROWSE or not chat_type
-                        else app_settings.azure_openai.template_system_message
-                    ),
-                    field_mapping=field_mapping
-                )
-                # Streaming Browse
-                if request_body["chat_type"] == "browse" and app_settings.azure_openai.stream:
-                    print("Streaming browse")
-                    async with await project_client.agents.runs.stream(
-                        thread_id=thread.id,
-                        agent_id=agent.id,
-                        tool_choice={"type": "azure_ai_search"}
-                    ) as stream:
-                        async for event_type, event_data, _ in stream:
-                            if isinstance(event_data, ThreadRun):
-                                run_id = event_data.id  # Save for post-processing
-
-                            elif isinstance(event_data, MessageDeltaChunk):
-                                if event_data.delta.content and isinstance(event_data.delta.content[0], MessageDeltaTextContent):
-                                    delta_text = event_data.delta.content[0].text
-
-                                    if delta_text and delta_text.value:
-                                        answer["answer"] += delta_text.value
-                                        print(f"Delta text value: {delta_text.value}", flush=True)
-                                        yield {
-                                            "answer": convert_citation_markers(delta_text.value, doc_mapping),
-                                            "citations": answer["citations"]
-                                        }
-
-                                    if delta_text and delta_text.annotations:
-                                        for annotation in delta_text.annotations:
-                                            if isinstance(annotation, MessageDeltaTextUrlCitationAnnotation):
-                                                citation = annotation.url_citation
-                                                if citation.url not in [c["url"] for c in answer["citations"]]:
-                                                    answer["citations"].append({
-                                                        "title": citation.title,
-                                                        "url": citation.url
-                                                    })
-                                                    streamed_titles.add(citation.title)  # Track titles seen in streaming
-
-                    print(f"Streaming completed for thread: {thread.id}", flush=True)
-
-                    # Post-processing citations from run_steps
-                    if run_id:
-                        await extract_citations_from_run_steps(project_client, thread.id, run_id, answer, streamed_titles)
-
-                    yield {
-                        # "answer": answer["answer"],
-                        "citations": answer["citations"]
-                    }
-                # Non streaming Browse or Template
-                else:
-                    print("Non-streaming browse or template")
-                    run = await project_client.agents.runs.create_and_process(
-                        thread_id=thread.id,
-                        agent_id=agent.id,
-                        tool_choice={"type": "azure_ai_search"}
-                    )
-                    if run.status == "failed":
-                        print(f"Run failed: {run.error_message}", flush=True)
-                        raise Exception(f"Run failed: {run.error_message}")
-                    else:
-                        await extract_citations_from_run_steps(project_client, thread.id, run.id, answer)
-                        messages = project_client.agents.messages.list(thread_id=thread.id)
-                        async for msg in messages:
-                            if msg.role == MessageRole.AGENT and msg.text_messages:
-                                answer["answer"] = msg.text_messages[-1].text.value
-                                answer["answer"] = convert_citation_markers(answer["answer"], doc_mapping)
-                                break
-                    yield {
-                        "answer": answer["answer"],
-                        "citations": answer["citations"]
-                    }
-            finally:
-                if agent:
+                # Browse
+                if request_body["chat_type"] == "browse":
                     try:
-                        await project_client.agents.delete_agent(agent.id)
-                        print(f"Agent deleted: {agent.id}", flush=True)
-                    except Exception as cleanup_error:
-                        print(f"Failed to clean up agent: {cleanup_error}", flush=True)
+                        browse_agent_data = await BrowseAgentFactory.get_browse_agent(system_instruction=app_settings.azure_openai.system_message)
+                        browse_project_client = browse_agent_data["client"]
+                        browse_agent = browse_agent_data["agent"]
+
+                        thread = await browse_project_client.agents.threads.create()
+
+                        for msg in request_body["messages"]:
+                            if not msg or "role" not in msg or "content" not in msg:
+                                continue
+                            if msg["role"] != "tool":
+                                await browse_project_client.agents.messages.create(
+                                    thread_id=thread.id,
+                                    role=msg["role"],
+                                    content=msg["content"],
+                                )
+
+                        if app_settings.azure_openai.stream:
+                            print("Streaming browse")
+                            async with await browse_project_client.agents.runs.stream(
+                                thread_id=thread.id,
+                                agent_id=browse_agent.id,
+                                tool_choice={"type": "azure_ai_search"}
+                            ) as stream:
+                                async for event_type, event_data, _ in stream:
+                                    if isinstance(event_data, ThreadRun):
+                                        run_id = event_data.id  # Save for post-processing
+
+                                    elif isinstance(event_data, MessageDeltaChunk):
+                                        if event_data.delta.content and isinstance(event_data.delta.content[0], MessageDeltaTextContent):
+                                            delta_text = event_data.delta.content[0].text
+
+                                            if delta_text and delta_text.value:
+                                                answer["answer"] += delta_text.value
+                                                print(f"Delta text value: {delta_text.value}", flush=True)
+                                                yield {
+                                                    "answer": convert_citation_markers(delta_text.value, doc_mapping),
+                                                    "citations": json.dumps(answer["citations"])
+                                                }
+
+                                            if delta_text and delta_text.annotations:
+                                                for annotation in delta_text.annotations:
+                                                    if isinstance(annotation, MessageDeltaTextUrlCitationAnnotation):
+                                                        citation = annotation.url_citation
+                                                        if citation.url not in [c["url"] for c in answer["citations"]]:
+                                                            answer["citations"].append({
+                                                                "title": citation.title,
+                                                                "url": citation.url
+                                                            })
+                                                            streamed_titles.add(citation.title)  # Track titles seen in streaming
+
+                            print(f"Streaming completed for thread: {thread.id}", flush=True)
+
+                            # Post-processing citations from run_steps
+                            if run_id:
+                                await extract_citations_from_run_steps(browse_project_client, thread.id, run_id, answer, streamed_titles)
+
+                            yield {
+                                # "answer": answer["answer"],
+                                "citations": json.dumps(answer["citations"])
+                            }
+
+                        else:
+                            print("Non-streaming browse")
+                            run = await browse_project_client.agents.runs.create_and_process(
+                                thread_id=thread.id,
+                                agent_id=browse_agent.id,
+                                tool_choice={"type": "azure_ai_search"}
+                            )
+                            if run.status == "failed":
+                                print(f"Run failed: {run.error_message}", flush=True)
+                                raise Exception(f"Run failed: {run.error_message}")
+                            else:
+                                await extract_citations_from_run_steps(browse_project_client, thread.id, run.id, answer, streamed_titles)
+                                messages = browse_project_client.agents.messages.list(thread_id=thread.id)
+                                async for msg in messages:
+                                    if msg.role == MessageRole.AGENT and msg.text_messages:
+                                        answer["answer"] = msg.text_messages[-1].text.value
+                                        answer["answer"] = convert_citation_markers(answer["answer"], doc_mapping)
+                                        break
+                            yield {
+                                "answer": answer["answer"],
+                                "citations": json.dumps(answer["citations"])
+                            }
+                    finally:
+                        if thread:
+                            print(f"Deleting browse thread: {thread.id}", flush=True)
+                            await browse_project_client.agents.threads.delete(thread_id=thread.id)
+
+                # Generate Template
+                else:
+                    try:
+                        print("Non-streaming template")
+                        template_agent_data = await TemplateAgentFactory.get_template_agent(system_instruction=app_settings.azure_openai.template_system_message)
+                        template_project_client = template_agent_data["client"]
+                        template_agent = template_agent_data["agent"]
+
+                        thread = await template_project_client.agents.threads.create()
+
+                        for msg in request_body["messages"]:
+                            if not msg or "role" not in msg or "content" not in msg:
+                                continue
+                            if msg["role"] != "tool":
+                                await template_project_client.agents.messages.create(
+                                    thread_id=thread.id,
+                                    role=msg["role"],
+                                    content=msg["content"],
+                                )
+
+                        run = await template_project_client.agents.runs.create_and_process(
+                            thread_id=thread.id,
+                            agent_id=template_agent.id,
+                            tool_choice={"type": "azure_ai_search"}
+                        )
+                        if run.status == "failed":
+                            print(f"Run failed: {run.error_message}", flush=True)
+                            raise Exception(f"Run failed: {run.error_message}")
+                        else:
+                            await extract_citations_from_run_steps(template_project_client, thread.id, run.id, answer)
+                            messages = template_project_client.agents.messages.list(thread_id=thread.id)
+                            async for msg in messages:
+                                if msg.role == MessageRole.AGENT and msg.text_messages:
+                                    answer["answer"] = msg.text_messages[-1].text.value
+                                    answer["answer"] = convert_citation_markers(answer["answer"], doc_mapping)
+                                    break
+                        yield {
+                            "answer": answer["answer"],
+                            "citations": json.dumps(answer["citations"])
+                        }
+                    finally:
+                        # Clean up the thread after processing
+                        if thread:
+                            print(f"Deleting template thread: {thread.id}", flush=True)
+                            await template_project_client.agents.threads.delete(thread_id=thread.id)
+
+            except Exception as e:
+                logging.exception("Exception in AI Foundry response", e)
+                span = trace.get_current_span()
+                if span is not None:
+                    span.record_exception(e)
+                    span.set_status(Status(StatusCode.ERROR, str(e)))
+                track_event_if_configured("AIFoundryResponseError", {"error": str(e)})
+                raise e
 
         else:
             # Use Azure Open AI client for response
@@ -635,6 +616,7 @@ async def send_chat_request(request_body, request_headers) -> AsyncGenerator[Dic
 
     except Exception as e:
         logging.exception("Exception in send_chat_request")
+        print(f"Exception in send_chat_request: {e}", flush=True)
         span = trace.get_current_span()
         if span is not None:
             span.record_exception(e)
@@ -1479,38 +1461,41 @@ async def get_section_content(request_body, request_headers):
             # Use Foundry SDK for section content generation
             track_event_if_configured("Foundry_sdk_for_section", {"status": "success"})
             print("Foundry_sdk_for_section")
-            # ai_foundry_client = await init_ai_foundry_client()
-            # raw_response = await ai_foundry_client.chat.completions.with_raw_response.create(
-            #     **model_args
-            # )
-            print("Draft system prompt")
-            print(app_settings.azure_openai.generate_section_content_prompt)
-            field_mapping = {
-                "contentFields": ["content"],
-                "urlField": "sourceurl",
-                "titleField": "sourceurl",
-            }
-            project_client, agent, thread = await setup_agent_thread_with_search(
-                user_messages=request_body["messages"],
-                system_instruction=app_settings.azure_openai.generate_section_content_prompt,
-                field_mapping=field_mapping
-            )
-            run = await project_client.agents.runs.create_and_process(
+            section_agent_data = await SectionAgentFactory.get_sections_agent(system_instruction=app_settings.azure_openai.generate_section_content_prompt)
+            section_project_client = section_agent_data["client"]
+            section_agent = section_agent_data["agent"]
+            print(f"Project client: {section_project_client}, Agent: {agent}", flush=True)
+
+            thread = await section_project_client.agents.threads.create()
+
+            for msg in request_body["messages"]:
+                if not msg or "role" not in msg or "content" not in msg:
+                    continue  # skip malformed messages
+
+                if msg["role"] != "tool":
+                    await section_project_client.agents.messages.create(
+                        thread_id=thread.id,
+                        role=msg["role"],
+                        content=msg["content"],
+                    )
+
+            run = await section_project_client.agents.runs.create_and_process(
                 thread_id=thread.id,
-                agent_id=agent.id,
+                agent_id=section_agent.id,
                 tool_choice={"type": "azure_ai_search"}
             )
             if run.status == "failed":
-                print(f"Run failed: {run.error_message}")
-                raise Exception(f"Run failed: {run.error_message}")
+                print(f"Run failed: {run.last_error}", flush=True)
+                raise Exception
             else:
                 message = (
-                    await project_client.agents.messages.get_last_message_text_by_role(
+                    await section_project_client.agents.messages.get_last_message_text_by_role(
                         thread_id=thread.id, role=MessageRole.AGENT
                     )
                 )
                 if message:
                     response_text = message.text.value
+            await section_project_client.agents.threads.delete(thread_id=thread.id)
         else:
             # Use Azure OpenAI client for section content generation
             track_event_if_configured("Openai_sdk_for_section", {"status": "success"})
@@ -1526,7 +1511,8 @@ async def get_section_content(request_body, request_headers):
         })
 
     except Exception as e:
-        logging.exception("Exception in send_chat_request")
+        logging.exception("Exception in get_section_content")
+        print(f"Exception in get_section_content: {e}", flush=True)
         span = trace.get_current_span()
         if span is not None:
             span.record_exception(e)
@@ -1534,12 +1520,7 @@ async def get_section_content(request_body, request_headers):
         raise e
 
     finally:
-        if agent:
-            try:
-                await project_client.agents.delete_agent(agent.id)
-                print(f"Agent deleted: {agent.id}", flush=True)
-            except Exception as cleanup_error:
-                print(f"Failed to clean up agent: {cleanup_error}", flush=True)
+        print("Cleaning up agent and thread", flush=True)
 
     return response_text
 
