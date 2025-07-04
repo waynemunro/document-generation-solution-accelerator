@@ -85,9 +85,10 @@ def generateFilterString(userToken):
 
 
 def format_non_streaming_response(chunk, history_metadata):
+    from backend.settings import app_settings
     response_obj = {
         "id": str(uuid.uuid4()),
-        "model": "gpt-4.1",
+        "model": app_settings.azure_ai.agent_model_deployment_name,
         "created": int(time.time()),
         "choices": [{
             "messages": []
@@ -116,9 +117,10 @@ def format_non_streaming_response(chunk, history_metadata):
 
 
 def format_stream_response(chunk, history_metadata):
+    from backend.settings import app_settings
     response_obj = {
         "id": str(uuid.uuid4()),
-        "model": "gpt-4.1",
+        "model": app_settings.azure_ai.agent_model_deployment_name,
         "created": int(time.time()),
         "choices": [{
             "messages": []
