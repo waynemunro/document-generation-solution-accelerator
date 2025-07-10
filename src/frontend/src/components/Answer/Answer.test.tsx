@@ -134,6 +134,7 @@ describe('Answer Component', () => {
         const answerWithMissingFeedback = {
            ...mockAnswerProps,
            answer: 'This is an example answer with citations [doc1]',
+           citations: [mockCitations[0]] // Only include one citation
         }
         
         renderComponent(answerWithMissingFeedback);
@@ -251,6 +252,13 @@ describe('Answer Component', () => {
 
         // Click to expand
         await userEvent.click(chevronIcon);
+        
+        // Wait for citations to be rendered and use a more specific selector
+        await waitFor(() => {
+            const citations = screen.getAllByRole('link');
+            expect(citations).toHaveLength(3); // Based on mockCitations array
+        });
+        
         const citations = screen.getAllByRole('link');
 
         // Simulate click on the first citation
