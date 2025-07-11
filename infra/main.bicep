@@ -165,6 +165,7 @@ module appserviceModule 'deploy_app_service.bicep' = {
     HostingPlanName:'${abbrs.compute.appServicePlan}${solutionPrefix}'
     WebsiteName:'${abbrs.compute.webApp}${solutionPrefix}'
     useAiFoundrySdk: 'False'
+    azureExistingAIProjectResourceId: azureExistingAIProjectResourceId
   }
   scope: resourceGroup(resourceGroup().name)
   // dependsOn:[sqlDBModule]
