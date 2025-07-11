@@ -69,6 +69,16 @@ var solutionLocation = empty(AZURE_LOCATION) ? resourceGroup().location : AZURE_
 var uniqueId = toLower(uniqueString(environmentName, subscription().id, solutionLocation))
 var solutionPrefix = 'dg${padLeft(take(uniqueId, 12), 12, '0')}'
 
+// ========== Resource Group Tag ========== //
+resource resourceGroupTags 'Microsoft.Resources/tags@2021-04-01' = {
+  name: 'default'
+  properties: {
+    tags: {
+      TemplateName: 'Docgen'
+    }
+  }
+}
+
 // ========== Managed Identity ========== //
 module managedIdentityModule 'deploy_managed_identity.bicep' = {
   name: 'deploy_managed_identity'
