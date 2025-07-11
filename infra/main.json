@@ -357,7 +357,7 @@
       "name": "default",
       "properties": {
         "tags": {
-          "templateName": "Docgen"
+          "TemplateName": "Docgen"
         }
       }
     },
