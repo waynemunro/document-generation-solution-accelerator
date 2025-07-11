@@ -64,6 +64,9 @@ param imageTag string = 'latest'
 @description('Optional: Existing Log Analytics Workspace Resource ID')
 param existingLogAnalyticsWorkspaceId string = ''
 
+@description('Use this parameter to use an existing AI project resource ID')
+param azureExistingAIProjectResourceId string = ''
+
 var solutionLocation = empty(AZURE_LOCATION) ? resourceGroup().location : AZURE_LOCATION
 
 var uniqueId = toLower(uniqueString(environmentName, subscription().id, solutionLocation))
@@ -109,6 +112,7 @@ module aifoundry 'deploy_ai_foundry.bicep' = {
     embeddingDeploymentCapacity: embeddingDeploymentCapacity
     managedIdentityObjectId: managedIdentityModule.outputs.managedIdentityOutput.objectId
     existingLogAnalyticsWorkspaceId: existingLogAnalyticsWorkspaceId
+    azureExistingAIProjectResourceId: azureExistingAIProjectResourceId
   }
   scope: resourceGroup(resourceGroup().name)
 }

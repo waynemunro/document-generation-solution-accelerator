@@ -11,6 +11,7 @@ param embeddingModel string
 param embeddingDeploymentCapacity int
 param managedIdentityObjectId string
 param existingLogAnalyticsWorkspaceId string = ''
+param azureExistingAIProjectResourceId string = ''
 
 var abbrs = loadJsonContent('./abbreviations.json')
 
@@ -28,6 +29,31 @@ var useExisting = !empty(existingLogAnalyticsWorkspaceId)
 var existingLawSubscription = useExisting ? split(existingLogAnalyticsWorkspaceId, '/')[2] : ''
 var existingLawResourceGroup = useExisting ? split(existingLogAnalyticsWorkspaceId, '/')[4] : ''
 var existingLawName = useExisting ? split(existingLogAnalyticsWorkspaceId, '/')[8] : ''
+
+var existingOpenAIEndpoint = !empty(azureExistingAIProjectResourceId)
+  ? format('https://{0}.openai.azure.com/', split(azureExistingAIProjectResourceId, '/')[8])
+  : ''
+var existingProjEndpoint = !empty(azureExistingAIProjectResourceId)
+  ? format(
+      'https://{0}.services.ai.azure.com/api/projects/{1}',
+      split(azureExistingAIProjectResourceId, '/')[8],
+      split(azureExistingAIProjectResourceId, '/')[10]
+    )
+  : ''
+var existingAIFoundryName = !empty(azureExistingAIProjectResourceId)
+  ? split(azureExistingAIProjectResourceId, '/')[8]
+  : ''
+var existingAIProjectName = !empty(azureExistingAIProjectResourceId)
+  ? split(azureExistingAIProjectResourceId, '/')[10]
+  : ''
+var existingAIServiceSubscription = !empty(azureExistingAIProjectResourceId)
+  ? split(azureExistingAIProjectResourceId, '/')[2]
+  : ''
+var existingAIServiceResourceGroup = !empty(azureExistingAIProjectResourceId)
+  ? split(azureExistingAIProjectResourceId, '/')[4]
+  : ''
+var aiSearchConnectionName = 'foundry-search-connection-${solutionName}'
+// var aiAppInsightConnectionName = 'foundry-app-insights-connection-${solutionName}'
 
 var aiModelDeployments = [
   {
@@ -85,7 +111,7 @@ resource applicationInsights 'Microsoft.Insights/components@2020-02-02' = {
   }
 }
 
-resource aiFoundry 'Microsoft.CognitiveServices/accounts@2025-04-01-preview' = {
+resource aiFoundry 'Microsoft.CognitiveServices/accounts@2025-04-01-preview' = if (empty(azureExistingAIProjectResourceId))  {
   name: aiFoundryName
   location: location
   sku: {
@@ -108,7 +134,7 @@ resource aiFoundry 'Microsoft.CognitiveServices/accounts@2025-04-01-preview' = {
   }
 }
 
-resource aiFoundryProject 'Microsoft.CognitiveServices/accounts/projects@2025-04-01-preview' = {
+resource aiFoundryProject 'Microsoft.CognitiveServices/accounts/projects@2025-04-01-preview' = if (empty(azureExistingAIProjectResourceId))   {
   parent: aiFoundry
   name: aiProjectName
   location: location
@@ -122,7 +148,7 @@ resource aiFoundryProject 'Microsoft.CognitiveServices/accounts/projects@2025-04
 }
 
 @batchSize(1)
-resource aiFModelDeployments 'Microsoft.CognitiveServices/accounts/deployments@2025-04-01-preview' = [for aiModeldeployment in aiModelDeployments: {
+resource aiFModelDeployments 'Microsoft.CognitiveServices/accounts/deployments@2025-04-01-preview' = [for aiModeldeployment in aiModelDeployments: if (empty(azureExistingAIProjectResourceId))   {
   parent: aiFoundry
   name: aiModeldeployment.name
   properties: {
@@ -163,8 +189,9 @@ resource aiSearch 'Microsoft.Search/searchServices@2024-06-01-preview' = {
     }
   }
 
-resource aiSearchFoundryConnection 'Microsoft.CognitiveServices/accounts/projects/connections@2025-04-01-preview' = {
-  name: 'foundry-search-connection'
+resource aiSearchFoundryConnection 'Microsoft.CognitiveServices/accounts/projects/connections@2025-04-01-preview' = if (empty(azureExistingAIProjectResourceId))   {
+  // name: 'foundry-search-connection'
+  name: aiSearchConnectionName
   parent: aiFoundryProject
   properties: {
     category: 'CognitiveSearch'
@@ -176,6 +203,19 @@ resource aiSearchFoundryConnection 'Microsoft.CognitiveServices/accounts/project
       ResourceId: aiSearch.id
       location: aiSearch.location
     }
+  }
+}
+
+module existing_AIProject_SearchConnectionModule 'deploy_aifp_aisearch_connection.bicep' = if (!empty(azureExistingAIProjectResourceId)) {
+  name: 'aiProjectSearchConnectionDeployment'
+  scope: resourceGroup(existingAIServiceSubscription, existingAIServiceResourceGroup)
+  params: {
+    existingAIProjectName: existingAIProjectName
+    existingAIFoundryName: existingAIFoundryName
+    aiSearchName: aiSearchName
+    aiSearchResourceId: aiSearch.id
+    aiSearchLocation: aiSearch.location
+    aiSearchConnectionName: aiSearchConnectionName
   }
 }
 
@@ -302,10 +342,16 @@ output aiSearchName string = aiSearchName
 output aiSearchId string = aiSearch.id
 output aiSearchTarget string = 'https://${aiSearch.name}.search.windows.net'
 output aiSearchService string = aiSearch.name
-output aiFoundryProjectName string = aiFoundryProject.name
-output aiFoundryProjectEndpoint string = aiFoundryProject.properties.endpoints['AI Foundry API']
-output aoaiEndpoint string = aiFoundry.properties.endpoints['OpenAI Language Model Instance API']
-output aiFoundryName string = aiFoundryName
+output aiFoundryProjectName string = !empty(existingAIProjectName) ? existingAIProjectName : aiFoundryProject.name
+// output aiFoundryProjectEndpoint string = aiFoundryProject.properties.endpoints['AI Foundry API']
+output aiFoundryProjectEndpoint string = !empty(existingProjEndpoint)
+  ? existingProjEndpoint
+  : aiFoundryProject.properties.endpoints['AI Foundry API']
+// output aoaiEndpoint string = aiFoundry.properties.endpoints['OpenAI Language Model Instance API']
+output aoaiEndpoint string = !empty(existingOpenAIEndpoint)
+  ? existingOpenAIEndpoint
+  : aiFoundry.properties.endpoints['OpenAI Language Model Instance API']
+output aiFoundryName string = !empty(existingAIFoundryName) ? existingAIFoundryName : aiFoundryName
 
 output applicationInsightsId string = applicationInsights.id
 output logAnalyticsWorkspaceResourceName string = useExisting ? existingLogAnalyticsWorkspace.name : logAnalytics.name
