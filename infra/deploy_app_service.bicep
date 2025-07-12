@@ -159,7 +159,7 @@ resource Website 'Microsoft.Web/sites@2020-06-01' = {
       alwaysOn: true
       ftpsState: 'Disabled'
       appSettings: [
-        {
+             {
           name: 'APPINSIGHTS_INSTRUMENTATIONKEY'
           value: reference(applicationInsightsId, '2015-05-01').InstrumentationKey
         }
@@ -401,7 +401,7 @@ module assignAiUserRoleToAiProject 'deploy_foundry_role_assignment.bicep' = {
   scope: resourceGroup(existingAIServiceSubscription, existingAIServiceResourceGroup)
   params: {
     principalId: Website.identity.principalId
-    roleDefinitionId: aiUserRoleDefinitionFoundryProject.id
+    roleDefinitionId: aiUserRoleDefinitionFoundry.id
     roleAssignmentName: guid(Website.name, aiFoundry.id, aiUserRoleDefinitionFoundry.id)
     aiFoundryName: !empty(azureExistingAIProjectResourceId) ? existingAIServicesName : aiFoundryName
   }

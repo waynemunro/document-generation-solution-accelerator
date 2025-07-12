@@ -65,7 +65,7 @@ param imageTag string = 'latest'
 param existingLogAnalyticsWorkspaceId string = ''
 
 @description('Use this parameter to use an existing AI project resource ID')
-param azureExistingAIProjectResourceId string = ''
+param azureExistingAIProjectResourceId string = '/subscriptions/ff9b5430-90ea-44c0-8a00-e488c1bf56f4/resourceGroups/rg-bsanusi-5842/providers/Microsoft.CognitiveServices/accounts/bsanusi-5842-resource/projects/bsanusi-5842'
 
 var solutionLocation = empty(AZURE_LOCATION) ? resourceGroup().location : AZURE_LOCATION
 

@@ -53,7 +53,7 @@ var existingAIServiceResourceGroup = !empty(azureExistingAIProjectResourceId)
   ? split(azureExistingAIProjectResourceId, '/')[4]
   : ''
 var aiSearchConnectionName = 'foundry-search-connection-${solutionName}'
-// var aiAppInsightConnectionName = 'foundry-app-insights-connection-${solutionName}'
+var aiAppInsightConnectionName = 'foundry-app-insights-connection-${solutionName}'
 
 var aiModelDeployments = [
   {
@@ -219,6 +219,74 @@ module existing_AIProject_SearchConnectionModule 'deploy_aifp_aisearch_connectio
   }
 }
 
+resource cognitiveServicesOpenAIUser 'Microsoft.Authorization/roleDefinitions@2022-04-01' existing = {
+  name: '5e0bd9bd-7b93-4f28-af87-19fc36ad61bd'
+}
+
+module assignOpenAIRoleToAISearch 'deploy_foundry_role_assignment.bicep' = {
+  name: 'assignOpenAIRoleToAISearch'
+  scope: resourceGroup(existingAIServiceSubscription, existingAIServiceResourceGroup)
+  params: {
+    roleDefinitionId: cognitiveServicesOpenAIUser.id
+    roleAssignmentName: guid(resourceGroup().id, aiSearch.id, cognitiveServicesOpenAIUser.id, 'openai-foundry')
+    aiFoundryName: !empty(azureExistingAIProjectResourceId) ? existingAIFoundryName : aiFoundryName
+    aiProjectName: !empty(azureExistingAIProjectResourceId) ? existingAIProjectName : aiProjectName
+    principalId: aiSearch.identity.principalId
+  }
+}
+
+@description('This is the built-in Search Index Data Reader role.')
+resource searchIndexDataReaderRoleDefinition 'Microsoft.Authorization/roleDefinitions@2022-04-01' existing = {
+  scope: aiSearch
+  name: '1407120a-92aa-4202-b7e9-c0e197c71c8f'
+}
+
+resource searchIndexDataReaderRoleAssignmentToAIFP 'Microsoft.Authorization/roleAssignments@2022-04-01' = if (empty(azureExistingAIProjectResourceId)) {
+  name: guid(aiSearch.id, aiFoundryProject.id, searchIndexDataReaderRoleDefinition.id)
+  scope: aiSearch
+  properties: {
+    roleDefinitionId: searchIndexDataReaderRoleDefinition.id
+    principalId: aiFoundryProject.identity.principalId
+    principalType: 'ServicePrincipal'
+  }
+}
+resource assignSearchIndexDataReaderToExistingAiProject 'Microsoft.Authorization/roleAssignments@2022-04-01' = if (!empty(azureExistingAIProjectResourceId)) {
+  name: guid(resourceGroup().id, existingAIProjectName, searchIndexDataReaderRoleDefinition.id, 'Existing')
+  scope: aiSearch
+  properties: {
+    roleDefinitionId: searchIndexDataReaderRoleDefinition.id
+    principalId: assignOpenAIRoleToAISearch.outputs.aiProjectPrincipalId
+    principalType: 'ServicePrincipal'
+  }
+}
+
+@description('This is the built-in Search Service Contributor role.')
+resource searchServiceContributorRoleDefinition 'Microsoft.Authorization/roleDefinitions@2022-04-01' existing = {
+  scope: aiSearch
+  name: '7ca78c08-252a-4471-8644-bb5ff32d4ba0'
+}
+
+resource searchServiceContributorRoleAssignmentToAIFP 'Microsoft.Authorization/roleAssignments@2022-04-01' = if (empty(azureExistingAIProjectResourceId)) {
+  name: guid(aiSearch.id, aiFoundryProject.id, searchServiceContributorRoleDefinition.id)
+  scope: aiSearch
+  properties: {
+    roleDefinitionId: searchServiceContributorRoleDefinition.id
+    principalId: aiFoundryProject.identity.principalId
+    principalType: 'ServicePrincipal'
+  }
+}
+
+resource searchServiceContributorRoleAssignmentExisting 'Microsoft.Authorization/roleAssignments@2022-04-01' = if (!empty(azureExistingAIProjectResourceId)) {
+  name: guid(resourceGroup().id, existingAIProjectName, searchServiceContributorRoleDefinition.id, 'Existing')
+  scope: aiSearch
+  properties: {
+    roleDefinitionId: searchServiceContributorRoleDefinition.id
+    principalId: assignOpenAIRoleToAISearch.outputs.aiProjectPrincipalId
+    principalType: 'ServicePrincipal'
+  }
+}
+
+
 resource tenantIdEntry 'Microsoft.KeyVault/vaults/secrets@2021-11-01-preview' = {
   parent: keyVault
   name: 'TENANT-ID'
@@ -226,6 +294,7 @@ resource tenantIdEntry 'Microsoft.KeyVault/vaults/secrets@2021-11-01-preview' = 
     value: subscription().tenantId
   }
 }
+
 
 resource azureOpenAIDeploymentModel 'Microsoft.KeyVault/vaults/secrets@2021-11-01-preview' = {
   parent: keyVault
@@ -247,9 +316,12 @@ resource azureOpenAIEndpointEntry 'Microsoft.KeyVault/vaults/secrets@2021-11-01-
   parent: keyVault
   name: 'AZURE-OPENAI-ENDPOINT'
   properties: {
-    value: aiFoundry.properties.endpoints['OpenAI Language Model Instance API'] //aiServices_m.properties.endpoint
+     value: !empty(existingOpenAIEndpoint)
+      ? existingOpenAIEndpoint
+      : aiFoundry.properties.endpoints['OpenAI Language Model Instance API']
   }
-}
+  }
+
 
 resource azureSearchAdminKeyEntry 'Microsoft.KeyVault/vaults/secrets@2021-11-01-preview' = {
   parent: keyVault
