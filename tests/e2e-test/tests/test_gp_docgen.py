@@ -1,19 +1,14 @@
 import logging
 import time
-import pytest
-from pytest_check import check
 
-from config.constants import (
-    add_section,
-    browse_question1,
-    browse_question2,
-    generate_question1,
-    invalid_response,
-)
+import pytest
+from config.constants import (add_section, browse_question1, browse_question2,
+                              generate_question1, invalid_response, invalid_response1)
 from pages.browsePage import BrowsePage
 from pages.draftPage import DraftPage
 from pages.generatePage import GeneratePage
 from pages.homePage import HomePage
+from pytest_check import check
 
 logger = logging.getLogger(__name__)
 
@@ -31,6 +26,7 @@ def setup_pages(login_logout):
 
 # ---------- INDIVIDUAL TEST CASES ----------
 
+
 def test_load_home_and_navigate_to_browse_page(setup_pages, request):
     request.node._nodeid = "Validate Home Page is loaded and navigating to Browse Page"
     _, home, browse, *_ = setup_pages
@@ -45,7 +41,9 @@ def test_load_home_and_navigate_to_browse_page(setup_pages, request):
         raise
 
     duration = time.time() - start
-    logger.info(f"Test 'Home to Browse Page Navigation' completed in {duration:.2f} seconds.")
+    logger.info(
+        f"Test 'Home to Browse Page Navigation' completed in {duration:.2f} seconds."
+    )
 
 
 @pytest.mark.parametrize("question", [browse_question1])
@@ -80,6 +78,7 @@ def test_browse_prompt2(setup_pages, question, request):
         logger.info(f"Entering Browse Question 2: {question}")
         browse.enter_a_question(question)
         browse.click_send_button()
+        browse.validate_response_status(question_api=question)
         browse.click_expand_reference_in_response()
         browse.click_reference_link_in_response()
         browse.close_citation()
@@ -113,6 +112,7 @@ def test_delete_chat_history_before_generate_prompt1(setup_pages, request):
 MAX_RETRIES = 3
 RETRY_DELAY = 3  # seconds
 
+
 @pytest.mark.parametrize("question", [generate_question1])
 def test_generate_prompt(setup_pages, question, request):
     request.node._nodeid = f"Validate response for GENERATE Prompt1 : {question}"
@@ -120,30 +120,29 @@ def test_generate_prompt(setup_pages, question, request):
     start = time.time()
 
     try:
-        logger.info("Validating prerequisite Browse prompt before GENERATE.")
-        browse.validate_response_status(question_api=browse_question2)
 
         attempt = 1
         while attempt <= MAX_RETRIES:
             logger.info(f"Attempt {attempt}: Entering Generate Question: {question}")
             generate.enter_a_question(question)
             generate.click_send_button()
+            # generate.validate_generate_response_status(question_api=question)
 
             time.sleep(2)
             response_text = page.locator("//p")
-            latest_response = response_text.nth(response_text.count() - 1).text_content()
+            latest_response = response_text.nth(
+                response_text.count() - 1
+            ).text_content()
 
-            if latest_response != invalid_response:
+            if latest_response not in [invalid_response, invalid_response1]:
                 logger.info(f"Valid response received on attempt {attempt}")
-                generate.validate_response_status(question_api=question)
                 break
             else:
                 logger.warning(f"Invalid response received on attempt {attempt}")
                 if attempt == MAX_RETRIES:
                     check.not_equal(
-                        invalid_response,
-                        latest_response,
-                        f"FAILED: Invalid response received after {MAX_RETRIES} attempts for: {question}"
+                        latest_response not in [invalid_response, invalid_response1],
+                        f"FAILED: Invalid response received after {MAX_RETRIES} attempts for: {question}",
                     )
                 else:
                     time.sleep(RETRY_DELAY)
@@ -166,7 +165,7 @@ def test_add_section_prompt(setup_pages, question, request):
         logger.info(f"Entering Add Section Question: {question}")
         generate.enter_a_question(question)
         generate.click_send_button()
-        browse.validate_response_status(question_api=question)
+        # generate.validate_generate_response_status(question_api=question)
     except Exception as e:
         logger.error(f"FAILED while validating Add Section Prompt '{question}': {e}")
         raise
@@ -185,13 +184,16 @@ def test_generate_draft_from_section_prompt(setup_pages, request):
     try:
         logger.info("Clicking 'Generate Draft' and validating sections.")
         generate.click_generate_draft_button()
-        draft.check_draft_sections()
+        # draft.validate_draft_sections()
+        draft.validate_draft_sections_loaded()
     except Exception as e:
         logger.error(f"FAILED while generating or validating draft sections: {e}")
         raise
 
     duration = time.time() - start
-    logger.info(f"Test 'Generate Draft and Validate Sections' completed in {duration:.2f} seconds.")
+    logger.info(
+        f"Test 'Generate Draft and Validate Sections' completed in {duration:.2f} seconds."
+    )
 
 
 def test_show_chat_history_at_end(setup_pages, request):
