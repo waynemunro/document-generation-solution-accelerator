@@ -74,7 +74,7 @@ If you're not using one of the above options for opening the project, then you'l
 
 1. Make sure the following tools are installed:
     - [PowerShell](https://learn.microsoft.com/en-us/powershell/scripting/install/installing-powershell?view=powershell-7.5) <small>(v7.0+)</small> - available for Windows, macOS, and Linux. (Required for Windows users only. Follow the steps [here](./PowershellSetup.md) to add it to the Windows PATH.)
-    - [Azure Developer CLI (azd)](https://aka.ms/install-azd)
+    - [Azure Developer CLI (azd)](https://aka.ms/install-azd) <small>(v1.15.0+)</small> - version
     - [Python 3.9+](https://www.python.org/downloads/)
     - [Docker Desktop](https://www.docker.com/products/docker-desktop/)
     - [Git](https://git-scm.com/downloads)
@@ -175,7 +175,7 @@ Once you've opened the project in [Codespaces](#github-codespaces), [Dev Contain
     ```
     If you don't have azd env then you need to pass parameters along with the command. Then the command will look like the following:
     ```shell 
-    bash ./infra/scripts/process_sample_data.sh <Storage-Account-name> <Storage-Account-container-name> <Key-Vault-name> <CosmosDB-Account-name> <Resource-Group-name> <aiFoundryResourceName>
+    bash ./infra/scripts/process_sample_data.sh <Storage-Account-name> <Storage-Account-container-name> <Key-Vault-name> <CosmosDB-Account-name> <Resource-Group-name> <AI-Foundry-Name> <AI-Foundry-Resource-Group-Name> <Search-Service-Name>
     ```
 
 6. Open the [Azure Portal](https://portal.azure.com/), go to the deployed resource group, find the App Service and get the app URL from `Default domain`.
