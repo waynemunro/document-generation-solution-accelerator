@@ -199,5 +199,6 @@ output KEY_VAULT_NAME string = kvault.outputs.keyvaultName
 output COSMOSDB_ACCOUNT_NAME string = cosmosDBModule.outputs.cosmosAccountName
 output RESOURCE_GROUP_NAME string = resourceGroup().name
 output AI_FOUNDRY_NAME string = aifoundry.outputs.aiFoundryName
+output AI_FOUNDRY_RG_NAME string = aifoundry.outputs.aiFoundryRgName
 output AI_SEARCH_SERVICE_NAME string = aifoundry.outputs.aiSearchService
 output AZURE_SEARCH_CONNECTION_NAME string = aifoundry.outputs.aiSearchConnectionName

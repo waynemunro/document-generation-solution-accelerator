@@ -112,6 +112,11 @@ resource applicationInsights 'Microsoft.Insights/components@2020-02-02' = {
   }
 }
 
+resource existingAiFoundry 'Microsoft.CognitiveServices/accounts@2025-04-01-preview' existing = if (!empty(azureExistingAIProjectResourceId)) {
+  name: existingAIFoundryName
+  scope: resourceGroup(existingAIServiceSubscription, existingAIServiceResourceGroup)
+}
+
 resource aiFoundry 'Microsoft.CognitiveServices/accounts@2025-04-01-preview' = if (empty(azureExistingAIProjectResourceId))  {
   name: aiFoundryName
   location: location
@@ -360,7 +365,9 @@ resource cogServiceEndpointEntry 'Microsoft.KeyVault/vaults/secrets@2021-11-01-p
   parent: keyVault
   name: 'COG-SERVICES-ENDPOINT'
   properties: {
-    value: aiFoundry.properties.endpoint
+    value: !empty(existingOpenAIEndpoint)
+      ? existingOpenAIEndpoint
+      : aiFoundry.properties.endpoint
   }
 }
 
@@ -368,7 +375,9 @@ resource cogServiceKeyEntry 'Microsoft.KeyVault/vaults/secrets@2021-11-01-previe
   parent: keyVault
   name: 'COG-SERVICES-KEY'
   properties: {
-    value: aiFoundry.listKeys().key1
+    value: !empty(existingOpenAIEndpoint)
+      ? existingAiFoundry.listKeys().key1
+      : aiFoundry.listKeys().key1
   }
 }
 
@@ -376,7 +385,7 @@ resource cogServiceNameEntry 'Microsoft.KeyVault/vaults/secrets@2021-11-01-previ
   parent: keyVault
   name: 'COG-SERVICES-NAME'
   properties: {
-    value: aiFoundryName
+    value: !empty(existingAIFoundryName) ? existingAIFoundryName : aiFoundryName
   }
 }
 
@@ -407,9 +416,9 @@ resource azureLocatioEntry 'Microsoft.KeyVault/vaults/secrets@2021-11-01-preview
 output keyvaultName string = keyvaultName
 output keyvaultId string = keyVault.id
 
-output aiServicesTarget string = aiFoundry.properties.endpoint //aiServices_m.properties.endpoint
-output aiServicesName string = aiFoundryName //aiServicesName_m
-output aiServicesId string = aiFoundry.id //aiServices_m.id
+// output aiServicesTarget string = aiFoundry.properties.endpoint //aiServices_m.properties.endpoint
+// output aiServicesName string = aiFoundryName //aiServicesName_m
+// output aiServicesId string = aiFoundry.id //aiServices_m.id
 
 output aiSearchName string = aiSearchName
 output aiSearchId string = aiSearch.id
@@ -426,6 +435,7 @@ output aoaiEndpoint string = !empty(existingOpenAIEndpoint)
   ? existingOpenAIEndpoint
   : aiFoundry.properties.endpoints['OpenAI Language Model Instance API']
 output aiFoundryName string = !empty(existingAIFoundryName) ? existingAIFoundryName : aiFoundryName
+output aiFoundryRgName string = !empty(existingAIServiceResourceGroup) ? existingAIServiceResourceGroup : resourceGroup().name
 
 output applicationInsightsId string = applicationInsights.id
 output logAnalyticsWorkspaceResourceName string = useExisting ? existingLogAnalyticsWorkspace.name : logAnalytics.name
