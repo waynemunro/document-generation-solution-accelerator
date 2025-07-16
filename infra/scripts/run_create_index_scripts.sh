@@ -5,8 +5,9 @@
 keyvaultName="$1"
 resourceGroupName="$2"
 aiFoundryName="$3"
-aiSearchName="$4"
-managedIdentityClientId="$5"
+aiFoundryRgName="$4"
+aiSearchName="$5"
+managedIdentityClientId="$6"
 # requirementFile="infra/scripts/index_scripts/requirements.txt"
 # requirementFileUrl=${baseUrl}"infra/scripts/index_scripts/requirements.txt"
 
@@ -66,7 +67,7 @@ fi
 ### Assign Azure AI User role to the signed in user ###
 
     echo "Getting Azure AI resource id"
-    aif_resource_id=$(az cognitiveservices account show --name $aiFoundryName --resource-group $resourceGroupName --query id --output tsv)
+    aif_resource_id=$(az cognitiveservices account show --name $aiFoundryName --resource-group $aiFoundryRgName --query id --output tsv)
 
     # Check if the user has the Azure AI User role
     echo "Checking if user has the Azure AI User role"

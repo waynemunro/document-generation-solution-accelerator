@@ -7,8 +7,9 @@ keyvaultName="$3"
 cosmosDbAccountName="$4"
 resourceGroupName="$5"
 aiFoundryName="$6"
-aiSearchName="$7"
-managedIdentityClientId="$8"
+aiFoundryRgName="$7"
+aiSearchName="$8"
+managedIdentityClientId="$9"
 
 # get parameters from azd env, if not provided
 if [ -z "$resourceGroupName" ]; then
@@ -35,6 +36,10 @@ if [ -z "$aiFoundryName" ]; then
     aiFoundryName=$(azd env get-value AI_FOUNDRY_NAME)
 fi
 
+if [ -z "$aiFoundryRgName" ]; then
+    aiFoundryRgName=$(azd env get-value AI_FOUNDRY_RG_NAME)
+fi
+
 if [ -z "$aiSearchName" ]; then
     aiSearchName=$(azd env get-value AI_SEARCH_SERVICE_NAME)
 fi
@@ -42,8 +47,8 @@ fi
 azSubscriptionId=$(azd env get-value AZURE_SUBSCRIPTION_ID)
 
 # Check if all required arguments are provided
-if [ -z "$storageAccount" ] || [ -z "$fileSystem" ] || [ -z "$keyvaultName" ] || [ -z "$cosmosDbAccountName" ] || [ -z "$resourceGroupName" ] || [ -z "$aiFoundryName" ] || [ -z "$aiSearchName" ]; then
-    echo "Usage: $0 <storageAccount> <storageContainerName> <keyvaultName> <cosmosDbAccountName> <resourceGroupName> <aiFoundryName> <aiSearchName>"
+if [ -z "$storageAccount" ] || [ -z "$fileSystem" ] || [ -z "$keyvaultName" ] || [ -z "$cosmosDbAccountName" ] || [ -z "$resourceGroupName" ] || [ -z "$aiFoundryName" ] || [ -z "$aiFoundryRgName" ] || [ -z "$aiSearchName" ]; then
+    echo "Usage: $0 <storageAccount> <storageContainerName> <keyvaultName> <cosmosDbAccountName> <resourceGroupName> <aiFoundryName> <aiFoundryRgName> <aiSearchName>"
     exit 1
 fi
 
@@ -125,7 +130,7 @@ echo "copy_kb_files.sh completed successfully."
 
 # Call run_create_index_scripts.sh
 echo "Running run_create_index_scripts.sh"
-bash infra/scripts/run_create_index_scripts.sh "$keyvaultName" "$resourceGroupName" "$aiFoundryName" "$aiSearchName" "$managedIdentityClientId"
+bash infra/scripts/run_create_index_scripts.sh "$keyvaultName" "$resourceGroupName" "$aiFoundryName" "$aiFoundryRgName" "$aiSearchName" "$managedIdentityClientId"
 if [ $? -ne 0 ]; then
     echo "Error: run_create_index_scripts.sh failed."
     exit 1

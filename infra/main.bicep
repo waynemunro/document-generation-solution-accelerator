@@ -64,6 +64,9 @@ param imageTag string = 'latest'
 @description('Optional: Existing Log Analytics Workspace Resource ID')
 param existingLogAnalyticsWorkspaceId string = ''
 
+@description('Use this parameter to use an existing AI project resource ID')
+param azureExistingAIProjectResourceId string = ''
+
 var solutionLocation = empty(AZURE_LOCATION) ? resourceGroup().location : AZURE_LOCATION
 
 var uniqueId = toLower(uniqueString(environmentName, subscription().id, solutionLocation))
@@ -118,6 +121,7 @@ module aifoundry 'deploy_ai_foundry.bicep' = {
     embeddingDeploymentCapacity: embeddingDeploymentCapacity
     managedIdentityObjectId: managedIdentityModule.outputs.managedIdentityOutput.objectId
     existingLogAnalyticsWorkspaceId: existingLogAnalyticsWorkspaceId
+    azureExistingAIProjectResourceId: azureExistingAIProjectResourceId
   }
   scope: resourceGroup(resourceGroup().name)
 }
@@ -169,6 +173,7 @@ module appserviceModule 'deploy_app_service.bicep' = {
     HostingPlanName: '${abbrs.compute.appServicePlan}${solutionPrefix}'
     WebsiteName: '${abbrs.compute.webApp}${solutionPrefix}'
     aiSearchProjectConnectionName: aifoundry.outputs.aiSearchConnectionName
+    azureExistingAIProjectResourceId: azureExistingAIProjectResourceId
   }
   scope: resourceGroup(resourceGroup().name)
   // dependsOn:[sqlDBModule]
@@ -194,5 +199,6 @@ output KEY_VAULT_NAME string = kvault.outputs.keyvaultName
 output COSMOSDB_ACCOUNT_NAME string = cosmosDBModule.outputs.cosmosAccountName
 output RESOURCE_GROUP_NAME string = resourceGroup().name
 output AI_FOUNDRY_NAME string = aifoundry.outputs.aiFoundryName
+output AI_FOUNDRY_RG_NAME string = aifoundry.outputs.aiFoundryRgName
 output AI_SEARCH_SERVICE_NAME string = aifoundry.outputs.aiSearchService
 output AZURE_SEARCH_CONNECTION_NAME string = aifoundry.outputs.aiSearchConnectionName
