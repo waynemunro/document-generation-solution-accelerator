@@ -14,8 +14,8 @@ By default this template will use the environment name as the prefix to prevent 
 | `AZURE_ENV_SECONDARY_LOCATION`         | string  | `eastus2`                  | Specifies a secondary Azure region.                                           |
 | `AZURE_ENV_MODEL_DEPLOYMENT_TYPE`      | string  | `Standard`                 | Defines the model deployment type (allowed: `Standard`, `GlobalStandard`).    |
 | `AZURE_ENV_MODEL_NAME`                 | string  | `gpt-4.1`                   | Specifies the GPT model name (allowed: `gpt-4.1`).                    |
-| `AZURE_ENV_MODEL_VERSION`                 | string  | `2024-05-13`                   | Set the Azure model version (allowed values: `2024-08-06`).                    |
-| `AZURE_ENV_OPENAI_API_VERSION`                 | string  | `2024-05-01-preview`                   | Specifies the API version for Azure OpenAI.                    |
+| `AZURE_ENV_MODEL_VERSION`                 | string  | `2025-04-14`                   | Set the Azure model version.                    |
+| `AZURE_ENV_OPENAI_API_VERSION`                 | string  | `2025-01-01-preview`                   | Specifies the API version for Azure OpenAI.                    |
 | `AZURE_ENV_MODEL_CAPACITY`             | integer | `30`                         | Sets the GPT model capacity (based on what's available in your subscription). |
 | `AZURE_ENV_EMBEDDING_MODEL_NAME`       | string  | `text-embedding-ada-002`   | Sets the name of the embedding model to use.                                  |
 | `AZURE_ENV_IMAGETAG`       | string  | `latest`   | Set the Image tag Like (allowed values: latest, dev, hotfix)                                   |
