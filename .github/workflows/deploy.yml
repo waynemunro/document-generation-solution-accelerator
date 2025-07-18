@@ -144,7 +144,7 @@ jobs:
                 secondaryLocation="northcentralus" \
                 deploymentType="GlobalStandard" \
                 gptModelName="gpt-4.1" \
-                azureOpenaiAPIVersion="2024-05-01-preview" \
+                azureOpenaiAPIVersion="2025-01-01-preview" \
                 gptDeploymentCapacity=${{ env.GPT_MIN_CAPACITY }} \
                 embeddingModel="text-embedding-ada-002" \
                 embeddingDeploymentCapacity=${{ env.TEXT_EMBEDDING_MIN_CAPACITY }} \
