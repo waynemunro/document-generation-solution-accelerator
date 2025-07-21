@@ -1,6 +1,9 @@
 name: DocGen Deploy-Test-Cleanup Pipeline
 
 on:
+    push:
+      branches: 
+        - deploy-wf-minorfix
     workflow_run:
       workflows: ["Build Docker and Optional Push"]
       types:
