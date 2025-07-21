@@ -9,6 +9,7 @@ on:
         - main
         - dev
         - demo
+        - deploy-wf-minorfix
 
     schedule:
       - cron: '0 9,21 * * *'  # Runs at 9:00 AM and 9:00 PM GMT
@@ -16,7 +17,7 @@ on:
 env:
   GPT_MIN_CAPACITY: 150
   TEXT_EMBEDDING_MIN_CAPACITY: 80
-  BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
+  BRANCH_NAME: ${{ github.event.workflow_run.head_branch || github.head_ref || github.ref_name }}
 
 jobs:
   deploy:
@@ -181,14 +182,17 @@ jobs:
           az account set --subscription "${{ secrets.AZURE_SUBSCRIPTION_ID }}"
 
           echo "Running post-deployment script..."
+
           bash ./infra/scripts/copy_kb_files.sh \
             "${{ env.STORAGE_ACCOUNT_NAME }}" \
             "${{ env.STORAGE_CONTAINER_NAME }}" \
             "${{ secrets.AZURE_CLIENT_ID }}"
+
           bash ./infra/scripts/run_create_index_scripts.sh \
             "${{ env.KEY_VAULT_NAME }}" \
             "${{ env.RESOURCE_GROUP_NAME }}" \
             "${{ env.AI_FOUNDRY_NAME }}" \
+            "${{ env.RESOURCE_GROUP_NAME }}" \
             "${{ env.AI_SEARCH_SERVICE_NAME }}" \
             "${{ secrets.AZURE_CLIENT_ID }}"
 
