@@ -69,8 +69,7 @@ param azureExistingAIProjectResourceId string = ''
 
 var solutionLocation = empty(AZURE_LOCATION) ? resourceGroup().location : AZURE_LOCATION
 
-var uniqueId = toLower(uniqueString(environmentName, subscription().id, solutionLocation))
-var solutionPrefix = 'dg${padLeft(take(uniqueId, 12), 12, '0')}'
+var solutionPrefix = 'dg${padLeft(take(toLower(uniqueString(subscription().id, environmentName, resourceGroup().location,resourceGroup().name)), 12), 12, '0')}'
 
 // ========== Resource Group Tag ========== //
 resource resourceGroupTags 'Microsoft.Resources/tags@2021-04-01' = {
