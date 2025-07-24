@@ -83,7 +83,7 @@ def create_app():
             await SectionAgentFactory.delete_agent()
 
             # clear app state
-            if hasattr(app, 'state'):
+            if hasattr(app, 'browse_agent') or hasattr(app, 'template_agent') or hasattr(app, 'section_agent'):
                 app.browse_agent = None
                 app.template_agent = None
                 app.section_agent = None
