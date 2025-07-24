@@ -312,7 +312,7 @@ async def send_chat_request(request_body, request_headers) -> AsyncGenerator[Dic
 
                                     if delta_text and delta_text.value:
                                         answer["answer"] += delta_text.value
-                                        
+
                                         # check if citation markers are present
                                         has_citation_markers = bool(re.search(r'【(\d+:\d+)†source】', delta_text.value))
                                         if has_citation_markers:
@@ -363,13 +363,13 @@ async def send_chat_request(request_body, request_headers) -> AsyncGenerator[Dic
                             if msg.role == MessageRole.AGENT and msg.text_messages:
                                 answer["answer"] = msg.text_messages[-1].text.value
                                 break
-                        
+
                         has_citation_markers = bool(re.search(r'【(\d+:\d+)†source】', answer["answer"]))
-                        
+
                     if has_citation_markers:
                         yield {
-                        "answer": convert_citation_markers(answer["answer"], doc_mapping),
-                        "citations": json.dumps(answer["citations"])
+                            "answer": convert_citation_markers(answer["answer"], doc_mapping),
+                            "citations": json.dumps(answer["citations"])
                         }
                     else:
                         yield {

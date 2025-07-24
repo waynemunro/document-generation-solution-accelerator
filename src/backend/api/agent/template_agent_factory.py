@@ -23,7 +23,7 @@ class TemplateAgentFactory(BaseAgentFactory):
             credential=DefaultAzureCredential(exclude_interactive_browser_credential=False),
             api_version=app_settings.azure_ai.agent_api_version
         )
-        
+
         agent_name = f"DG-TemplateAgent-{app_settings.base_settings.solution_name}"
         # 1. Check if the agent already exists
         async for agent in project_client.agents.list_agents():
