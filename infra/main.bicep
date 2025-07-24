@@ -43,6 +43,10 @@ param gptModelVersion string = '2025-04-14'
 @description('API version for Azure OpenAI service. This should be a valid API version supported by the service.')
 param azureOpenaiAPIVersion string = '2025-01-01-preview'
 
+
+@description('API version for Azure AI Agent service. This should be a valid API version supported by the service.')
+param azureAiAgentApiVersion string = '2025-05-01'
+
 @minValue(10)
 @description('Capacity of the GPT deployment:')
 // You can increase this, but capacity is limited per model/region, so you will get errors if you go over
@@ -155,6 +159,7 @@ module appserviceModule 'deploy_app_service.bicep' = {
     solutionLocation: solutionLocation
     aiSearchService: aifoundry.outputs.aiSearchService
     aiSearchName: aifoundry.outputs.aiSearchName
+    azureAiAgentApiVersion: azureAiAgentApiVersion
     AzureOpenAIEndpoint: aifoundry.outputs.aoaiEndpoint
     AzureOpenAIModel: gptModelName
     azureOpenAIApiVersion: azureOpenaiAPIVersion //'2024-02-15-preview'

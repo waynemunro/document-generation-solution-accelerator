@@ -31,6 +31,7 @@ param AzureOpenAIModel string
 @description('Azure Open AI Endpoint')
 param AzureOpenAIEndpoint string = ''
 
+param azureAiAgentApiVersion string
 param azureOpenAIApiVersion string
 param azureOpenaiResource string = ''
 param USE_CHAT_HISTORY_ENABLED string = ''
@@ -267,7 +268,11 @@ resource Website 'Microsoft.Web/sites@2020-06-01' = {
         }
         {
           name: 'AZURE_AI_AGENT_API_VERSION'
-          value: azureOpenAIApiVersion
+          value: azureAiAgentApiVersion
+        }
+        {
+          name: 'SOLUTION_NAME'
+          value: solutionName
         }
         {
           name: 'USE_CHAT_HISTORY_ENABLED'
