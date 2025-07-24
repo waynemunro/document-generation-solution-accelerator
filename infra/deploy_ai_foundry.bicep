@@ -239,6 +239,7 @@ module assignOpenAIRoleToAISearch 'deploy_foundry_role_assignment.bicep' = {
     aiFoundryName: !empty(azureExistingAIProjectResourceId) ? existingAIFoundryName : aiFoundryName
     aiProjectName: !empty(azureExistingAIProjectResourceId) ? existingAIProjectName : aiProjectName
     principalId: aiSearch.identity.principalId
+    aiModelDeployments: aiModelDeployments
   }
 }
 

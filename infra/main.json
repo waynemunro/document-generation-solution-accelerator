@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.36.177.2456",
-      "templateHash": "8486800252430863693"
+      "templateHash": "12401520506444829394"
     }
   },
   "parameters": {
@@ -639,7 +639,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.36.177.2456",
-              "templateHash": "8502710171947922301"
+              "templateHash": "5405168643980957312"
             }
           },
           "parameters": {
@@ -1403,6 +1403,9 @@
                   "aiProjectName": "[if(not(empty(parameters('azureExistingAIProjectResourceId'))), createObject('value', variables('existingAIProjectName')), createObject('value', variables('aiProjectName')))]",
                   "principalId": {
                     "value": "[reference(resourceId('Microsoft.Search/searchServices', variables('aiSearchName')), '2024-06-01-preview', 'full').identity.principalId]"
+                  },
+                  "aiModelDeployments": {
+                    "value": "[variables('aiModelDeployments')]"
                   }
                 },
                 "template": {
@@ -1412,7 +1415,7 @@
                     "_generator": {
                       "name": "bicep",
                       "version": "0.36.177.2456",
-                      "templateHash": "11899270249637077405"
+                      "templateHash": "9006594324715793103"
                     }
                   },
                   "parameters": {
@@ -1433,9 +1436,36 @@
                     "aiProjectName": {
                       "type": "string",
                       "defaultValue": ""
+                    },
+                    "aiModelDeployments": {
+                      "type": "array",
+                      "defaultValue": []
                     }
                   },
                   "resources": [
+                    {
+                      "copy": {
+                        "name": "aiServicesDeployments",
+                        "count": "[length(parameters('aiModelDeployments'))]",
+                        "mode": "serial",
+                        "batchSize": 1
+                      },
+                      "condition": "[not(empty(parameters('aiModelDeployments')))]",
+                      "type": "Microsoft.CognitiveServices/accounts/deployments",
+                      "apiVersion": "2025-04-01-preview",
+                      "name": "[format('{0}/{1}', parameters('aiFoundryName'), parameters('aiModelDeployments')[copyIndex()].name)]",
+                      "properties": {
+                        "model": {
+                          "format": "OpenAI",
+                          "name": "[parameters('aiModelDeployments')[copyIndex()].model]"
+                        },
+                        "raiPolicyName": "[parameters('aiModelDeployments')[copyIndex()].raiPolicyName]"
+                      },
+                      "sku": {
+                        "name": "[parameters('aiModelDeployments')[copyIndex()].sku.name]",
+                        "capacity": "[parameters('aiModelDeployments')[copyIndex()].sku.capacity]"
+                      }
+                    },
                     {
                       "type": "Microsoft.Authorization/roleAssignments",
                       "apiVersion": "2022-04-01",
@@ -1809,7 +1839,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.36.177.2456",
-              "templateHash": "2642619356084894434"
+              "templateHash": "4427077770927711325"
             }
           },
           "parameters": {
@@ -2327,7 +2357,7 @@
                     "_generator": {
                       "name": "bicep",
                       "version": "0.36.177.2456",
-                      "templateHash": "11899270249637077405"
+                      "templateHash": "9006594324715793103"
                     }
                   },
                   "parameters": {
@@ -2348,9 +2378,36 @@
                     "aiProjectName": {
                       "type": "string",
                       "defaultValue": ""
+                    },
+                    "aiModelDeployments": {
+                      "type": "array",
+                      "defaultValue": []
                     }
                   },
                   "resources": [
+                    {
+                      "copy": {
+                        "name": "aiServicesDeployments",
+                        "count": "[length(parameters('aiModelDeployments'))]",
+                        "mode": "serial",
+                        "batchSize": 1
+                      },
+                      "condition": "[not(empty(parameters('aiModelDeployments')))]",
+                      "type": "Microsoft.CognitiveServices/accounts/deployments",
+                      "apiVersion": "2025-04-01-preview",
+                      "name": "[format('{0}/{1}', parameters('aiFoundryName'), parameters('aiModelDeployments')[copyIndex()].name)]",
+                      "properties": {
+                        "model": {
+                          "format": "OpenAI",
+                          "name": "[parameters('aiModelDeployments')[copyIndex()].model]"
+                        },
+                        "raiPolicyName": "[parameters('aiModelDeployments')[copyIndex()].raiPolicyName]"
+                      },
+                      "sku": {
+                        "name": "[parameters('aiModelDeployments')[copyIndex()].sku.name]",
+                        "capacity": "[parameters('aiModelDeployments')[copyIndex()].sku.capacity]"
+                      }
+                    },
                     {
                       "type": "Microsoft.Authorization/roleAssignments",
                       "apiVersion": "2022-04-01",
