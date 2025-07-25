@@ -1,9 +1,6 @@
 name: DocGen Deploy-Test-Cleanup Pipeline
 
 on:
-    push:
-      branches:
-        - build-main-json
     workflow_run:
       workflows: ["Build Docker and Optional Push"]
       types:
