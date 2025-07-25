@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.36.177.2456",
-      "templateHash": "8486800252430863693"
+      "templateHash": "2218487437635677522"
     }
   },
   "parameters": {
@@ -354,8 +354,7 @@
     },
     "abbrs": "[variables('$fxv#0')]",
     "solutionLocation": "[if(empty(parameters('AZURE_LOCATION')), resourceGroup().location, parameters('AZURE_LOCATION'))]",
-    "uniqueId": "[toLower(uniqueString(parameters('environmentName'), subscription().id, variables('solutionLocation')))]",
-    "solutionPrefix": "[format('dg{0}', padLeft(take(variables('uniqueId'), 12), 12, '0'))]"
+    "solutionPrefix": "[format('dg{0}', padLeft(take(toLower(uniqueString(subscription().id, parameters('environmentName'), resourceGroup().location, resourceGroup().name)), 12), 12, '0'))]"
   },
   "resources": [
     {
@@ -639,7 +638,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.36.177.2456",
-              "templateHash": "8502710171947922301"
+              "templateHash": "13327438188493804054"
             }
           },
           "parameters": {
@@ -950,7 +949,7 @@
                 "name": "[parameters('embeddingModel')]",
                 "model": "[parameters('embeddingModel')]",
                 "sku": {
-                  "name": "Standard",
+                  "name": "GlobalStandard",
                   "capacity": "[parameters('embeddingDeploymentCapacity')]"
                 },
                 "version": "2",
@@ -1809,7 +1808,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.36.177.2456",
-              "templateHash": "2642619356084894434"
+              "templateHash": "4888491198659956603"
             }
           },
           "parameters": {
