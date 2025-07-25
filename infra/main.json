@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.36.177.2456",
-      "templateHash": "12401520506444829394"
+      "templateHash": "7421251462011771854"
     }
   },
   "parameters": {
@@ -76,6 +76,13 @@
       "defaultValue": "2025-01-01-preview",
       "metadata": {
         "description": "API version for Azure OpenAI service. This should be a valid API version supported by the service."
+      }
+    },
+    "azureAiAgentApiVersion": {
+      "type": "string",
+      "defaultValue": "2025-05-01",
+      "metadata": {
+        "description": "API version for Azure AI Agent service. This should be a valid API version supported by the service."
       }
     },
     "gptDeploymentCapacity": {
@@ -354,8 +361,7 @@
     },
     "abbrs": "[variables('$fxv#0')]",
     "solutionLocation": "[if(empty(parameters('AZURE_LOCATION')), resourceGroup().location, parameters('AZURE_LOCATION'))]",
-    "uniqueId": "[toLower(uniqueString(parameters('environmentName'), subscription().id, variables('solutionLocation')))]",
-    "solutionPrefix": "[format('dg{0}', padLeft(take(variables('uniqueId'), 12), 12, '0'))]"
+    "solutionPrefix": "[format('dg{0}', padLeft(take(toLower(uniqueString(subscription().id, parameters('environmentName'), resourceGroup().location, resourceGroup().name)), 12), 12, '0'))]"
   },
   "resources": [
     {
@@ -1780,6 +1786,9 @@
           "aiSearchName": {
             "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, resourceGroup().name), 'Microsoft.Resources/deployments', 'deploy_ai_foundry'), '2022-09-01').outputs.aiSearchName.value]"
           },
+          "azureAiAgentApiVersion": {
+            "value": "[parameters('azureAiAgentApiVersion')]"
+          },
           "AzureOpenAIEndpoint": {
             "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, resourceGroup().name), 'Microsoft.Resources/deployments', 'deploy_ai_foundry'), '2022-09-01').outputs.aoaiEndpoint.value]"
           },
@@ -1839,7 +1848,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.36.177.2456",
-              "templateHash": "4427077770927711325"
+              "templateHash": "16850060889438240970"
             }
           },
           "parameters": {
@@ -1903,6 +1912,9 @@
               "metadata": {
                 "description": "Azure Open AI Endpoint"
               }
+            },
+            "azureAiAgentApiVersion": {
+              "type": "string"
             },
             "azureOpenAIApiVersion": {
               "type": "string"
@@ -2255,7 +2267,11 @@
                     },
                     {
                       "name": "AZURE_AI_AGENT_API_VERSION",
-                      "value": "[parameters('azureOpenAIApiVersion')]"
+                      "value": "[parameters('azureAiAgentApiVersion')]"
+                    },
+                    {
+                      "name": "SOLUTION_NAME",
+                      "value": "[parameters('solutionName')]"
                     },
                     {
                       "name": "USE_CHAT_HISTORY_ENABLED",

@@ -69,6 +69,31 @@ def create_app():
     app.register_blueprint(bp)
     app.config["TEMPLATES_AUTO_RELOAD"] = True
     app.config['PROVIDE_AUTOMATIC_OPTIONS'] = True
+
+    @app.after_serving
+    async def shutdown():
+        """
+        Perform any cleanup tasks after the app stops serving requests.
+        """
+        print("Shutting down the application...", flush=True)
+        try:
+            # Clean up agent instances
+            await BrowseAgentFactory.delete_agent()
+            await TemplateAgentFactory.delete_agent()
+            await SectionAgentFactory.delete_agent()
+
+            # clear app state
+            if hasattr(app, 'browse_agent') or hasattr(app, 'template_agent') or hasattr(app, 'section_agent'):
+                app.browse_agent = None
+                app.template_agent = None
+                app.section_agent = None
+
+            track_event_if_configured("ApplicationShutdown", {"status": "success"})
+        except Exception as e:
+            logging.exception("Error during application shutdown")
+            track_event_if_configured("ApplicationShutdownError", {"status": "error"})
+            raise e
+
     return app
 
 
@@ -248,10 +273,15 @@ async def send_chat_request(request_body, request_headers) -> AsyncGenerator[Dic
         run_id = None
         streamed_titles = set()
         doc_mapping = {}
+        thread = None
         # Browse
         if request_body["chat_type"] == "browse":
             try:
-                browse_agent_data = await BrowseAgentFactory.get_browse_agent(system_instruction=app_settings.azure_openai.system_message)
+                # Create browse agent if it doesn't exist
+                if getattr(app, "browse_agent", None) is None:
+                    app.browse_agent = await BrowseAgentFactory.get_agent()
+
+                browse_agent_data = app.browse_agent
                 browse_project_client = browse_agent_data["client"]
                 browse_agent = browse_agent_data["agent"]
 
@@ -283,10 +313,18 @@ async def send_chat_request(request_body, request_headers) -> AsyncGenerator[Dic
 
                                     if delta_text and delta_text.value:
                                         answer["answer"] += delta_text.value
-                                        yield {
-                                            "answer": convert_citation_markers(delta_text.value, doc_mapping),
-                                            "citations": json.dumps(answer["citations"])
-                                        }
+
+                                        # check if citation markers are present
+                                        has_citation_markers = bool(re.search(r'【(\d+:\d+)†source】', delta_text.value))
+                                        if has_citation_markers:
+                                            yield {
+                                                "answer": convert_citation_markers(delta_text.value, doc_mapping),
+                                                "citations": json.dumps(answer["citations"])
+                                            }
+                                        else:
+                                            yield {
+                                                "answer": delta_text.value
+                                            }
 
                                     if delta_text and delta_text.annotations:
                                         for annotation in delta_text.annotations:
@@ -305,10 +343,11 @@ async def send_chat_request(request_body, request_headers) -> AsyncGenerator[Dic
                     if run_id:
                         await extract_citations_from_run_steps(browse_project_client, thread.id, run_id, answer, streamed_titles)
 
-                    yield {
-                        # "answer": answer["answer"],
-                        "citations": json.dumps(answer["citations"])
-                    }
+                    has_final_citation_markers = bool(re.search(r'【(\d+:\d+)†source】', answer["answer"]))
+                    if has_final_citation_markers:
+                        yield {
+                            "citations": json.dumps(answer["citations"])
+                        }
 
                 else:
                     run = await browse_project_client.agents.runs.create_and_process(
@@ -324,12 +363,19 @@ async def send_chat_request(request_body, request_headers) -> AsyncGenerator[Dic
                         async for msg in messages:
                             if msg.role == MessageRole.AGENT and msg.text_messages:
                                 answer["answer"] = msg.text_messages[-1].text.value
-                                answer["answer"] = convert_citation_markers(answer["answer"], doc_mapping)
                                 break
-                    yield {
-                        "answer": answer["answer"],
-                        "citations": json.dumps(answer["citations"])
-                    }
+
+                        has_citation_markers = bool(re.search(r'【(\d+:\d+)†source】', answer["answer"]))
+
+                    if has_citation_markers:
+                        yield {
+                            "answer": convert_citation_markers(answer["answer"], doc_mapping),
+                            "citations": json.dumps(answer["citations"])
+                        }
+                    else:
+                        yield {
+                            "answer": answer["answer"]
+                        }
             finally:
                 if thread:
                     print(f"Deleting browse thread: {thread.id}", flush=True)
@@ -338,7 +384,19 @@ async def send_chat_request(request_body, request_headers) -> AsyncGenerator[Dic
         # Generate Template
         else:
             try:
-                template_agent_data = await TemplateAgentFactory.get_template_agent(system_instruction=app_settings.azure_openai.template_system_message)
+                # Create template agent if it doesn't exist
+                if getattr(app, "template_agent", None) is None:
+                    app.template_agent = await TemplateAgentFactory.get_agent()
+
+                # Create section_agent if missing; log errors without stopping flow
+                try:
+                    if getattr(app, "section_agent", None) is None:
+                        app.section_agent = await SectionAgentFactory.get_agent()
+                except Exception as e:
+                    logging.exception("Error initializing Section Agent", e)
+                    raise e
+
+                template_agent_data = app.template_agent
                 template_project_client = template_agent_data["client"]
                 template_agent = template_agent_data["agent"]
 
@@ -1032,7 +1090,7 @@ async def ensure_cosmos():
         success, err = await cosmos_conversation_client.ensure()
         if not cosmos_conversation_client or not success:
             if err:
-                track_event_if_configured("CosmosEnsureFailed", err)
+                track_event_if_configured("CosmosEnsureFailed", {"error": err})
                 return jsonify({"error": err}), 422
             return jsonify({"error": "CosmosDB is not configured or not working"}), 500
 
@@ -1193,11 +1251,17 @@ async def get_section_content(request_body, request_headers):
     messages.append({"role": "user", "content": user_prompt})
 
     request_body["messages"] = messages
+    thread = None
+    response_text = ""
 
     try:
         # Use Foundry SDK for section content generation
         track_event_if_configured("Foundry_sdk_for_section", {"status": "success"})
-        section_agent_data = await SectionAgentFactory.get_sections_agent(system_instruction=app_settings.azure_openai.generate_section_content_prompt)
+        # Create section agent if not already created
+        if getattr(app, "section_agent", None) is None:
+            app.section_agent = await SectionAgentFactory.get_agent()
+
+        section_agent_data = app.section_agent
         section_project_client = section_agent_data["client"]
         section_agent = section_agent_data["agent"]
 
