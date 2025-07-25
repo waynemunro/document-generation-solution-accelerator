@@ -273,6 +273,7 @@ async def send_chat_request(request_body, request_headers) -> AsyncGenerator[Dic
         run_id = None
         streamed_titles = set()
         doc_mapping = {}
+        thread = None
         # Browse
         if request_body["chat_type"] == "browse":
             try:
