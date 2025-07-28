@@ -13,6 +13,26 @@ param secondaryLocation string = 'eastus2'
 @description('Azure location for the solution. If not provided, it defaults to the resource group location.')
 param AZURE_LOCATION string = ''
 
+@allowed([
+  'australiaeast'
+  'canadaeast'
+  'centraluseuap'
+  'eastus'
+  'eastus2'
+  'francecentral'
+  'japaneast'
+  'koreacentral'
+  'norwayeast'
+  'polandcentral'
+  'southeastasia'
+  'southindia'
+  'swedencentral'
+  'switzerlandnorth'
+  'uaenorth'
+  'uksouth'
+  'westus'
+  'westus3'
+])
 // ========== AI Deployments Location ========== //
 @description('Location for AI deployments. This should be a valid Azure region where OpenAI services are available.')
 @metadata({
@@ -42,7 +62,6 @@ param gptModelVersion string = '2025-04-14'
 
 @description('API version for Azure OpenAI service. This should be a valid API version supported by the service.')
 param azureOpenaiAPIVersion string = '2025-01-01-preview'
-
 
 @description('API version for Azure AI Agent service. This should be a valid API version supported by the service.')
 param azureAiAgentApiVersion string = '2025-05-01'
