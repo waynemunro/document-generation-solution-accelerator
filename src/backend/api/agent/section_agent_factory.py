@@ -1,6 +1,6 @@
 from azure.ai.projects.aio import AIProjectClient
 from azure.ai.agents.models import AzureAISearchTool, AzureAISearchQueryType
-from azure.identity.aio import DefaultAzureCredential
+from backend.helpers.azure_credential_utils import get_azure_credential
 from backend.settings import app_settings
 from event_utils import track_event_if_configured
 
@@ -19,7 +19,7 @@ class SectionAgentFactory(BaseAgentFactory):
         """
         project_client = AIProjectClient(
             endpoint=app_settings.azure_ai.agent_endpoint,
-            credential=DefaultAzureCredential(exclude_interactive_browser_credential=False),
+            credential=get_azure_credential(),
             api_version=app_settings.azure_ai.agent_api_version
         )
 

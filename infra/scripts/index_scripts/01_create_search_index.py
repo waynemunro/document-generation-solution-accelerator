@@ -32,6 +32,7 @@ def get_secrets_from_kv(secret_name: str) -> str:
         str: The secret value.
     """
     kv_credential = DefaultAzureCredential(managed_identity_client_id=managed_identity_client_id)
+    # CodeQL [SM05139] Okay use of DefaultAzureCredential as it is only used in local environment.
     secret_client = SecretClient(
         vault_url=f"https://{key_vault_name}.vault.azure.net/",
         credential=kv_credential
@@ -44,6 +45,7 @@ def create_search_index():
 
     # Shared credential
     credential = DefaultAzureCredential(managed_identity_client_id=managed_identity_client_id)
+    # CodeQL [SM05139] Okay use of DefaultAzureCredential as it is only used in local environment.
 
     # Retrieve secrets from Key Vault
     search_endpoint = get_secrets_from_kv("AZURE-SEARCH-ENDPOINT")

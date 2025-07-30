@@ -27,6 +27,7 @@ def get_secrets_from_kv(secret_name: str) -> str:
         str: The secret value.
     """
     kv_credential = DefaultAzureCredential(managed_identity_client_id=managed_identity_client_id)
+    # CodeQL [SM05139] Okay use of DefaultAzureCredential as it is only used in local environment.
     secret_client = SecretClient(
         vault_url=f"https://{key_vault_name}.vault.azure.net/",
         credential=kv_credential
@@ -45,6 +46,7 @@ print("Secrets retrieved from Key Vault.")
 # Azure Data Lake settings
 account_url = f"https://{account_name}.dfs.core.windows.net"
 credential = DefaultAzureCredential(managed_identity_client_id=managed_identity_client_id)
+# CodeQL [SM05139] Okay use of DefaultAzureCredential as it is only used in local environment.
 service_client = DataLakeServiceClient(account_url, credential=credential, api_version='2023-01-03')
 file_system_client = service_client.get_file_system_client(file_system_client_name)
 directory_name = directory
