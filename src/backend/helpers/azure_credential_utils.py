@@ -39,3 +39,4 @@ def get_azure_credential(client_id=None):
         return DefaultAzureCredential()  # CodeQL [SM05139] Okay use of DefaultAzureCredential as it is only used in development
     else:
         return ManagedIdentityCredential(client_id=client_id)
+    

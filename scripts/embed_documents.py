@@ -19,7 +19,7 @@ if __name__ == "__main__":
     with open(args.config_file) as f:
         config = json.load(f)
 
-    credential = DefaultAzureCredential() # CodeQL [SM05139] Okay use of DefaultAzureCredential as it is only used in local environment.
+    credential = DefaultAzureCredential()  # CodeQL [SM05139] Okay use of DefaultAzureCredential as it is only used in local environment.
 
     if type(config) is not list:
         config = [config]
