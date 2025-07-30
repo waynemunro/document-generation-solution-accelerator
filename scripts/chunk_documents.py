@@ -5,7 +5,8 @@ import os
 
 from azure.ai.formrecognizer import DocumentAnalysisClient
 from azure.core.credentials import AzureKeyCredential
-from azure.identity import DefaultAzureCredential
+# from azure.identity import DefaultAzureCredential
+from src.backend.helpers.azure_credential_utils import get_azure_credential
 from azure.keyvault.secrets import SecretClient
 from data_utils import chunk_directory
 
@@ -57,7 +58,7 @@ if __name__ == "__main__":
     with open(args.config_file) as f:
         config = json.load(f)
 
-    credential = DefaultAzureCredential()
+    credential = get_azure_credential()
 
     if type(config) is not list:
         config = [config]

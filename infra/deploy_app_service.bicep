@@ -298,6 +298,10 @@ resource Website 'Microsoft.Web/sites@2020-06-01' = {
           name: 'UWSGI_THREADS'
           value: '2'
         }
+        {
+          name: 'APP_ENV'
+          value: 'Prod'
+        }
       ]
       linuxFxVersion: imageName
     }

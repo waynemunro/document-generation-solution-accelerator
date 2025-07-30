@@ -8,8 +8,10 @@ import requests
 import asyncio
 from typing import Dict, Any, AsyncGenerator
 
-from azure.identity.aio import DefaultAzureCredential
-from azure.identity import DefaultAzureCredential as DefaultAzureCredentialSync
+# from azure.identity.aio import DefaultAzureCredential
+# from azure.identity import DefaultAzureCredential as DefaultAzureCredentialSync
+from backend.helpers.azure_credential_utils import get_azure_credential
+from backend.helpers.azure_credential_utils import get_azure_credential_async
 from quart import (Blueprint, Quart, jsonify, make_response, render_template,
                    request, send_from_directory)
 
@@ -169,7 +171,7 @@ async def init_ai_foundry_client():
 
         ai_project_client = AIProjectClient(
             endpoint=app_settings.azure_ai.agent_endpoint,
-            credential=DefaultAzureCredential()
+            credential=get_azure_credential()
         )
         track_event_if_configured("AIFoundryAgentEndpointUsed", {
             "endpoint": app_settings.azure_ai.agent_endpoint
@@ -193,7 +195,7 @@ def init_cosmosdb_client():
             )
 
             if not app_settings.chat_history.account_key:
-                credential = DefaultAzureCredential()
+                credential = get_azure_credential()
             else:
                 credential = app_settings.chat_history.account_key
 
@@ -1163,7 +1165,7 @@ async def fetch_azure_search_content():
             return jsonify({"error": "URL and title are required"}), 400
 
         # Get Azure AD token
-        credential = DefaultAzureCredentialSync()
+        credential = await get_azure_credential_async()
         token = credential.get_token("https://search.azure.com/.default")
         access_token = token.token
 
