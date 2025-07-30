@@ -13,6 +13,7 @@ param secondaryLocation string = 'eastus2'
 @description('Azure location for the solution. If not provided, it defaults to the resource group location.')
 param AZURE_LOCATION string = ''
 
+// ========== AI Deployments Location ========== //
 @allowed([
   'australiaeast'
   'canadaeast'
@@ -33,7 +34,6 @@ param AZURE_LOCATION string = ''
   'westus'
   'westus3'
 ])
-// ========== AI Deployments Location ========== //
 @description('Location for AI deployments. This should be a valid Azure region where OpenAI services are available.')
 @metadata({
   azd: {
