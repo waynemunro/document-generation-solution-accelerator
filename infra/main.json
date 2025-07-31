@@ -1868,7 +1868,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.36.177.2456",
-              "templateHash": "16850060889438240970"
+              "templateHash": "7711665754275271950"
             }
           },
           "parameters": {
@@ -2328,6 +2328,10 @@
                     {
                       "name": "UWSGI_THREADS",
                       "value": "2"
+                    },
+                    {
+                      "name": "APP_ENV",
+                      "value": "Prod"
                     }
                   ],
                   "linuxFxVersion": "[variables('imageName')]"
