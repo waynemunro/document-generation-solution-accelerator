@@ -1,6 +1,6 @@
 from azure.ai.projects.aio import AIProjectClient
 from azure.ai.agents.models import AzureAISearchTool, AzureAISearchQueryType
-from backend.helpers.azure_credential_utils import get_azure_credential
+from backend.helpers.azure_credential_utils import get_azure_credential_async
 from backend.settings import app_settings
 from event_utils import track_event_if_configured
 
@@ -20,7 +20,7 @@ class TemplateAgentFactory(BaseAgentFactory):
         """
         project_client = AIProjectClient(
             endpoint=app_settings.azure_ai.agent_endpoint,
-            credential=get_azure_credential(),
+            credential=await get_azure_credential_async(),
             api_version=app_settings.azure_ai.agent_api_version
         )
 
