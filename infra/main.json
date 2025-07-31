@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.36.177.2456",
-      "templateHash": "2218487437635677522"
+      "templateHash": "5067006710993312117"
     }
   },
   "parameters": {
@@ -34,6 +34,26 @@
     },
     "aiDeploymentsLocation": {
       "type": "string",
+      "allowedValues": [
+        "australiaeast",
+        "canadaeast",
+        "centraluseuap",
+        "eastus",
+        "eastus2",
+        "francecentral",
+        "japaneast",
+        "koreacentral",
+        "norwayeast",
+        "polandcentral",
+        "southeastasia",
+        "southindia",
+        "swedencentral",
+        "switzerlandnorth",
+        "uaenorth",
+        "uksouth",
+        "westus",
+        "westus3"
+      ],
       "metadata": {
         "azd": {
           "type": "location",
@@ -76,6 +96,13 @@
       "defaultValue": "2025-01-01-preview",
       "metadata": {
         "description": "API version for Azure OpenAI service. This should be a valid API version supported by the service."
+      }
+    },
+    "azureAiAgentApiVersion": {
+      "type": "string",
+      "defaultValue": "2025-05-01",
+      "metadata": {
+        "description": "API version for Azure AI Agent service. This should be a valid API version supported by the service."
       }
     },
     "gptDeploymentCapacity": {
@@ -638,7 +665,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.36.177.2456",
-              "templateHash": "13327438188493804054"
+              "templateHash": "5405168643980957312"
             }
           },
           "parameters": {
@@ -1402,6 +1429,9 @@
                   "aiProjectName": "[if(not(empty(parameters('azureExistingAIProjectResourceId'))), createObject('value', variables('existingAIProjectName')), createObject('value', variables('aiProjectName')))]",
                   "principalId": {
                     "value": "[reference(resourceId('Microsoft.Search/searchServices', variables('aiSearchName')), '2024-06-01-preview', 'full').identity.principalId]"
+                  },
+                  "aiModelDeployments": {
+                    "value": "[variables('aiModelDeployments')]"
                   }
                 },
                 "template": {
@@ -1411,7 +1441,7 @@
                     "_generator": {
                       "name": "bicep",
                       "version": "0.36.177.2456",
-                      "templateHash": "11899270249637077405"
+                      "templateHash": "9006594324715793103"
                     }
                   },
                   "parameters": {
@@ -1432,9 +1462,36 @@
                     "aiProjectName": {
                       "type": "string",
                       "defaultValue": ""
+                    },
+                    "aiModelDeployments": {
+                      "type": "array",
+                      "defaultValue": []
                     }
                   },
                   "resources": [
+                    {
+                      "copy": {
+                        "name": "aiServicesDeployments",
+                        "count": "[length(parameters('aiModelDeployments'))]",
+                        "mode": "serial",
+                        "batchSize": 1
+                      },
+                      "condition": "[not(empty(parameters('aiModelDeployments')))]",
+                      "type": "Microsoft.CognitiveServices/accounts/deployments",
+                      "apiVersion": "2025-04-01-preview",
+                      "name": "[format('{0}/{1}', parameters('aiFoundryName'), parameters('aiModelDeployments')[copyIndex()].name)]",
+                      "properties": {
+                        "model": {
+                          "format": "OpenAI",
+                          "name": "[parameters('aiModelDeployments')[copyIndex()].model]"
+                        },
+                        "raiPolicyName": "[parameters('aiModelDeployments')[copyIndex()].raiPolicyName]"
+                      },
+                      "sku": {
+                        "name": "[parameters('aiModelDeployments')[copyIndex()].sku.name]",
+                        "capacity": "[parameters('aiModelDeployments')[copyIndex()].sku.capacity]"
+                      }
+                    },
                     {
                       "type": "Microsoft.Authorization/roleAssignments",
                       "apiVersion": "2022-04-01",
@@ -1749,6 +1806,9 @@
           "aiSearchName": {
             "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, resourceGroup().name), 'Microsoft.Resources/deployments', 'deploy_ai_foundry'), '2022-09-01').outputs.aiSearchName.value]"
           },
+          "azureAiAgentApiVersion": {
+            "value": "[parameters('azureAiAgentApiVersion')]"
+          },
           "AzureOpenAIEndpoint": {
             "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, resourceGroup().name), 'Microsoft.Resources/deployments', 'deploy_ai_foundry'), '2022-09-01').outputs.aoaiEndpoint.value]"
           },
@@ -1808,7 +1868,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.36.177.2456",
-              "templateHash": "4888491198659956603"
+              "templateHash": "7711665754275271950"
             }
           },
           "parameters": {
@@ -1872,6 +1932,9 @@
               "metadata": {
                 "description": "Azure Open AI Endpoint"
               }
+            },
+            "azureAiAgentApiVersion": {
+              "type": "string"
             },
             "azureOpenAIApiVersion": {
               "type": "string"
@@ -2224,7 +2287,11 @@
                     },
                     {
                       "name": "AZURE_AI_AGENT_API_VERSION",
-                      "value": "[parameters('azureOpenAIApiVersion')]"
+                      "value": "[parameters('azureAiAgentApiVersion')]"
+                    },
+                    {
+                      "name": "SOLUTION_NAME",
+                      "value": "[parameters('solutionName')]"
                     },
                     {
                       "name": "USE_CHAT_HISTORY_ENABLED",
@@ -2261,6 +2328,10 @@
                     {
                       "name": "UWSGI_THREADS",
                       "value": "2"
+                    },
+                    {
+                      "name": "APP_ENV",
+                      "value": "Prod"
                     }
                   ],
                   "linuxFxVersion": "[variables('imageName')]"
@@ -2327,7 +2398,7 @@
                     "_generator": {
                       "name": "bicep",
                       "version": "0.36.177.2456",
-                      "templateHash": "11899270249637077405"
+                      "templateHash": "9006594324715793103"
                     }
                   },
                   "parameters": {
@@ -2348,9 +2419,36 @@
                     "aiProjectName": {
                       "type": "string",
                       "defaultValue": ""
+                    },
+                    "aiModelDeployments": {
+                      "type": "array",
+                      "defaultValue": []
                     }
                   },
                   "resources": [
+                    {
+                      "copy": {
+                        "name": "aiServicesDeployments",
+                        "count": "[length(parameters('aiModelDeployments'))]",
+                        "mode": "serial",
+                        "batchSize": 1
+                      },
+                      "condition": "[not(empty(parameters('aiModelDeployments')))]",
+                      "type": "Microsoft.CognitiveServices/accounts/deployments",
+                      "apiVersion": "2025-04-01-preview",
+                      "name": "[format('{0}/{1}', parameters('aiFoundryName'), parameters('aiModelDeployments')[copyIndex()].name)]",
+                      "properties": {
+                        "model": {
+                          "format": "OpenAI",
+                          "name": "[parameters('aiModelDeployments')[copyIndex()].model]"
+                        },
+                        "raiPolicyName": "[parameters('aiModelDeployments')[copyIndex()].raiPolicyName]"
+                      },
+                      "sku": {
+                        "name": "[parameters('aiModelDeployments')[copyIndex()].sku.name]",
+                        "capacity": "[parameters('aiModelDeployments')[copyIndex()].sku.capacity]"
+                      }
+                    },
                     {
                       "type": "Microsoft.Authorization/roleAssignments",
                       "apiVersion": "2022-04-01",

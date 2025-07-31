@@ -357,6 +357,7 @@ class _BaseSettings(BaseSettings):
     auth_enabled: bool = False
     sanitize_answer: bool = False
     use_promptflow: bool = False
+    solution_name: Optional[str] = Field(default=None)
 
 
 class _AppSettings(BaseModel):
