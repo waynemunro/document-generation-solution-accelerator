@@ -59,7 +59,7 @@
           "type": "location",
           "usageName": [
             "OpenAI.GlobalStandard.gpt4.1,150",
-            "OpenAI.Standard.text-embedding-ada-002,80"
+            "OpenAI.GlobalStandard.text-embedding-ada-002,80"
           ]
         },
         "description": "Location for AI deployments. This should be a valid Azure region where OpenAI services are available."
@@ -976,7 +976,7 @@
                 "name": "[parameters('embeddingModel')]",
                 "model": "[parameters('embeddingModel')]",
                 "sku": {
-                  "name": "Standard",
+                  "name": "GlobalStandard",
                   "capacity": "[parameters('embeddingDeploymentCapacity')]"
                 },
                 "version": "2",
@@ -2361,7 +2361,8 @@
               "name": "[guid(parameters('WebsiteName'), parameters('aiSearchName'), resourceId('Microsoft.Authorization/roleDefinitions', '1407120a-92aa-4202-b7e9-c0e197c71c8f'))]",
               "properties": {
                 "roleDefinitionId": "[resourceId('Microsoft.Authorization/roleDefinitions', '1407120a-92aa-4202-b7e9-c0e197c71c8f')]",
-                "principalId": "[reference(resourceId('Microsoft.Web/sites', parameters('WebsiteName')), '2020-06-01', 'full').identity.principalId]"
+                "principalId": "[reference(resourceId('Microsoft.Web/sites', parameters('WebsiteName')), '2020-06-01', 'full').identity.principalId]",
+                "principalType": "ServicePrincipal"
               },
               "dependsOn": [
                 "[resourceId('Microsoft.Web/sites', parameters('WebsiteName'))]"
