@@ -1,21 +1,46 @@
+@minLength(3)
+@maxLength(15)
 @description('Solution Name')
 param solutionName string
+
 @description('Specifies the location for resources.')
 param solutionLocation string
+
+@description('Base URL')
 param baseUrl string
+
+@description('Contains Managed Identity Object ID')
 param managedIdentityObjectId string
+
+@description('Contains Managed Identity Client ID')
 param managedIdentityClientId string
+
+@description('Contains Storage Account Name')
 param storageAccountName string
+
+@description('Contains Container Name')
 param containerName string
+
+@description('Contains Container App Name')
 param containerAppName string = 'ca-${ solutionName }'
+
+@description('Contains Environment Name')
 param environmentName string = 'cae-${ solutionName }'
+
+@description('Image Name')
 param imageName string = 'python:3.11-alpine'
+
+@description('Contains SetupCopyKBFiles')
 param setupCopyKbFiles string = '${baseUrl}infra/scripts/copy_kb_files.sh'
+
+@description('Contains URL of SetupCreateIndex Script')
 param setupCreateIndexScriptsUrl string = '${baseUrl}infra/scripts/run_create_index_scripts.sh'
+
+@description('Contains KeyVault Name')
 param keyVaultName string
 
+@description('Contains Log Analytics Workspace Resource Name')
 param logAnalyticsWorkspaceResourceName string
-
 
 resource logAnalytics 'Microsoft.OperationalInsights/workspaces@2020-10-01' existing = {
   name: logAnalyticsWorkspaceResourceName

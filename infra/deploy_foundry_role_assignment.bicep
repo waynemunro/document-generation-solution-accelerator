@@ -1,8 +1,19 @@
+@description('Principle ID')
 param principalId string = ''
+
+@description('Role Definition ID')
 param roleDefinitionId string
+
+@description('Role Assignment Name')
 param roleAssignmentName string = ''
+
+@description('AI Foundry Name')
 param aiFoundryName string
+
+@description('AI Project Name')
 param aiProjectName string = ''
+
+@description('AI Model Deployments')
 param aiModelDeployments array = []
 
 resource aiServices 'Microsoft.CognitiveServices/accounts@2025-04-01-preview' existing = {
@@ -41,5 +52,8 @@ resource roleAssignmentToFoundry 'Microsoft.Authorization/roleAssignments@2022-0
   }
 }
 
+@description('AI Service Principle ID')
 output aiServicesPrincipalId string = aiServices.identity.principalId
+
+@description('AI Project Principle ID')
 output aiProjectPrincipalId string = !empty(aiProjectName) ? aiProject.identity.principalId : ''

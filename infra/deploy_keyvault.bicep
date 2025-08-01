@@ -2,10 +2,14 @@
 @maxLength(15)
 @description('Solution Name')
 param solutionName string
+
+@description('Solution Location')
 param solutionLocation string
+
+@description('Contains the ObjectID of the ManagedIdentity')
 param managedIdentityObjectId string
 
-
+@description('Contains Name of the KeyVault')
 param keyvaultName string
 
 resource keyVault 'Microsoft.KeyVault/vaults@2022-07-01' = {
@@ -67,5 +71,8 @@ resource roleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
   }
 }
 
+@description('Contains Name of the KeyVault')
 output keyvaultName string = keyvaultName
+
+@description('Contains ID of the KeyVault')
 output keyvaultId string = keyVault.id

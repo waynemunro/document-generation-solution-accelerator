@@ -1,29 +1,57 @@
 // Creates Azure dependent resources for Azure AI studio
+
+@minLength(3)
+@maxLength(15)
+@description('Solution Name')
 param solutionName string
+
+@description('Solution Location')
 param solutionLocation string
+
+@description('Contains Name of KeyVault.')
 param keyVaultName string
+
+@description('Indicates the type of Deployment.')
 param deploymentType string
+
+@description('GPT Model Name')
 param gptModelName string
+
+@description('GPT Model Version.')
 param gptModelVersion string
+
+@description('Azure OepnAI API Version.')
 param azureOpenaiAPIVersion string
+
+@description('Param to get Deployment Capacity.')
 param gptDeploymentCapacity int
+
+@description('Embedding Model.')
 param embeddingModel string
+
+@description('Info about Embedding Deployment Capacity.')
 param embeddingDeploymentCapacity int
+
+@description('Managed Identity Object ID.')
 param managedIdentityObjectId string
+
+@description('Existing Log Analytics WorkspaceID.')
 param existingLogAnalyticsWorkspaceId string = ''
+
+@description('Azure Existing AI Project ResourceID.')
 param azureExistingAIProjectResourceId string = ''
 
-var abbrs = loadJsonContent('./abbreviations.json')
+//var abbrs = loadJsonContent('./abbreviations.json')
 
-var aiFoundryName = '${abbrs.ai.aiFoundry}${solutionName}'
-var applicationInsightsName = '${abbrs.managementGovernance.applicationInsights}${solutionName}'
-var keyvaultName = '${abbrs.security.keyVault}${solutionName}'
+var aiFoundryName = 'aif-${solutionName}'
+var applicationInsightsName = 'appi-${solutionName}'
+var keyvaultName = 'kv-${solutionName}'
 var location = solutionLocation //'eastus2'
-var aiProjectName = '${abbrs.ai.aiFoundryProject}${solutionName}'
+var aiProjectName = 'aifp-${solutionName}'
 var aiProjectFriendlyName = aiProjectName
 var aiProjectDescription = 'AI Foundry Project'
-var aiSearchName = '${abbrs.ai.aiSearch}${solutionName}'
-var workspaceName = '${abbrs.managementGovernance.logAnalyticsWorkspace}${solutionName}'
+var aiSearchName = 'srch-${solutionName}'
+var workspaceName = 'log-${solutionName}'
 // var aiSearchConnectionName = 'myVectorStoreProjectConnectionName-${solutionName}'
 
 var useExisting = !empty(existingLogAnalyticsWorkspaceId)
@@ -414,30 +442,57 @@ resource azureLocatioEntry 'Microsoft.KeyVault/vaults/secrets@2021-11-01-preview
   }
 }
 
+@description('Contains Name of KeyVault.')
 output keyvaultName string = keyvaultName
+
+@description('Contains KeyVault ID.')
 output keyvaultId string = keyVault.id
 
 // output aiServicesTarget string = aiFoundry.properties.endpoint //aiServices_m.properties.endpoint
 // output aiServicesName string = aiFoundryName //aiServicesName_m
 // output aiServicesId string = aiFoundry.id //aiServices_m.id
 
+@description('Contains AI Search Name.')
 output aiSearchName string = aiSearchName
+
+@description('Contains AI SearchID.')
 output aiSearchId string = aiSearch.id
+
+@description('Contains AI Search Target.')
 output aiSearchTarget string = 'https://${aiSearch.name}.search.windows.net'
+
+@description('Contains AI Search Service.')
 output aiSearchService string = aiSearch.name
+
+@description('Contains Name of AI Search Connection.')
 output aiSearchConnectionName string = aiSearchConnectionName
+
+@description('Contains Name of AI Foundry Project.')
 output aiFoundryProjectName string = !empty(existingAIProjectName) ? existingAIProjectName : aiFoundryProject.name
 // output aiFoundryProjectEndpoint string = aiFoundryProject.properties.endpoints['AI Foundry API']
+
+@description('Contains Name of AI Foundry Project Endpoint.')
 output aiFoundryProjectEndpoint string = !empty(existingProjEndpoint)
   ? existingProjEndpoint
   : aiFoundryProject.properties.endpoints['AI Foundry API']
 // output aoaiEndpoint string = aiFoundry.properties.endpoints['OpenAI Language Model Instance API']
+
+@description('Contains AI Endpoint.')
 output aoaiEndpoint string = !empty(existingOpenAIEndpoint)
   ? existingOpenAIEndpoint
   : aiFoundry.properties.endpoints['OpenAI Language Model Instance API']
+
+@description('Contains Name of AI Foundry.')  
 output aiFoundryName string = !empty(existingAIFoundryName) ? existingAIFoundryName : aiFoundryName
+
+@description('Contains Name of AI Foundry RG.')
 output aiFoundryRgName string = !empty(existingAIServiceResourceGroup) ? existingAIServiceResourceGroup : resourceGroup().name
 
+@description('Contains Application Insights ID.')
 output applicationInsightsId string = applicationInsights.id
+
+@description('Contains Log Analytics Workspace Resource Name.')
 output logAnalyticsWorkspaceResourceName string = useExisting ? existingLogAnalyticsWorkspace.name : logAnalytics.name
+
+@description('Contains Application Insights Connection String.')
 output applicationInsightsConnectionString string = applicationInsights.properties.ConnectionString

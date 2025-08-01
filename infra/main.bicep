@@ -4,7 +4,7 @@ targetScope = 'resourceGroup'
 @minLength(3)
 @maxLength(20)
 @description('A unique prefix for all resources in this deployment. This should be 3-20 characters long:')
-param environmentName string
+param solutionName string = 'docgen'
 
 @minLength(1)
 @description('Secondary location for databases creation(example:eastus2):')
@@ -76,7 +76,7 @@ param gptDeploymentCapacity int = 150
 @description('Name of the Text Embedding model to deploy:')
 param embeddingModel string = 'text-embedding-ada-002'
 
-var abbrs = loadJsonContent('./abbreviations.json')
+//var abbrs = loadJsonContent('./abbreviations.json')
 @minValue(10)
 @description('Capacity of the Embedding Model deployment')
 param embeddingDeploymentCapacity int = 80
@@ -92,7 +92,24 @@ param azureExistingAIProjectResourceId string = ''
 
 var solutionLocation = empty(AZURE_LOCATION) ? resourceGroup().location : AZURE_LOCATION
 
-var solutionPrefix = 'dg${padLeft(take(toLower(uniqueString(subscription().id, environmentName, resourceGroup().location,resourceGroup().name)), 12), 12, '0')}'
+//var solutionPrefix = 'dg${padLeft(take(toLower(uniqueString(subscription().id, solutionName, resourceGroup().location,resourceGroup().name)), 12), 12, '0')}'
+
+@maxLength(5)
+@description('Optional. A unique text value for the solution. This is used to ensure resource names are unique for global resources. Defaults to a 5-character substring of the unique string generated from the subscription ID, resource group name, and solution name.')
+param solutionUniqueText string = substring(uniqueString(subscription().id, resourceGroup().name, solutionName), 0, 5)
+
+var solutionSuffix = toLower(trim(replace(
+  replace(
+    replace(replace(replace(replace('${solutionName}${solutionUniqueText}', '-', ''), '_', ''), '.', ''), '/', ''),
+    ' ',
+    ''
+  ),
+  '*',
+  ''
+)))
+
+@description('Optional. The tags to apply to all deployed Azure resources.')
+param tags resourceInput<'Microsoft.Resources/resourceGroups@2025-04-01'>.tags = {}
 
 // ========== Resource Group Tag ========== //
 resource resourceGroupTags 'Microsoft.Resources/tags@2021-04-01' = {
@@ -108,9 +125,9 @@ resource resourceGroupTags 'Microsoft.Resources/tags@2021-04-01' = {
 module managedIdentityModule 'deploy_managed_identity.bicep' = {
   name: 'deploy_managed_identity'
   params: {
-    solutionName: solutionPrefix
+    solutionName: solutionSuffix
     solutionLocation: solutionLocation
-    miName: '${abbrs.security.managedIdentity}${solutionPrefix}'
+    miName: 'id-${solutionSuffix}'
   }
   scope: resourceGroup(resourceGroup().name)
 }
@@ -119,10 +136,10 @@ module managedIdentityModule 'deploy_managed_identity.bicep' = {
 module kvault 'deploy_keyvault.bicep' = {
   name: 'deploy_keyvault'
   params: {
-    solutionName: solutionPrefix
+    solutionName: solutionSuffix
     solutionLocation: solutionLocation
     managedIdentityObjectId: managedIdentityModule.outputs.managedIdentityOutput.objectId
-    keyvaultName: '${abbrs.security.keyVault}${solutionPrefix}'
+    keyvaultName: 'kv-${solutionSuffix}'
   }
   scope: resourceGroup(resourceGroup().name)
 }
@@ -131,7 +148,7 @@ module kvault 'deploy_keyvault.bicep' = {
 module aifoundry 'deploy_ai_foundry.bicep' = {
   name: 'deploy_ai_foundry'
   params: {
-    solutionName: solutionPrefix
+    solutionName: solutionSuffix
     solutionLocation: aiDeploymentsLocation
     keyVaultName: kvault.outputs.keyvaultName
     deploymentType: deploymentType
@@ -152,11 +169,11 @@ module aifoundry 'deploy_ai_foundry.bicep' = {
 module storageAccount 'deploy_storage_account.bicep' = {
   name: 'deploy_storage_account'
   params: {
-    solutionName: solutionPrefix
+    solutionName: solutionSuffix
     solutionLocation: solutionLocation
     keyVaultName: kvault.outputs.keyvaultName
     managedIdentityObjectId: managedIdentityModule.outputs.managedIdentityOutput.objectId
-    saName: '${abbrs.storage.storageAccount}${solutionPrefix}'
+    saName: 'st${solutionSuffix}'
   }
   scope: resourceGroup(resourceGroup().name)
 }
@@ -174,7 +191,7 @@ module appserviceModule 'deploy_app_service.bicep' = {
     imageTag: imageTag
     applicationInsightsId: aifoundry.outputs.applicationInsightsId
     // identity:managedIdentityModule.outputs.managedIdentityOutput.id
-    solutionName: solutionPrefix
+    solutionName: solutionSuffix
     solutionLocation: solutionLocation
     aiSearchService: aifoundry.outputs.aiSearchService
     aiSearchName: aifoundry.outputs.aiSearchName
@@ -193,8 +210,8 @@ module appserviceModule 'deploy_app_service.bicep' = {
     AZURE_COSMOSDB_DATABASE: cosmosDBModule.outputs.cosmosDatabaseName
     appInsightsConnectionString: aifoundry.outputs.applicationInsightsConnectionString
     AZURE_COSMOSDB_ENABLE_FEEDBACK: 'True'
-    HostingPlanName: '${abbrs.compute.appServicePlan}${solutionPrefix}'
-    WebsiteName: '${abbrs.compute.webApp}${solutionPrefix}'
+    HostingPlanName: 'asp-${solutionSuffix}'
+    WebsiteName: 'app-${solutionSuffix}'
     aiSearchProjectConnectionName: aifoundry.outputs.aiSearchConnectionName
     azureExistingAIProjectResourceId: azureExistingAIProjectResourceId
   }
@@ -208,20 +225,37 @@ output WEB_APP_URL string = appserviceModule.outputs.webAppUrl
 module cosmosDBModule 'deploy_cosmos_db.bicep' = {
   name: 'deploy_cosmos_db'
   params: {
-    solutionName: solutionPrefix
+    solutionName: solutionSuffix
     solutionLocation: secondaryLocation
     keyVaultName: kvault.outputs.keyvaultName
-    accountName: '${abbrs.databases.cosmosDBDatabase}${solutionPrefix}'
+    accountName: 'cosmos-${solutionSuffix}'
   }
   scope: resourceGroup(resourceGroup().name)
 }
 
+@description('Contains Storage Account Name')
 output STORAGE_ACCOUNT_NAME string = storageAccount.outputs.storageName
+
+@description('Contains Storage Container Name')
 output STORAGE_CONTAINER_NAME string = storageAccount.outputs.storageContainer
+
+@description('Contains KeyVault Name')
 output KEY_VAULT_NAME string = kvault.outputs.keyvaultName
+
+@description('Contains CosmosDB Account Name')
 output COSMOSDB_ACCOUNT_NAME string = cosmosDBModule.outputs.cosmosAccountName
+
+@description('Contains Resource Group Name')
 output RESOURCE_GROUP_NAME string = resourceGroup().name
+
+@description('Contains AI Foundry Name')
 output AI_FOUNDRY_NAME string = aifoundry.outputs.aiFoundryName
+
+@description('Contains AI Foundry RG Name')
 output AI_FOUNDRY_RG_NAME string = aifoundry.outputs.aiFoundryRgName
+
+@description('Contains AI Search Service Name')
 output AI_SEARCH_SERVICE_NAME string = aifoundry.outputs.aiSearchService
+
+@description('Contains Azure Search Connection Name')
 output AZURE_SEARCH_CONNECTION_NAME string = aifoundry.outputs.aiSearchConnectionName

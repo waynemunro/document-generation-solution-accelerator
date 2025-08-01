@@ -2,9 +2,16 @@
 @maxLength(15)
 @description('Solution Name')
 param solutionName string
+
+@minLength(3)
+@maxLength(20)
+@description('Solution location.')
 param solutionLocation string
 param keyVaultName string
 
+@minLength(5)
+@maxLength(25)
+@description('Name of the Account')
 param accountName string 
 
 var databaseName = 'db_conversation_history'
@@ -21,6 +28,7 @@ var containers = [
 @allowed([ 'GlobalDocumentDB', 'MongoDB', 'Parse' ])
 param kind string = 'GlobalDocumentDB'
 
+@description('Declaration of an Object type')
 param tags object = {}
 
 resource cosmos 'Microsoft.DocumentDB/databaseAccounts@2022-08-15' = {
@@ -110,6 +118,11 @@ resource AZURE_COSMOSDB_ENABLE_FEEDBACK 'Microsoft.KeyVault/vaults/secrets@2021-
   }
 }
 
+@description('Cosmos Account Name')
 output cosmosAccountName string = cosmos.name
+
+@description('Cosmos DB Name')
 output cosmosDatabaseName string = databaseName
+
+@description('Container Name')
 output cosmosContainerName string = collectionName

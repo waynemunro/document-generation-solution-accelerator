@@ -81,6 +81,8 @@ resource roleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
 //   }
 // }
 
+
+@description('Contains ManagedIdentity Object Details.')
 output managedIdentityOutput object = {
   id: managedIdentity.id
   objectId: managedIdentity.properties.principalId
