@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.36.177.2456",
-      "templateHash": "5067006710993312117"
+      "templateHash": "8521527893631804786"
     }
   },
   "parameters": {
@@ -36,17 +36,11 @@
       "type": "string",
       "allowedValues": [
         "australiaeast",
-        "canadaeast",
-        "centraluseuap",
         "eastus",
         "eastus2",
         "francecentral",
         "japaneast",
         "koreacentral",
-        "norwayeast",
-        "polandcentral",
-        "southeastasia",
-        "southindia",
         "swedencentral",
         "switzerlandnorth",
         "uaenorth",
