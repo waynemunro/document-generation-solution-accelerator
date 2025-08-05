@@ -436,7 +436,9 @@ output aoaiEndpoint string = !empty(existingOpenAIEndpoint)
   ? existingOpenAIEndpoint
   : aiFoundry.properties.endpoints['OpenAI Language Model Instance API']
 output aiFoundryName string = !empty(existingAIFoundryName) ? existingAIFoundryName : aiFoundryName
-output aiFoundryRgName string = !empty(existingAIServiceResourceGroup) ? existingAIServiceResourceGroup : resourceGroup().name
+output aiFoundryId string = !empty(azureExistingAIProjectResourceId)
+  ? existingAiFoundry.id
+  : aiFoundry.id
 
 output applicationInsightsId string = applicationInsights.id
 output logAnalyticsWorkspaceResourceName string = useExisting ? existingLogAnalyticsWorkspace.name : logAnalytics.name
