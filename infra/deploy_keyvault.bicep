@@ -12,6 +12,9 @@ param managedIdentityObjectId string
 @description('Contains Name of the KeyVault')
 param keyvaultName string
 
+@description('Optional. Tags to be applied to the resources.')
+param tags object = {}
+
 resource keyVault 'Microsoft.KeyVault/vaults@2022-07-01' = {
   name: keyvaultName
   location: solutionLocation
@@ -54,6 +57,7 @@ resource keyVault 'Microsoft.KeyVault/vaults@2022-07-01' = {
     softDeleteRetentionInDays: 7
     tenantId: subscription().tenantId
   }
+  tags : tags
 }
 
 @description('This is the built-in Key Vault Administrator role.')

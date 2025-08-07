@@ -42,6 +42,9 @@ param keyVaultName string
 @description('Contains Log Analytics Workspace Resource Name')
 param logAnalyticsWorkspaceResourceName string
 
+@description('Optional. Tags to be applied to the resources.')
+param tags object = {}
+
 resource logAnalytics 'Microsoft.OperationalInsights/workspaces@2020-10-01' existing = {
   name: logAnalyticsWorkspaceResourceName
   scope: resourceGroup()
@@ -59,6 +62,7 @@ resource containerAppEnv 'Microsoft.App/managedEnvironments@2022-03-01' = {
       }
     }
   }
+  tags : tags
 }
 
 resource containerApp 'Microsoft.App/containerApps@2022-03-01' = {
@@ -110,4 +114,5 @@ resource containerApp 'Microsoft.App/containerApps@2022-03-01' = {
       ]
     }
   }
+  tags : tags
 }

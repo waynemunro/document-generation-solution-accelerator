@@ -16,6 +16,9 @@ param aiSearchLocation string
 @description('AI Search Connection Name')
 param aiSearchConnectionName string
 
+@description('Optional. Tags to be applied to the resources.')
+param tags object = {}
+
 resource projectAISearchConnection 'Microsoft.CognitiveServices/accounts/projects/connections@2025-04-01-preview' = {
   name: '${existingAIFoundryName}/${existingAIProjectName}/${aiSearchConnectionName}'
   properties: {

@@ -16,6 +16,9 @@ param aiProjectName string = ''
 @description('AI Model Deployments')
 param aiModelDeployments array = []
 
+@description('Optional. Tags to be applied to the resources.')
+param tags object = {}
+
 resource aiServices 'Microsoft.CognitiveServices/accounts@2025-04-01-preview' existing = {
   name: aiFoundryName
 }
@@ -40,6 +43,7 @@ resource aiServicesDeployments 'Microsoft.CognitiveServices/accounts/deployments
     name: aiModeldeployment.sku.name
     capacity: aiModeldeployment.sku.capacity
   }
+  tags : tags
 }]
 
 

@@ -41,6 +41,9 @@ param existingLogAnalyticsWorkspaceId string = ''
 @description('Azure Existing AI Project ResourceID.')
 param azureExistingAIProjectResourceId string = ''
 
+@description('Optional. Tags to be applied to the resources.')
+param tags object = {}
+
 //var abbrs = loadJsonContent('./abbreviations.json')
 
 var aiFoundryName = 'aif-${solutionName}'
@@ -119,13 +122,13 @@ resource existingLogAnalyticsWorkspace 'Microsoft.OperationalInsights/workspaces
 resource logAnalytics 'Microsoft.OperationalInsights/workspaces@2023-09-01' = if (!useExisting) {
   name: workspaceName
   location: location
-  tags: {}
   properties: {
     retentionInDays: 30
     sku: {
       name: 'PerGB2018'
     }
   }
+  tags : tags
 }
 
 resource applicationInsights 'Microsoft.Insights/components@2020-02-02' = {
@@ -138,6 +141,7 @@ resource applicationInsights 'Microsoft.Insights/components@2020-02-02' = {
     publicNetworkAccessForQuery: 'Enabled'
     WorkspaceResourceId: useExisting ? existingLogAnalyticsWorkspace.id : logAnalytics.id
   }
+  tags : tags
 }
 
 resource existingAiFoundry 'Microsoft.CognitiveServices/accounts@2025-04-01-preview' existing = if (!empty(azureExistingAIProjectResourceId)) {
@@ -166,6 +170,7 @@ resource aiFoundry 'Microsoft.CognitiveServices/accounts@2025-04-01-preview' = i
     publicNetworkAccess: 'Enabled'
     disableLocalAuth: false
   }
+  tags : tags
 }
 
 resource aiFoundryProject 'Microsoft.CognitiveServices/accounts/projects@2025-04-01-preview' = if (empty(azureExistingAIProjectResourceId))   {
@@ -179,6 +184,7 @@ resource aiFoundryProject 'Microsoft.CognitiveServices/accounts/projects@2025-04
     description: aiProjectDescription
     displayName: aiProjectFriendlyName
   }
+  tags : tags
 }
 
 @batchSize(1)
@@ -197,6 +203,7 @@ resource aiFModelDeployments 'Microsoft.CognitiveServices/accounts/deployments@2
       name: aiModeldeployment.sku.name
       capacity: aiModeldeployment.sku.capacity
     }
+    tags : tags
   }
 ]
 
@@ -223,6 +230,7 @@ resource aiSearch 'Microsoft.Search/searchServices@2024-06-01-preview' = {
     disableLocalAuth: true
     semanticSearch: 'free'
   }
+  tags : tags
 }
 
 resource aiSearchFoundryConnection 'Microsoft.CognitiveServices/accounts/projects/connections@2025-04-01-preview' = if (empty(azureExistingAIProjectResourceId))   {
@@ -251,6 +259,7 @@ module existing_AIProject_SearchConnectionModule 'deploy_aifp_aisearch_connectio
     aiSearchResourceId: aiSearch.id
     aiSearchLocation: aiSearch.location
     aiSearchConnectionName: aiSearchConnectionName
+    tags : tags
   }
 }
 
@@ -268,6 +277,7 @@ module assignOpenAIRoleToAISearch 'deploy_foundry_role_assignment.bicep' = {
     aiProjectName: !empty(azureExistingAIProjectResourceId) ? existingAIProjectName : aiProjectName
     principalId: aiSearch.identity.principalId
     aiModelDeployments: aiModelDeployments
+    tags : tags
   }
 }
 
@@ -329,6 +339,7 @@ resource tenantIdEntry 'Microsoft.KeyVault/vaults/secrets@2021-11-01-preview' = 
   properties: {
     value: subscription().tenantId
   }
+  tags : tags
 }
 
 
@@ -338,6 +349,7 @@ resource azureOpenAIDeploymentModel 'Microsoft.KeyVault/vaults/secrets@2021-11-0
   properties: {
     value: gptModelName
   }
+  tags : tags
 }
 
 resource azureOpenAIApiVersionEntry 'Microsoft.KeyVault/vaults/secrets@2021-11-01-preview' = {
@@ -346,6 +358,7 @@ resource azureOpenAIApiVersionEntry 'Microsoft.KeyVault/vaults/secrets@2021-11-0
   properties: {
     value: azureOpenaiAPIVersion //'2024-02-15-preview'
   }
+  tags : tags
 }
 
 resource azureOpenAIEndpointEntry 'Microsoft.KeyVault/vaults/secrets@2021-11-01-preview' = {
@@ -356,6 +369,7 @@ resource azureOpenAIEndpointEntry 'Microsoft.KeyVault/vaults/secrets@2021-11-01-
       ? existingOpenAIEndpoint
       : aiFoundry.properties.endpoints['OpenAI Language Model Instance API']
   }
+  tags : tags
   }
 
 resource azureOpenAIEmbeddingDeploymentModel 'Microsoft.KeyVault/vaults/secrets@2021-11-01-preview' = {
@@ -364,6 +378,7 @@ resource azureOpenAIEmbeddingDeploymentModel 'Microsoft.KeyVault/vaults/secrets@
   properties: {
     value: embeddingModel
   }
+  tags : tags
 }
 
 resource azureSearchServiceEndpointEntry 'Microsoft.KeyVault/vaults/secrets@2021-11-01-preview' = {
@@ -372,6 +387,7 @@ resource azureSearchServiceEndpointEntry 'Microsoft.KeyVault/vaults/secrets@2021
   properties: {
     value: 'https://${aiSearch.name}.search.windows.net'
   }
+  tags : tags
 }
 
 resource azureSearchServiceEntry 'Microsoft.KeyVault/vaults/secrets@2021-11-01-preview' = {
@@ -380,6 +396,7 @@ resource azureSearchServiceEntry 'Microsoft.KeyVault/vaults/secrets@2021-11-01-p
   properties: {
     value: aiSearch.name
   }
+  tags : tags
 }
 
 resource azureSearchIndexEntry 'Microsoft.KeyVault/vaults/secrets@2021-11-01-preview' = {
@@ -388,6 +405,7 @@ resource azureSearchIndexEntry 'Microsoft.KeyVault/vaults/secrets@2021-11-01-pre
   properties: {
     value: 'pdf_index'
   }
+  tags : tags
 }
 
 resource cogServiceEndpointEntry 'Microsoft.KeyVault/vaults/secrets@2021-11-01-preview' = {
@@ -398,6 +416,7 @@ resource cogServiceEndpointEntry 'Microsoft.KeyVault/vaults/secrets@2021-11-01-p
       ? existingOpenAIEndpoint
       : aiFoundry.properties.endpoint
   }
+  tags : tags
 }
 
 resource cogServiceKeyEntry 'Microsoft.KeyVault/vaults/secrets@2021-11-01-preview' = {
@@ -408,6 +427,7 @@ resource cogServiceKeyEntry 'Microsoft.KeyVault/vaults/secrets@2021-11-01-previe
       ? existingAiFoundry.listKeys().key1
       : aiFoundry.listKeys().key1
   }
+  tags : tags
 }
 
 resource cogServiceNameEntry 'Microsoft.KeyVault/vaults/secrets@2021-11-01-preview' = {
@@ -416,6 +436,7 @@ resource cogServiceNameEntry 'Microsoft.KeyVault/vaults/secrets@2021-11-01-previ
   properties: {
     value: !empty(existingAIFoundryName) ? existingAIFoundryName : aiFoundryName
   }
+  tags : tags
 }
 
 resource azureSubscriptionIdEntry 'Microsoft.KeyVault/vaults/secrets@2021-11-01-preview' = {
@@ -424,6 +445,7 @@ resource azureSubscriptionIdEntry 'Microsoft.KeyVault/vaults/secrets@2021-11-01-
   properties: {
     value: subscription().subscriptionId
   }
+  tags : tags
 }
 
 resource resourceGroupNameEntry 'Microsoft.KeyVault/vaults/secrets@2021-11-01-preview' = {
@@ -432,6 +454,7 @@ resource resourceGroupNameEntry 'Microsoft.KeyVault/vaults/secrets@2021-11-01-pr
   properties: {
     value: resourceGroup().name
   }
+  tags : tags
 }
 
 resource azureLocatioEntry 'Microsoft.KeyVault/vaults/secrets@2021-11-01-preview' = {
@@ -440,6 +463,7 @@ resource azureLocatioEntry 'Microsoft.KeyVault/vaults/secrets@2021-11-01-preview
   properties: {
     value: solutionLocation
   }
+  tags : tags
 }
 
 @description('Contains Name of KeyVault.')

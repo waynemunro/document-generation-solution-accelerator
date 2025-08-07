@@ -13,6 +13,9 @@ param storageAccountName string
 @description('Contains Container Name.')
 param containerName string
 
+@description('Optional. Tags to be applied to the resources.')
+param tags object = {}
+
 resource copy_demo_Data 'Microsoft.Resources/deploymentScripts@2020-10-01' = {
   kind:'AzureCLI'
   name: 'copy_demo_Data'
@@ -31,4 +34,5 @@ resource copy_demo_Data 'Microsoft.Resources/deploymentScripts@2020-10-01' = {
     retentionInterval: 'PT1H' // Specify the desired retention interval
     cleanupPreference:'OnSuccess'
   }
+  tags : tags
 }

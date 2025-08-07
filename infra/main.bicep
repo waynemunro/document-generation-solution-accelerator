@@ -2,8 +2,8 @@
 targetScope = 'resourceGroup'
 
 @minLength(3)
-@maxLength(20)
-@description('A unique prefix for all resources in this deployment. This should be 3-20 characters long:')
+@maxLength(15)
+@description('Optional. A unique prefix for all resources in this deployment. This should be 3-15 characters long:')
 param solutionName string = 'docgen'
 
 @minLength(1)
@@ -116,6 +116,7 @@ resource resourceGroupTags 'Microsoft.Resources/tags@2021-04-01' = {
   name: 'default'
   properties: {
     tags: {
+      ... tags
       TemplateName: 'Docgen'
     }
   }
@@ -128,6 +129,7 @@ module managedIdentityModule 'deploy_managed_identity.bicep' = {
     solutionName: solutionSuffix
     solutionLocation: solutionLocation
     miName: 'id-${solutionSuffix}'
+    tags : tags
   }
   scope: resourceGroup(resourceGroup().name)
 }
@@ -140,6 +142,7 @@ module kvault 'deploy_keyvault.bicep' = {
     solutionLocation: solutionLocation
     managedIdentityObjectId: managedIdentityModule.outputs.managedIdentityOutput.objectId
     keyvaultName: 'kv-${solutionSuffix}'
+    tags : tags
   }
   scope: resourceGroup(resourceGroup().name)
 }
@@ -161,6 +164,7 @@ module aifoundry 'deploy_ai_foundry.bicep' = {
     managedIdentityObjectId: managedIdentityModule.outputs.managedIdentityOutput.objectId
     existingLogAnalyticsWorkspaceId: existingLogAnalyticsWorkspaceId
     azureExistingAIProjectResourceId: azureExistingAIProjectResourceId
+    tags : tags
   }
   scope: resourceGroup(resourceGroup().name)
 }
@@ -174,6 +178,7 @@ module storageAccount 'deploy_storage_account.bicep' = {
     keyVaultName: kvault.outputs.keyvaultName
     managedIdentityObjectId: managedIdentityModule.outputs.managedIdentityOutput.objectId
     saName: 'st${solutionSuffix}'
+    tags : tags
   }
   scope: resourceGroup(resourceGroup().name)
 }
@@ -196,8 +201,8 @@ module appserviceModule 'deploy_app_service.bicep' = {
     aiSearchService: aifoundry.outputs.aiSearchService
     aiSearchName: aifoundry.outputs.aiSearchName
     azureAiAgentApiVersion: azureAiAgentApiVersion
-    AzureOpenAIEndpoint: aifoundry.outputs.aoaiEndpoint
-    AzureOpenAIModel: gptModelName
+    azureOpenAIEndpoint: aifoundry.outputs.aoaiEndpoint
+    azureOpenAIModel: gptModelName
     azureOpenAIApiVersion: azureOpenaiAPIVersion //'2024-02-15-preview'
     azureOpenaiResource: aifoundry.outputs.aiFoundryName
     aiFoundryProjectName: aifoundry.outputs.aiFoundryProjectName
@@ -210,10 +215,11 @@ module appserviceModule 'deploy_app_service.bicep' = {
     AZURE_COSMOSDB_DATABASE: cosmosDBModule.outputs.cosmosDatabaseName
     appInsightsConnectionString: aifoundry.outputs.applicationInsightsConnectionString
     AZURE_COSMOSDB_ENABLE_FEEDBACK: 'True'
-    HostingPlanName: 'asp-${solutionSuffix}'
-    WebsiteName: 'app-${solutionSuffix}'
+    hostingPlanName: 'asp-${solutionSuffix}'
+    websiteName: 'app-${solutionSuffix}'
     aiSearchProjectConnectionName: aifoundry.outputs.aiSearchConnectionName
     azureExistingAIProjectResourceId: azureExistingAIProjectResourceId
+    tags : tags
   }
   scope: resourceGroup(resourceGroup().name)
   // dependsOn:[sqlDBModule]
@@ -229,6 +235,7 @@ module cosmosDBModule 'deploy_cosmos_db.bicep' = {
     solutionLocation: secondaryLocation
     keyVaultName: kvault.outputs.keyvaultName
     accountName: 'cosmos-${solutionSuffix}'
+    tags : tags
   }
   scope: resourceGroup(resourceGroup().name)
 }
