@@ -14,14 +14,14 @@ param keyVaultName string
 @description('Required. Indicates the type of Deployment.')
 param deploymentType string
 
-@description('Required. GPT Model Name')
-param gptModelName string
+@description('Optional. Name of the GPT model to deploy:')
+param gptModelName string = 'gpt-4.1'
 
-@description('Required. GPT Model Version.')
-param gptModelVersion string
+@description('Optional. Version of the GPT model to deploy:')
+param gptModelVersion string = '2025-04-14'
 
-@description('Required. Azure OepnAI API Version.')
-param azureOpenaiAPIVersion string
+@description('Optional. API version for Azure OpenAI service. This should be a valid API version supported by the service.')
+param azureOpenaiAPIVersion string = '2025-01-01-preview'
 
 @description('Required. Param to get Deployment Capacity.')
 param gptDeploymentCapacity int
