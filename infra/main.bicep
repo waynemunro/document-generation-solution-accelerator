@@ -16,17 +16,11 @@ param AZURE_LOCATION string = ''
 // ========== AI Deployments Location ========== //
 @allowed([
   'australiaeast'
-  'canadaeast'
-  'centraluseuap'
   'eastus'
   'eastus2'
   'francecentral'
   'japaneast'
   'koreacentral'
-  'norwayeast'
-  'polandcentral'
-  'southeastasia'
-  'southindia'
   'swedencentral'
   'switzerlandnorth'
   'uaenorth'
@@ -40,7 +34,7 @@ param AZURE_LOCATION string = ''
     type: 'location'
     usageName: [
       'OpenAI.GlobalStandard.gpt4.1,150'
-      'OpenAI.Standard.text-embedding-ada-002,80'
+      'OpenAI.GlobalStandard.text-embedding-ada-002,80'
     ]
   }
 })
@@ -262,7 +256,26 @@ output AI_FOUNDRY_NAME string = aifoundry.outputs.aiFoundryName
 output AI_FOUNDRY_RG_NAME string = aifoundry.outputs.aiFoundryRgName
 
 @description('Contains AI Search Service Name')
+output AI_FOUNDRY_RESOURCE_ID string = aifoundry.outputs.aiFoundryId
 output AI_SEARCH_SERVICE_NAME string = aifoundry.outputs.aiSearchService
 
 @description('Contains Azure Search Connection Name')
 output AZURE_SEARCH_CONNECTION_NAME string = aifoundry.outputs.aiSearchConnectionName
+output AZURE_OPENAI_TITLE_PROMPT string = appserviceModule.outputs.azureOpenAiTitlePrompt
+output AZURE_OPENAI_GENERATE_SECTION_CONTENT_PROMPT string = appserviceModule.outputs.azureOpenAiGenerateSectionContentPrompt
+output AZURE_OPENAI_TEMPLATE_SYSTEM_MESSAGE string = appserviceModule.outputs.azureOpenAiTemplateSystemMessage
+output AZURE_OPENAI_SYSTEM_MESSAGE string = appserviceModule.outputs.azureOpenAISystemMessage
+output AZURE_OPENAI_MODEL string = appserviceModule.outputs.azureOpenAIModel
+output AZURE_OPENAI_RESOURCE string = appserviceModule.outputs.azureOpenAIResource
+output AZURE_SEARCH_SERVICE string = appserviceModule.outputs.aiSearchService
+output AZURE_SEARCH_INDEX string = appserviceModule.outputs.AzureSearchIndex
+output AZURE_COSMOSDB_ACCOUNT string = cosmosDBModule.outputs.cosmosAccountName
+output AZURE_COSMOSDB_DATABASE string = cosmosDBModule.outputs.cosmosDatabaseName
+output AZURE_COSMOSDB_CONVERSATIONS_CONTAINER string = cosmosDBModule.outputs.cosmosContainerName
+output AZURE_COSMOSDB_ENABLE_FEEDBACK string = appserviceModule.outputs.AZURE_COSMOSDB_ENABLE_FEEDBACK
+output AZURE_SEARCH_QUERY_TYPE string = appserviceModule.outputs.AzureSearchQueryType
+output AZURE_SEARCH_VECTOR_COLUMNS string = appserviceModule.outputs.AzureSearchVectorFields
+output AZURE_AI_AGENT_ENDPOINT string = aifoundry.outputs.aiFoundryProjectEndpoint
+output AZURE_AI_AGENT_API_VERSION string = azureAiAgentApiVersion
+output AZURE_AI_AGENT_MODEL_DEPLOYMENT_NAME string = appserviceModule.outputs.azureOpenAIModel
+output AZURE_APPLICATION_INSIGHTS_CONNECTION_STRING string = aifoundry.outputs.applicationInsightsConnectionString

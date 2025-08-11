@@ -6,10 +6,9 @@ fileSystem="$2"
 keyvaultName="$3"
 cosmosDbAccountName="$4"
 resourceGroupName="$5"
-aiFoundryName="$6"
-aiFoundryRgName="$7"
-aiSearchName="$8"
-managedIdentityClientId="$9"
+aiSearchName="$6"
+managedIdentityClientId="$7"
+aif_resource_id="${8}"
 
 # get parameters from azd env, if not provided
 if [ -z "$resourceGroupName" ]; then
@@ -32,23 +31,19 @@ if [ -z "$keyvaultName" ]; then
     keyvaultName=$(azd env get-value KEY_VAULT_NAME)
 fi
 
-if [ -z "$aiFoundryName" ]; then
-    aiFoundryName=$(azd env get-value AI_FOUNDRY_NAME)
-fi
-
-if [ -z "$aiFoundryRgName" ]; then
-    aiFoundryRgName=$(azd env get-value AI_FOUNDRY_RG_NAME)
-fi
-
 if [ -z "$aiSearchName" ]; then
     aiSearchName=$(azd env get-value AI_SEARCH_SERVICE_NAME)
+fi
+
+if [ -z "$aif_resource_id" ]; then
+    aif_resource_id=$(azd env get-value AI_FOUNDRY_RESOURCE_ID)
 fi
 
 azSubscriptionId=$(azd env get-value AZURE_SUBSCRIPTION_ID)
 
 # Check if all required arguments are provided
-if [ -z "$storageAccount" ] || [ -z "$fileSystem" ] || [ -z "$keyvaultName" ] || [ -z "$cosmosDbAccountName" ] || [ -z "$resourceGroupName" ] || [ -z "$aiFoundryName" ] || [ -z "$aiFoundryRgName" ] || [ -z "$aiSearchName" ]; then
-    echo "Usage: $0 <storageAccount> <storageContainerName> <keyvaultName> <cosmosDbAccountName> <resourceGroupName> <aiFoundryName> <aiFoundryRgName> <aiSearchName>"
+if [ -z "$storageAccount" ] || [ -z "$fileSystem" ] || [ -z "$keyvaultName" ] || [ -z "$cosmosDbAccountName" ] || [ -z "$resourceGroupName" ] || [ -z "$aif_resource_id" ] || [ -z "$aiSearchName" ]; then
+    echo "Usage: $0 <storageAccount> <storageContainerName> <keyvaultName> <cosmosDbAccountName> <resourceGroupName> <aiSearchName> <managedIdentityClientId> <aif_resource_id>"
     exit 1
 fi
 
@@ -130,7 +125,7 @@ echo "copy_kb_files.sh completed successfully."
 
 # Call run_create_index_scripts.sh
 echo "Running run_create_index_scripts.sh"
-bash infra/scripts/run_create_index_scripts.sh "$keyvaultName" "$resourceGroupName" "$aiFoundryName" "$aiFoundryRgName" "$aiSearchName" "$managedIdentityClientId"
+bash infra/scripts/run_create_index_scripts.sh "$keyvaultName" "$resourceGroupName" "$aiSearchName" "$managedIdentityClientId" "$aif_resource_id"
 if [ $? -ne 0 ]; then
     echo "Error: run_create_index_scripts.sh failed."
     exit 1

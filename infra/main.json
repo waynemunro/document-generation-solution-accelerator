@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.36.177.2456",
-      "templateHash": "5067006710993312117"
+      "templateHash": "1702044992104018188"
     }
   },
   "parameters": {
@@ -36,17 +36,11 @@
       "type": "string",
       "allowedValues": [
         "australiaeast",
-        "canadaeast",
-        "centraluseuap",
         "eastus",
         "eastus2",
         "francecentral",
         "japaneast",
         "koreacentral",
-        "norwayeast",
-        "polandcentral",
-        "southeastasia",
-        "southindia",
         "swedencentral",
         "switzerlandnorth",
         "uaenorth",
@@ -59,7 +53,7 @@
           "type": "location",
           "usageName": [
             "OpenAI.GlobalStandard.gpt4.1,150",
-            "OpenAI.Standard.text-embedding-ada-002,80"
+            "OpenAI.GlobalStandard.text-embedding-ada-002,80"
           ]
         },
         "description": "Location for AI deployments. This should be a valid Azure region where OpenAI services are available."
@@ -665,7 +659,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.36.177.2456",
-              "templateHash": "5405168643980957312"
+              "templateHash": "4676644507101240486"
             }
           },
           "parameters": {
@@ -976,7 +970,7 @@
                 "name": "[parameters('embeddingModel')]",
                 "model": "[parameters('embeddingModel')]",
                 "sku": {
-                  "name": "Standard",
+                  "name": "GlobalStandard",
                   "capacity": "[parameters('embeddingDeploymentCapacity')]"
                 },
                 "version": "2",
@@ -1565,9 +1559,9 @@
               "type": "string",
               "value": "[if(not(empty(variables('existingAIFoundryName'))), variables('existingAIFoundryName'), variables('aiFoundryName'))]"
             },
-            "aiFoundryRgName": {
+            "aiFoundryId": {
               "type": "string",
-              "value": "[if(not(empty(variables('existingAIServiceResourceGroup'))), variables('existingAIServiceResourceGroup'), resourceGroup().name)]"
+              "value": "[if(not(empty(parameters('azureExistingAIProjectResourceId'))), extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', variables('existingAIServiceSubscription'), variables('existingAIServiceResourceGroup')), 'Microsoft.CognitiveServices/accounts', variables('existingAIFoundryName')), resourceId('Microsoft.CognitiveServices/accounts', variables('aiFoundryName')))]"
             },
             "applicationInsightsId": {
               "type": "string",
@@ -1868,7 +1862,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.36.177.2456",
-              "templateHash": "7711665754275271950"
+              "templateHash": "5423105461678227247"
             }
           },
           "parameters": {
@@ -2361,7 +2355,8 @@
               "name": "[guid(parameters('WebsiteName'), parameters('aiSearchName'), resourceId('Microsoft.Authorization/roleDefinitions', '1407120a-92aa-4202-b7e9-c0e197c71c8f'))]",
               "properties": {
                 "roleDefinitionId": "[resourceId('Microsoft.Authorization/roleDefinitions', '1407120a-92aa-4202-b7e9-c0e197c71c8f')]",
-                "principalId": "[reference(resourceId('Microsoft.Web/sites', parameters('WebsiteName')), '2020-06-01', 'full').identity.principalId]"
+                "principalId": "[reference(resourceId('Microsoft.Web/sites', parameters('WebsiteName')), '2020-06-01', 'full').identity.principalId]",
+                "principalType": "ServicePrincipal"
               },
               "dependsOn": [
                 "[resourceId('Microsoft.Web/sites', parameters('WebsiteName'))]"
@@ -2726,13 +2721,9 @@
       "type": "string",
       "value": "[resourceGroup().name]"
     },
-    "AI_FOUNDRY_NAME": {
+    "AI_FOUNDRY_RESOURCE_ID": {
       "type": "string",
-      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, resourceGroup().name), 'Microsoft.Resources/deployments', 'deploy_ai_foundry'), '2022-09-01').outputs.aiFoundryName.value]"
-    },
-    "AI_FOUNDRY_RG_NAME": {
-      "type": "string",
-      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, resourceGroup().name), 'Microsoft.Resources/deployments', 'deploy_ai_foundry'), '2022-09-01').outputs.aiFoundryRgName.value]"
+      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, resourceGroup().name), 'Microsoft.Resources/deployments', 'deploy_ai_foundry'), '2022-09-01').outputs.aiFoundryId.value]"
     },
     "AI_SEARCH_SERVICE_NAME": {
       "type": "string",

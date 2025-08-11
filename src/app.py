@@ -170,7 +170,7 @@ async def init_ai_foundry_client():
 
         ai_project_client = AIProjectClient(
             endpoint=app_settings.azure_ai.agent_endpoint,
-            credential=get_azure_credential()
+            credential=await get_azure_credential_async()
         )
         track_event_if_configured("AIFoundryAgentEndpointUsed", {
             "endpoint": app_settings.azure_ai.agent_endpoint
@@ -1164,7 +1164,7 @@ async def fetch_azure_search_content():
             return jsonify({"error": "URL and title are required"}), 400
 
         # Get Azure AD token
-        credential = await get_azure_credential_async()
+        credential = get_azure_credential()
         token = credential.get_token("https://search.azure.com/.default")
         access_token = token.token
 
