@@ -1,45 +1,45 @@
 @minLength(3)
 @maxLength(15)
-@description('Solution Name')
+@description('Required. Contains Solution Name')
 param solutionName string
 
-@description('Specifies the location for resources.')
+@description('Required. Specifies the location for resources.')
 param solutionLocation string
 
-@description('Base URL')
+@description('Required. Contains the Base URL')
 param baseUrl string
 
-@description('Contains Managed Identity Object ID')
+@description('Required. Contains Managed Identity Object ID')
 param managedIdentityObjectId string
 
-@description('Contains Managed Identity Client ID')
+@description('Required. Contains Managed Identity Client ID')
 param managedIdentityClientId string
 
-@description('Contains Storage Account Name')
+@description('Required. Contains Storage Account Name')
 param storageAccountName string
 
-@description('Contains Container Name')
+@description('Required. Contains Container Name')
 param containerName string
 
-@description('Contains Container App Name')
+@description('Required. Contains Container App Name')
 param containerAppName string = 'ca-${ solutionName }'
 
-@description('Contains Environment Name')
+@description('Required. Contains Environment Name')
 param environmentName string = 'cae-${ solutionName }'
 
-@description('Image Name')
+@description('Optional. Contains Image Name')
 param imageName string = 'python:3.11-alpine'
 
-@description('Contains SetupCopyKBFiles')
+@description('Required. Contains SetupCopyKBFiles')
 param setupCopyKbFiles string = '${baseUrl}infra/scripts/copy_kb_files.sh'
 
-@description('Contains URL of SetupCreateIndex Script')
+@description('Required. Contains URL of SetupCreateIndex Script')
 param setupCreateIndexScriptsUrl string = '${baseUrl}infra/scripts/run_create_index_scripts.sh'
 
-@description('Contains KeyVault Name')
+@description('Required. Contains KeyVault Name')
 param keyVaultName string
 
-@description('Contains Log Analytics Workspace Resource Name')
+@description('Required. Contains Log Analytics Workspace Resource Name')
 param logAnalyticsWorkspaceResourceName string
 
 @description('Optional. Tags to be applied to the resources.')

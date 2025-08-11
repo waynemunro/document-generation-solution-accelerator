@@ -1,16 +1,16 @@
-@description('Specifies the location for resources.')
+@description('Required. Specifies the location for resources.')
 param solutionLocation string
 
-@description('Contains BaseURL.')
+@description('Required. Contains BaseURL.')
 param baseUrl string
 
-@description('Contains Managed Identity Object ID.')
+@description('Required. Contains Managed Identity Object ID.')
 param managedIdentityObjectId string
 
-@description('Contains Storage Account Name.')
+@description('Required. Contains Storage Account Name.')
 param storageAccountName string
 
-@description('Contains Container Name.')
+@description('Required. Contains Container Name.')
 param containerName string
 
 @description('Optional. Tags to be applied to the resources.')

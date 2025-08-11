@@ -4,13 +4,13 @@ targetScope = 'resourceGroup'
 
 @minLength(3)
 @maxLength(15)
-@description('Solution Name')
+@description('Required. Contains Solution Name')
 param solutionName string
 
-@description('Solution Location')
+@description('Required. Contains Solution Location')
 param solutionLocation string
 
-@description('Name')
+@description('Required. Contains MI Name')
 param miName  string
 
 @description('Optional. Tags to be applied to the resources.')

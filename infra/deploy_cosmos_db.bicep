@@ -1,17 +1,19 @@
 @minLength(3)
 @maxLength(15)
-@description('Solution Name')
+@description('Required. Contains Solution Name')
 param solutionName string
 
 @minLength(3)
 @maxLength(20)
-@description('Solution location.')
+@description('Required. Contains Solution location.')
 param solutionLocation string
+
+@description('Required. Contains Name of the KeyVault')
 param keyVaultName string
 
 @minLength(5)
 @maxLength(25)
-@description('Name of the Account')
+@description('Required. Contains Name of the Account')
 param accountName string 
 
 @description('Optional. Tags to be applied to the resources.')
@@ -28,6 +30,7 @@ var containers = [
   }
 ]
 
+@description('Optional. DB Type.')
 @allowed([ 'GlobalDocumentDB', 'MongoDB', 'Parse' ])
 param kind string = 'GlobalDocumentDB'
 

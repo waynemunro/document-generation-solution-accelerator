@@ -2,43 +2,43 @@
 
 @minLength(3)
 @maxLength(15)
-@description('Solution Name')
+@description('Required. Contains Solution Name')
 param solutionName string
 
-@description('Solution Location')
+@description('Required. Contains Solution Location')
 param solutionLocation string
 
-@description('Contains Name of KeyVault.')
+@description('Required. Contains Name of KeyVault.')
 param keyVaultName string
 
-@description('Indicates the type of Deployment.')
+@description('Required. Indicates the type of Deployment.')
 param deploymentType string
 
-@description('GPT Model Name')
+@description('Required. GPT Model Name')
 param gptModelName string
 
-@description('GPT Model Version.')
+@description('Required. GPT Model Version.')
 param gptModelVersion string
 
-@description('Azure OepnAI API Version.')
+@description('Required. Azure OepnAI API Version.')
 param azureOpenaiAPIVersion string
 
-@description('Param to get Deployment Capacity.')
+@description('Required. Param to get Deployment Capacity.')
 param gptDeploymentCapacity int
 
-@description('Embedding Model.')
+@description('Required. Embedding Model.')
 param embeddingModel string
 
-@description('Info about Embedding Deployment Capacity.')
+@description('Required. Info about Embedding Deployment Capacity.')
 param embeddingDeploymentCapacity int
 
-@description('Managed Identity Object ID.')
+@description('Required. Managed Identity Object ID.')
 param managedIdentityObjectId string
 
-@description('Existing Log Analytics WorkspaceID.')
+@description('Required. Existing Log Analytics WorkspaceID.')
 param existingLogAnalyticsWorkspaceId string = ''
 
-@description('Azure Existing AI Project ResourceID.')
+@description('Required. Azure Existing AI Project ResourceID.')
 param azureExistingAIProjectResourceId string = ''
 
 @description('Optional. Tags to be applied to the resources.')

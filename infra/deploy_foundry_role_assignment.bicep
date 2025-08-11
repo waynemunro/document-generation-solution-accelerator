@@ -1,16 +1,16 @@
-@description('Principle ID')
+@description('Optional. Principle ID')
 param principalId string = ''
 
-@description('Role Definition ID')
+@description('Required. Role Definition ID')
 param roleDefinitionId string
 
-@description('Role Assignment Name')
+@description('Optional. Role Assignment Name')
 param roleAssignmentName string = ''
 
-@description('AI Foundry Name')
+@description('Required. AI Foundry Name')
 param aiFoundryName string
 
-@description('AI Project Name')
+@description('Optional. AI Project Name')
 param aiProjectName string = ''
 
 @description('AI Model Deployments')

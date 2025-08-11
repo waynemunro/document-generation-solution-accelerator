@@ -1,15 +1,15 @@
 @minLength(3)
 @maxLength(15)
-@description('Solution Name')
+@description('Required. Contains Solution Name')
 param solutionName string
 
-@description('Solution Location')
+@description('Required. Contains Solution Location')
 param solutionLocation string
 
-@description('Contains the ObjectID of the ManagedIdentity')
+@description('Required. Contains the ObjectID of the ManagedIdentity')
 param managedIdentityObjectId string
 
-@description('Contains Name of the KeyVault')
+@description('Required. Contains Name of the KeyVault')
 param keyvaultName string
 
 @description('Optional. Tags to be applied to the resources.')

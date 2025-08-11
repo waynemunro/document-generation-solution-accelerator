@@ -3,19 +3,19 @@ targetScope = 'resourceGroup'
 
 @minLength(3)
 @maxLength(15)
-@description('Solution Name')
+@description('Required. Contains Solution Name')
 param solutionName string
 
-@description('Solution Location')
+@description('Required. Contains Solution Location')
 param solutionLocation string
 
-@description('Storage Account Name')
+@description('Required. Contains Storage Account Name')
 param saName string
 
-@description('Contains KeyVault Name')
+@description('Required. Contains KeyVault Name')
 param keyVaultName string
 
-@description('Contains managed identity ObjectID')
+@description('Required. Contains managed identity ObjectID')
 param managedIdentityObjectId string
 
 @description('Optional. Tags to be applied to the resources.')

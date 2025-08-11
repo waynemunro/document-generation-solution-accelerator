@@ -3,120 +3,123 @@ targetScope = 'resourceGroup'
 
 @minLength(3)
 @maxLength(15)
-@description('Solution Name')
+@description('Required. Contains Solution Name')
 param solutionName string
 
-@description('Solution Location')
+@description('Required. Contains Solution Location')
 param solutionLocation string
 
-@description('Name of App Service plan')
+@description('Required. Name of App Service plan')
 param hostingPlanName string
 
-@description('The pricing tier for the App Service plan')
+@description('Optional. The pricing tier for the App Service plan')
 @allowed(['F1', 'D1', 'B1', 'B2', 'B3', 'S1', 'S2', 'S3', 'P1', 'P2', 'P3', 'P4', 'P0v3'])
 // param hostingPlanSku string = 'B1'
 param hostingPlanSku string = 'B1'
 
-@description('Name of Web App')
+@description('Required. Name of Web App')
 param websiteName string
 
 // @description('Name of Application Insights')
 // param ApplicationInsightsName string = '${ solutionName }-app-insights'
 
-@description('Azure OpenAI Model Deployment Name')
+@description('Required. Azure OpenAI Model Deployment Name')
 param azureOpenAIModel string
 
-@description('Azure OpenAI Endpoint')
+@description('Optional. Azure OpenAI Endpoint')
 param azureOpenAIEndpoint string = ''
 
-@description('Azure AI Agent API Version')
+@description('Required. Azure AI Agent API Version')
 param azureAiAgentApiVersion string
 
-@description('Azure OpenAI API Version')
+@description('Required. Azure OpenAI API Version')
 param azureOpenAIApiVersion string
 
-@description('Azure OpenAI Resource')
+@description('Optional. Azure OpenAI Resource')
 param azureOpenaiResource string = ''
 
-@description('To enable/disable chat history')
+@description('Optional. To enable/disable chat history')
 param USE_CHAT_HISTORY_ENABLED string = ''
 
-@description('AI Search Service')
+@description('Required. AI Search Service')
 param aiSearchService string
 
-@description('AI Foundry Name')
+@description('Required. AI Foundry Name')
 param aiFoundryName string
 
-@description('AI Foundry Project Name')
+@description('Required. AI Foundry Project Name')
 param aiFoundryProjectName string
 
-@description('AI Foundry Project Endpoint')
+@description('Required. AI Foundry Project Endpoint')
 param aiFoundryProjectEndpoint string
 
-@description('AI Search Name')
+@description('Required. AI Search Name')
 param aiSearchName string
 
-@description('AI Search Project Connection Name')
+@description('Required. AI Search Project Connection Name')
 param aiSearchProjectConnectionName string
 
-@description('Enable Semantic Search in Azure Search')
+@description('Optional. Enable Semantic Search in Azure Search')
 param azureSearchUseSemanticSearch string = 'False'
 
-@description('Enable In-Domain Search in Azure Search')
+@description('Optional. Enable In-Domain Search in Azure Search')
 param azureSearchEnableInDomain string = 'True'
 
-@description('Azure Search Top K')
+@description('Optional. Azure Search Top K')
 param azureSearchTopK string = '5'
 
-@description('Azure Search Query Type')
+@description('Optional. Azure Search Query Type')
 param azureSearchQueryType string = 'simple'
 
-@description('Azure Search Index Is Prechunked')
+@description('Optional. Azure Search Index Is Prechunked')
 param azureSearchIndexIsPrechunked string = 'True'
 
-@description('Azure Search Vector Fields')
+@description('Optional. Azure Search Vector Fields')
 param azureSearchVectorFields string = 'contentVector'
 
-@description('Azure Search Strictness')
+@description('Optional. Azure Search Strictness')
 param azureSearchStrictness string = '3'
 
-@description('Azure Search Permitted Groups Field')
+@description('Optional. Azure Search Permitted Groups Field')
 param azureSearchPermittedGroupsField string = ''
 
-@description('Azure Search Content Columns')
+@description('Optional. Azure Search Content Columns')
 param azureSearchContentColumns string = 'content'
 
-@description('Azure Search Title Column')
+@description('Optional. Azure Search Title Column')
 param azureSearchTitleColumn string = ''
 
-@description('Azure Search URL Column')
+@description('Optional. Azure Search URL Column')
 param azureSearchUrlColumn string = ''
 
-@description('Azure Search Filename Column')
+@description('Optional. Azure Search Filename Column')
 param azureSearchFilenameColumn string = 'sourceurl'
 
-@description('Azure Search Semantic Search Config')
+@description('Optional. Azure Search Semantic Search Config')
 param azureSearchSemanticSearchConfig string = 'my-semantic-config'
 
-@description('Azure Cosmos DB Account')
+@description('Optional. Azure Cosmos DB Account')
 param AZURE_COSMOSDB_ACCOUNT string = ''
 
-@description('Azure Search Index')
+@description('Optional. Azure Search Index')
 param azureSearchIndex string = 'pdf_index'
 
-@description('Azure Cosmos DB Conversations Container')
+@description('Optional. Azure Cosmos DB Conversations Container')
 param AZURE_COSMOSDB_CONVERSATIONS_CONTAINER string = ''
 
-@description('Azure Cosmos DB Database')
+@description('Optional. Azure Cosmos DB Database')
 param AZURE_COSMOSDB_DATABASE string = ''
 
-@description('Enable feedback in Cosmos DB')
+@description('Optional. Enable feedback in Cosmos DB')
 param AZURE_COSMOSDB_ENABLE_FEEDBACK string = 'True'
 
+@description('Required. Contains Image Tag.')
 param imageTag string
+
+@description('Required. Contains ApplicationInsightID')
 param applicationInsightsId string
 
-@description('The Application Insights connection string')
+@description('Required. The Application Insights connection string')
 @secure()
 param appInsightsConnectionString string
 // var imageName = 'DOCKER|byoaiacontainer.azurecr.io/byoaia-app:latest'
