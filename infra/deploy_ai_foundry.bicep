@@ -102,7 +102,7 @@ var aiModelDeployments = [
     name: embeddingModel
     model: embeddingModel
     sku: {
-      name: 'Standard'
+      name: 'GlobalStandard'
       capacity: embeddingDeploymentCapacity
     }
     version: '2'
@@ -511,6 +511,10 @@ output aiFoundryName string = !empty(existingAIFoundryName) ? existingAIFoundryN
 
 @description('Contains Name of AI Foundry RG.')
 output aiFoundryRgName string = !empty(existingAIServiceResourceGroup) ? existingAIServiceResourceGroup : resourceGroup().name
+=======
+output aiFoundryId string = !empty(azureExistingAIProjectResourceId)
+  ? existingAiFoundry.id
+  : aiFoundry.id
 
 @description('Contains Application Insights ID.')
 output applicationInsightsId string = applicationInsights.id

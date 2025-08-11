@@ -138,7 +138,7 @@ jobs:
           az deployment group create \
             --name ${{ env.SOLUTION_PREFIX }}-deployment \
             --resource-group ${{ env.RESOURCE_GROUP_NAME }} \
-            --template-file infra/main.json \
+            --template-file infra/main.bicep \
             --parameters \
                 solutionName="${{ env.SOLUTION_PREFIX }}" \
                 secondaryLocation="northcentralus" \
@@ -168,8 +168,8 @@ jobs:
           echo "KEY_VAULT_NAME=$KEY_VAULT_NAME" >> $GITHUB_ENV
           COSMOSDB_ACCOUNT_NAME=$(echo $BICEP_OUTPUT | jq -r '.cosmosdB_ACCOUNT_NAME.value')
           echo "COSMOSDB_ACCOUNT_NAME=$COSMOSDB_ACCOUNT_NAME" >> $GITHUB_ENV
-          AI_FOUNDRY_NAME=$(echo $BICEP_OUTPUT | jq -r '.aI_FOUNDRY_NAME.value')
-          echo "AI_FOUNDRY_NAME=$AI_FOUNDRY_NAME" >> $GITHUB_ENV
+          AI_FOUNDRY_RESOURCE_ID=$(echo $BICEP_OUTPUT | jq -r '.aI_FOUNDRY_RESOURCE_ID.value')
+          echo "AI_FOUNDRY_RESOURCE_ID=$AI_FOUNDRY_RESOURCE_ID" >> $GITHUB_ENV
           AI_SEARCH_SERVICE_NAME=$(echo $BICEP_OUTPUT | jq -r '.aI_SEARCH_SERVICE_NAME.value')
           echo "AI_SEARCH_SERVICE_NAME=$AI_SEARCH_SERVICE_NAME" >> $GITHUB_ENV
           echo "Deployment output: $BICEP_OUTPUT"
@@ -190,10 +190,9 @@ jobs:
           bash ./infra/scripts/run_create_index_scripts.sh \
             "${{ env.KEY_VAULT_NAME }}" \
             "${{ env.RESOURCE_GROUP_NAME }}" \
-            "${{ env.AI_FOUNDRY_NAME }}" \
-            "${{ env.RESOURCE_GROUP_NAME }}" \
             "${{ env.AI_SEARCH_SERVICE_NAME }}" \
-            "${{ secrets.AZURE_CLIENT_ID }}"
+            "${{ secrets.AZURE_CLIENT_ID }}" \
+            "${{ env.AI_FOUNDRY_RESOURCE_ID }}"
 
       - name: Logout from Azure
         if: always()
