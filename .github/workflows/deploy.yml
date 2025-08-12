@@ -1,17 +1,21 @@
 name: DocGen Deploy-Test-Cleanup Pipeline
 
 on:
-    workflow_run:
-      workflows: ["Build Docker and Optional Push"]
-      types:
-        - completed
-      branches:
-        - main
-        - dev
-        - demo
+  push:
+    branches:
+      - deploy-wf-w-azd
 
-    schedule:
-      - cron: '0 9,21 * * *'  # Runs at 9:00 AM and 9:00 PM GMT
+  workflow_run:
+    workflows: ["Build Docker and Optional Push"]
+    types:
+      - completed
+    branches:
+      - main
+      - dev
+      - demo
+
+  schedule:
+    - cron: '0 9,21 * * *'  # Runs at 9:00 AM and 9:00 PM GMT
 
 env:
   GPT_MIN_CAPACITY: 150
@@ -33,9 +37,15 @@ jobs:
           curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
           az --version  # Verify installation
 
+      - name: Setup Azure Developer CLI
+        run: |
+          curl -fsSL https://aka.ms/install-azd.sh | sudo bash
+          azd version 
+
       - name: Login to Azure
         run: |
           az login --service-principal -u ${{ secrets.AZURE_CLIENT_ID }} -p ${{ secrets.AZURE_CLIENT_SECRET }} --tenant ${{ secrets.AZURE_TENANT_ID }}
+          azd auth login --client-id ${{ secrets.AZURE_CLIENT_ID }} --client-secret ${{ secrets.AZURE_CLIENT_SECRET }} --tenant-id ${{ secrets.AZURE_TENANT_ID }}
 
       - name: Run Quota Check
         id: quota-check
@@ -109,21 +119,26 @@ jobs:
           fi
           echo "RESOURCE_GROUP_NAME=${{ env.RESOURCE_GROUP_NAME }}" >> $GITHUB_OUTPUT
 
-      - name: Generate Unique Solution Prefix
-        id: generate_solution_prefix
+      - name: Generate Unique Solution Name
+        id: generate_solution_name
         run: |
           set -e
           COMMON_PART="psldg"
-          TIMESTAMP=$(date +%s)  
-          UPDATED_TIMESTAMP=$(echo $TIMESTAMP | tail -c 6) 
-          UNIQUE_SOLUTION_PREFIX="${COMMON_PART}${UPDATED_TIMESTAMP}"
-          echo "SOLUTION_PREFIX=${UNIQUE_SOLUTION_PREFIX}" >> $GITHUB_ENV
-          echo "Generated SOLUTION_PREFIX: ${UNIQUE_SOLUTION_PREFIX}" 
+          TIMESTAMP=$(date +%s)
+          UPDATED_TIMESTAMP=$(echo $TIMESTAMP | tail -c 6)
+          UNIQUE_SOLUTION_NAME="${COMMON_PART}${UPDATED_TIMESTAMP}"
+          echo "SOLUTION_NAME=${UNIQUE_SOLUTION_NAME}" >> $GITHUB_ENV
+          echo "Generated SOLUTION_NAME: ${UNIQUE_SOLUTION_NAME}"
 
-      - name: Deploy Bicep Template
-        id: deploy
+      - name: Create Environment and set Variables
+        id: create_env
         run: |
           set -e
+
+          echo "Creating environment..."
+          azd env new ${{ env.SOLUTION_NAME }} --no-prompt
+          echo "Environment created: ${{ env.SOLUTION_NAME }}"
+
           # set image tag based on branch
           if [[ "${{ env.BRANCH_NAME }}" == "main" ]]; then
             IMAGE_TAG="latest"
@@ -135,44 +150,52 @@ jobs:
             IMAGE_TAG="latest"
           fi
 
-          az deployment group create \
-            --name ${{ env.SOLUTION_PREFIX }}-deployment \
-            --resource-group ${{ env.RESOURCE_GROUP_NAME }} \
-            --template-file infra/main.bicep \
-            --parameters \
-                environmentName="${{ env.SOLUTION_PREFIX }}" \
-                secondaryLocation="northcentralus" \
-                deploymentType="GlobalStandard" \
-                gptModelName="gpt-4.1" \
-                azureOpenaiAPIVersion="2025-01-01-preview" \
-                gptDeploymentCapacity=${{ env.GPT_MIN_CAPACITY }} \
-                embeddingModel="text-embedding-ada-002" \
-                embeddingDeploymentCapacity=${{ env.TEXT_EMBEDDING_MIN_CAPACITY }} \
-                aiDeploymentsLocation=${{ env.AZURE_LOCATION }} \
-                imageTag="${IMAGE_TAG}"
+          echo "Setting environment variables..."
+          azd env set \
+            AZURE_RESOURCE_GROUP="${{ env.RESOURCE_GROUP_NAME }}" | \
+            AZURE_SUBSCRIPTION_ID="${{ secrets.AZURE_SUBSCRIPTION_ID }}" | \
+            AZURE_ENV_AI_DEPLOYMENTS_LOCATION="${{ env.AZURE_LOCATION }}" | \
+            AZURE_ENV_MODEL_CAPACITY="${{ env.GPT_MIN_CAPACITY }}" | \
+            AZURE_ENV_EMBEDDING_MODEL_CAPACITY="${{ env.TEXT_EMBEDDING_MIN_CAPACITY }}" | \
+            AZURE_ENV_SECONDARY_LOCATION="northcentralus" | \
+            AZURE_ENV_IMAGETAG="${IMAGE_TAG}"
 
-      - name: Get Deployment Output and extract Values
-        id: get_output
+          echo "Environment variables set successfully:"
+          azd env get-values
+
+      - name: Deploy using azd
+        id: deploy
         run: |
           set -e
-          echo "Fetching deployment output..."
-          BICEP_OUTPUT=$(az deployment group show --name ${{ env.SOLUTION_PREFIX }}-deployment --resource-group ${{ env.RESOURCE_GROUP_NAME }} --query "properties.outputs" -o json)
-          echo "Extracting deployment output..."
-          WEBAPP_URL=$(echo $BICEP_OUTPUT | jq -r '.weB_APP_URL.value')
-          echo "WEBAPP_URL=$WEBAPP_URL" >> $GITHUB_OUTPUT
-          STORAGE_ACCOUNT_NAME=$(echo $BICEP_OUTPUT | jq -r '.storagE_ACCOUNT_NAME.value')
-          echo "STORAGE_ACCOUNT_NAME=$STORAGE_ACCOUNT_NAME" >> $GITHUB_ENV
-          STORAGE_CONTAINER_NAME=$(echo $BICEP_OUTPUT | jq -r '.storagE_CONTAINER_NAME.value')
-          echo "STORAGE_CONTAINER_NAME=$STORAGE_CONTAINER_NAME" >> $GITHUB_ENV
-          KEY_VAULT_NAME=$(echo $BICEP_OUTPUT | jq -r '.keY_VAULT_NAME.value')
-          echo "KEY_VAULT_NAME=$KEY_VAULT_NAME" >> $GITHUB_ENV
-          COSMOSDB_ACCOUNT_NAME=$(echo $BICEP_OUTPUT | jq -r '.cosmosdB_ACCOUNT_NAME.value')
-          echo "COSMOSDB_ACCOUNT_NAME=$COSMOSDB_ACCOUNT_NAME" >> $GITHUB_ENV
-          AI_FOUNDRY_RESOURCE_ID=$(echo $BICEP_OUTPUT | jq -r '.aI_FOUNDRY_RESOURCE_ID.value')
-          echo "AI_FOUNDRY_RESOURCE_ID=$AI_FOUNDRY_RESOURCE_ID" >> $GITHUB_ENV
-          AI_SEARCH_SERVICE_NAME=$(echo $BICEP_OUTPUT | jq -r '.aI_SEARCH_SERVICE_NAME.value')
-          echo "AI_SEARCH_SERVICE_NAME=$AI_SEARCH_SERVICE_NAME" >> $GITHUB_ENV
-          echo "Deployment output: $BICEP_OUTPUT"
+          azd up --no-prompt
+          echo "Deployment completed successfully."
+
+          WEBAPP_URL=$(azd env get-value WEB_APP_URL)
+          echo "WEBAPP_URL=${WEBAPP_URL}" >> $GITHUB_OUTPUT
+          echo "Web App URL: ${WEBAPP_URL}"
+
+      # - name: Get Deployment Output and extract Values
+      #   id: get_output
+      #   run: |
+      #     set -e
+      #     echo "Fetching deployment output..."
+      #     BICEP_OUTPUT=$(az deployment group show --name ${{ env.SOLUTION_NAME }}-deployment --resource-group ${{ env.RESOURCE_GROUP_NAME }} --query "properties.outputs" -o json)
+      #     echo "Extracting deployment output..."
+      #     WEBAPP_URL=$(echo $BICEP_OUTPUT | jq -r '.weB_APP_URL.value')
+      #     echo "WEBAPP_URL=$WEBAPP_URL" >> $GITHUB_OUTPUT
+      #     STORAGE_ACCOUNT_NAME=$(echo $BICEP_OUTPUT | jq -r '.storagE_ACCOUNT_NAME.value')
+      #     echo "STORAGE_ACCOUNT_NAME=$STORAGE_ACCOUNT_NAME" >> $GITHUB_ENV
+      #     STORAGE_CONTAINER_NAME=$(echo $BICEP_OUTPUT | jq -r '.storagE_CONTAINER_NAME.value')
+      #     echo "STORAGE_CONTAINER_NAME=$STORAGE_CONTAINER_NAME" >> $GITHUB_ENV
+      #     KEY_VAULT_NAME=$(echo $BICEP_OUTPUT | jq -r '.keY_VAULT_NAME.value')
+      #     echo "KEY_VAULT_NAME=$KEY_VAULT_NAME" >> $GITHUB_ENV
+      #     COSMOSDB_ACCOUNT_NAME=$(echo $BICEP_OUTPUT | jq -r '.cosmosdB_ACCOUNT_NAME.value')
+      #     echo "COSMOSDB_ACCOUNT_NAME=$COSMOSDB_ACCOUNT_NAME" >> $GITHUB_ENV
+      #     AI_FOUNDRY_NAME=$(echo $BICEP_OUTPUT | jq -r '.aI_FOUNDRY_NAME.value')
+      #     echo "AI_FOUNDRY_NAME=$AI_FOUNDRY_NAME" >> $GITHUB_ENV
+      #     AI_SEARCH_SERVICE_NAME=$(echo $BICEP_OUTPUT | jq -r '.aI_SEARCH_SERVICE_NAME.value')
+      #     echo "AI_SEARCH_SERVICE_NAME=$AI_SEARCH_SERVICE_NAME" >> $GITHUB_ENV
+      #     echo "Deployment output: $BICEP_OUTPUT"
 
       - name: Run Post-Deployment Script
         id: post_deploy
@@ -181,23 +204,13 @@ jobs:
           az account set --subscription "${{ secrets.AZURE_SUBSCRIPTION_ID }}"
 
           echo "Running post-deployment script..."
-
-          bash ./infra/scripts/copy_kb_files.sh \
-            "${{ env.STORAGE_ACCOUNT_NAME }}" \
-            "${{ env.STORAGE_CONTAINER_NAME }}" \
-            "${{ secrets.AZURE_CLIENT_ID }}"
-
-          bash ./infra/scripts/run_create_index_scripts.sh \
-            "${{ env.KEY_VAULT_NAME }}" \
-            "${{ env.RESOURCE_GROUP_NAME }}" \
-            "${{ env.AI_SEARCH_SERVICE_NAME }}" \
-            "${{ secrets.AZURE_CLIENT_ID }}" \
-            "${{ env.AI_FOUNDRY_RESOURCE_ID }}"
+          bash ./infra/scripts/process_sample_data.sh
 
       - name: Logout from Azure
         if: always()
         run: |
           az logout
+          az auth logout
           echo "Logged out from Azure."
 
   
