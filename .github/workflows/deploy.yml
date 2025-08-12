@@ -27,7 +27,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       RESOURCE_GROUP_NAME: ${{ steps.check_create_rg.outputs.RESOURCE_GROUP_NAME }}
-      WEBAPP_URL: ${{ steps.get_output.outputs.WEBAPP_URL }}
+      WEBAPP_URL: ${{ steps.deploy.outputs.WEBAPP_URL }}
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
