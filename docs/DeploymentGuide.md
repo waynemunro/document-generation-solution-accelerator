@@ -175,7 +175,7 @@ Once you've opened the project in [Codespaces](#github-codespaces), [Dev Contain
     ```
     If you don't have azd env then you need to pass parameters along with the command. Then the command will look like the following:
     ```shell 
-    bash ./infra/scripts/process_sample_data.sh <Storage-Account-name> <Storage-Account-container-name> <Key-Vault-name> <CosmosDB-Account-name> <Resource-Group-name> <AI-Foundry-Name> <AI-Foundry-Resource-Group-Name> <Search-Service-Name>
+    bash ./infra/scripts/process_sample_data.sh <Storage-Account-Name> <Storage-Container-Name> <Key-Vault-Name> <CosmosDB-Account-Name> <Resource-Group-Name> <Search-Service-Name> <Managed-Identity-Client-ID> <AI-Foundry-Resource-ID>
     ```
 
 6. Open the [Azure Portal](https://portal.azure.com/), go to the deployed resource group, find the App Service and get the app URL from `Default domain`.
