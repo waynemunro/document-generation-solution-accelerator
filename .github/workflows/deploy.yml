@@ -149,6 +149,10 @@ jobs:
           else
             IMAGE_TAG="latest"
           fi
+          echo "Using IMAGE_TAG: ${IMAGE_TAG}"
+
+          echo "Setting default subscription..."
+          azd config set defaults.subscription ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
           echo "Setting environment variables..."
           azd env set \
