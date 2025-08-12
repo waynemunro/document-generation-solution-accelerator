@@ -178,48 +178,33 @@ jobs:
           echo "WEBAPP_URL=${WEBAPP_URL}" >> $GITHUB_OUTPUT
           echo "Web App URL: ${WEBAPP_URL}"
 
-      # - name: Get Deployment Output and extract Values
-      #   id: get_output
-      #   run: |
-      #     set -e
-      #     echo "Fetching deployment output..."
-      #     BICEP_OUTPUT=$(az deployment group show --name ${{ env.SOLUTION_NAME }}-deployment --resource-group ${{ env.RESOURCE_GROUP_NAME }} --query "properties.outputs" -o json)
-      #     echo "Extracting deployment output..."
-      #     WEBAPP_URL=$(echo $BICEP_OUTPUT | jq -r '.weB_APP_URL.value')
-      #     echo "WEBAPP_URL=$WEBAPP_URL" >> $GITHUB_OUTPUT
-      #     STORAGE_ACCOUNT_NAME=$(echo $BICEP_OUTPUT | jq -r '.storagE_ACCOUNT_NAME.value')
-      #     echo "STORAGE_ACCOUNT_NAME=$STORAGE_ACCOUNT_NAME" >> $GITHUB_ENV
-      #     STORAGE_CONTAINER_NAME=$(echo $BICEP_OUTPUT | jq -r '.storagE_CONTAINER_NAME.value')
-      #     echo "STORAGE_CONTAINER_NAME=$STORAGE_CONTAINER_NAME" >> $GITHUB_ENV
-      #     KEY_VAULT_NAME=$(echo $BICEP_OUTPUT | jq -r '.keY_VAULT_NAME.value')
-      #     echo "KEY_VAULT_NAME=$KEY_VAULT_NAME" >> $GITHUB_ENV
-      #     COSMOSDB_ACCOUNT_NAME=$(echo $BICEP_OUTPUT | jq -r '.cosmosdB_ACCOUNT_NAME.value')
-      #     echo "COSMOSDB_ACCOUNT_NAME=$COSMOSDB_ACCOUNT_NAME" >> $GITHUB_ENV
-      #     AI_FOUNDRY_NAME=$(echo $BICEP_OUTPUT | jq -r '.aI_FOUNDRY_NAME.value')
-      #     echo "AI_FOUNDRY_NAME=$AI_FOUNDRY_NAME" >> $GITHUB_ENV
-      #     AI_SEARCH_SERVICE_NAME=$(echo $BICEP_OUTPUT | jq -r '.aI_SEARCH_SERVICE_NAME.value')
-      #     echo "AI_SEARCH_SERVICE_NAME=$AI_SEARCH_SERVICE_NAME" >> $GITHUB_ENV
-      #     echo "Deployment output: $BICEP_OUTPUT"
-
       - name: Run Post-Deployment Script
         id: post_deploy
         run: |
           set -e
           az account set --subscription "${{ secrets.AZURE_SUBSCRIPTION_ID }}"
 
+          # Extract necessary environment variables
+          STORAGE_ACCOUNT_NAME=$(azd env get-value STORAGE_ACCOUNT_NAME)
+          STORAGE_CONTAINER_NAME=$(azd env get-value STORAGE_CONTAINER_NAME)
+          KEY_VAULT_NAME=$(azd env get-value KEY_VAULT_NAME)
+          AI_FOUNDRY_NAME=$(azd env get-value AI_FOUNDRY_NAME)
+          AI_SEARCH_SERVICE_NAME=$(azd env get-value AI_SEARCH_SERVICE_NAME)
+
+
           echo "Running post-deployment script..."
-          
+
           bash ./infra/scripts/copy_kb_files.sh \
-            "${{ env.STORAGE_ACCOUNT_NAME }}" \
-            "${{ env.STORAGE_CONTAINER_NAME }}" \
+            "${STORAGE_ACCOUNT_NAME}" \
+            "${STORAGE_CONTAINER_NAME}" \
             "${{ secrets.AZURE_CLIENT_ID }}"
 
           bash ./infra/scripts/run_create_index_scripts.sh \
-            "${{ env.KEY_VAULT_NAME }}" \
+            "${KEY_VAULT_NAME}" \
             "${{ env.RESOURCE_GROUP_NAME }}" \
-            "${{ env.AI_FOUNDRY_NAME }}" \
+            "${AI_FOUNDRY_NAME}" \
             "${{ env.RESOURCE_GROUP_NAME }}" \
-            "${{ env.AI_SEARCH_SERVICE_NAME }}" \
+            "${AI_SEARCH_SERVICE_NAME}" \
             "${{ secrets.AZURE_CLIENT_ID }}"
 
       - name: Logout from Azure
