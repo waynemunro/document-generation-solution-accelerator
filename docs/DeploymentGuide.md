@@ -200,7 +200,10 @@ To configure your environment, follow these steps:
 1. Navigate to the `src` folder.
 2. Create a `.env` file based on the `.env.sample` file.
 3. Fill in the `.env` file using the deployment output or by checking the Azure Portal under "Deployments" in your resource group.
-4. Ensure that `APP_ENV` is set to "**dev**" in your `.env` file.
+4. Alternatively, if resources were
+   provisioned using `azd provision` or `azd up`, a `.env` file is automatically generated in the `.azure/<env-name>/.env`
+   file. To get your `<env-name>` run `azd env list` to see which env is default.
+5. Ensure that `APP_ENV` is set to "**dev**" in your `.env` file.
 
 ## Next Steps
 Now that you've completed your deployment, you can start using the solution. 
