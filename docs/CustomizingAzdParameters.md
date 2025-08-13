@@ -9,7 +9,7 @@ By default this template will use the environment name as the prefix to prevent 
 
 | Name                                   | Type    | Example Value                | Purpose                                                                       |
 | -------------------------------------- | ------- | ---------------------------- | ----------------------------------------------------------------------------- |
-| `AZURE_LOCATION`                       | string  | `japaneast` | Sets the Azure region for resource deployment.                                |
+| `AZURE_LOCATION`                       | string  | `<User selects during deployment>` | Sets the Azure region for resource deployment.                                |
 | `AZURE_ENV_NAME`                       | string  | `docgen`                   | Sets the environment name prefix for all Azure resources.                     |
 | `AZURE_ENV_SECONDARY_LOCATION`         | string  | `eastus2`                  | Specifies a secondary Azure region.                                           |
 | `AZURE_ENV_MODEL_DEPLOYMENT_TYPE`      | string  | `Standard`                 | Defines the model deployment type (allowed: `Standard`, `GlobalStandard`).    |
