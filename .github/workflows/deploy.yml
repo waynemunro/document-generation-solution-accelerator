@@ -192,22 +192,21 @@ jobs:
           KEY_VAULT_NAME=$(azd env get-value KEY_VAULT_NAME)
           AI_FOUNDRY_NAME=$(azd env get-value AI_FOUNDRY_NAME)
           AI_SEARCH_SERVICE_NAME=$(azd env get-value AI_SEARCH_SERVICE_NAME)
+          COSMOSDB_ACCOUNT_NAME=$(azd env get-value COSMOSDB_ACCOUNT_NAME)
 
 
           echo "Running post-deployment script..."
-
-          bash ./infra/scripts/copy_kb_files.sh \
+          
+          bash ./infra/scripts/process_sample_data.sh \
             "${STORAGE_ACCOUNT_NAME}" \
             "${STORAGE_CONTAINER_NAME}" \
-            "${{ secrets.AZURE_CLIENT_ID }}"
-
-          bash ./infra/scripts/run_create_index_scripts.sh \
             "${KEY_VAULT_NAME}" \
+            "${COSMOSDB_ACCOUNT_NAME}" \
             "${{ env.RESOURCE_GROUP_NAME }}" \
             "${AI_FOUNDRY_NAME}" \
             "${{ env.RESOURCE_GROUP_NAME }}" \
             "${AI_SEARCH_SERVICE_NAME}" \
-            "${{ secrets.AZURE_CLIENT_ID }}"
+            "${{ secrets.AZURE_CLIENT_ID }}" 
 
       - name: Logout from Azure
         if: always()
