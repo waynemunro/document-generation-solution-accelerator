@@ -236,3 +236,4 @@ output AZURE_AI_AGENT_ENDPOINT string = aifoundry.outputs.aiFoundryProjectEndpoi
 output AZURE_AI_AGENT_API_VERSION string = azureAiAgentApiVersion
 output AZURE_AI_AGENT_MODEL_DEPLOYMENT_NAME string = appserviceModule.outputs.azureOpenAIModel
 output AZURE_APPLICATION_INSIGHTS_CONNECTION_STRING string = aifoundry.outputs.applicationInsightsConnectionString
+output APP_ENV string  = appserviceModule.outputs.appEnv
