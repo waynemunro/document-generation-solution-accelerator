@@ -232,6 +232,9 @@ jobs:
       RESOURCE_GROUP_NAME: ${{ needs.deploy.outputs.RESOURCE_GROUP_NAME }}
       SOLUTION_NAME: ${{ needs.deploy.outputs.SOLUTION_NAME }}
     steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
       - name: Setup Azure CLI
         run: |
           curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
