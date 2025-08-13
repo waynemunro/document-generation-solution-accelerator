@@ -439,16 +439,15 @@ module assignAiUserRoleToAiProject 'deploy_foundry_role_assignment.bicep' = {
 
 @description('Contains the URL of WebApp.')
 output webAppUrl string = 'https://${websiteName}.azurewebsites.net'
-output webAppUrl string = 'https://${WebsiteName}.azurewebsites.net'
 output azureOpenAISystemMessage string = azureOpenAISystemMessage
 output azureOpenAiGenerateSectionContentPrompt string = azureOpenAiGenerateSectionContentPrompt
 output azureOpenAiTemplateSystemMessage string = azureOpenAiTemplateSystemMessage
 output azureOpenAiTitlePrompt string = azureOpenAiTitlePrompt
-output azureOpenAIModel string = AzureOpenAIModel
+output azureOpenAIModel string = azureOpenAIModel
 output azureOpenAIResource string = azureOpenaiResource
-output AzureSearchIndex string = AzureSearchIndex
+output AzureSearchIndex string = azureSearchIndex
 output aiSearchService string = aiSearchService
 output AZURE_COSMOSDB_ENABLE_FEEDBACK string = AZURE_COSMOSDB_ENABLE_FEEDBACK
-output AzureSearchQueryType string = AzureSearchQueryType
-output AzureSearchVectorFields string = AzureSearchVectorFields
+output AzureSearchQueryType string = azureSearchQueryType
+output AzureSearchVectorFields string = azureSearchVectorFields
 
