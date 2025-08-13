@@ -111,7 +111,7 @@ param AZURE_COSMOSDB_CONVERSATIONS_CONTAINER string = ''
 param AZURE_COSMOSDB_DATABASE string = ''
 
 @description('Optional. Enable feedback in Cosmos DB')
-param AZURE_COSMOSDB_ENABLE_FEEDBACK string = 'True'
+param azureCosmosDbEnableFeedback string = 'True'
 
 @description('Required. Contains Image Tag.')
 param imageTag string
@@ -309,7 +309,7 @@ resource Website 'Microsoft.Web/sites@2020-06-01' = {
         }
         { name: 'AZURE_COSMOSDB_CONVERSATIONS_CONTAINER', value: AZURE_COSMOSDB_CONVERSATIONS_CONTAINER }
         { name: 'AZURE_COSMOSDB_DATABASE', value: AZURE_COSMOSDB_DATABASE }
-        { name: 'AZURE_COSMOSDB_ENABLE_FEEDBACK', value: AZURE_COSMOSDB_ENABLE_FEEDBACK }
+        { name: 'azureCosmosDbEnableFeedback', value: azureCosmosDbEnableFeedback }
         {
           name: 'SCM_DO_BUILD_DURING_DEPLOYMENT'
           value: 'true'
@@ -439,15 +439,37 @@ module assignAiUserRoleToAiProject 'deploy_foundry_role_assignment.bicep' = {
 
 @description('Contains the URL of WebApp.')
 output webAppUrl string = 'https://${websiteName}.azurewebsites.net'
+
+@description('Contains OpenAI System Message.')
 output azureOpenAISystemMessage string = azureOpenAISystemMessage
+
+@description('Contains OpenAI Generate Section Content Prompt.')
 output azureOpenAiGenerateSectionContentPrompt string = azureOpenAiGenerateSectionContentPrompt
+
+@description('Contains OpenAI Template System Message.')
 output azureOpenAiTemplateSystemMessage string = azureOpenAiTemplateSystemMessage
+
+@description('Contains OpenAI Title Prompt.')
 output azureOpenAiTitlePrompt string = azureOpenAiTitlePrompt
+
+@description('Contains OpenAI Model.')
 output azureOpenAIModel string = azureOpenAIModel
+
+@description('Contains OpenAI Resource.')
 output azureOpenAIResource string = azureOpenaiResource
+
+@description('Contains the Azure Search Index.')
 output AzureSearchIndex string = azureSearchIndex
+
+@description('Contains AI Search Service.')
 output aiSearchService string = aiSearchService
-output AZURE_COSMOSDB_ENABLE_FEEDBACK string = AZURE_COSMOSDB_ENABLE_FEEDBACK
+
+@description('Contains the URL of WebApp.')
+output azureCosmosDbEnableFeedback string = azureCosmosDbEnableFeedback
+
+@description('Contains the URL of WebApp.')
 output AzureSearchQueryType string = azureSearchQueryType
+
+@description('Contains the URL of WebApp.')
 output AzureSearchVectorFields string = azureSearchVectorFields
 

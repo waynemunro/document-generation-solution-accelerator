@@ -208,7 +208,7 @@ module appserviceModule 'deploy_app_service.bicep' = {
     AZURE_COSMOSDB_CONVERSATIONS_CONTAINER: cosmosDBModule.outputs.cosmosContainerName
     AZURE_COSMOSDB_DATABASE: cosmosDBModule.outputs.cosmosDatabaseName
     appInsightsConnectionString: aifoundry.outputs.applicationInsightsConnectionString
-    AZURE_COSMOSDB_ENABLE_FEEDBACK: 'True'
+    azureCosmosDbEnableFeedback: 'True'
     hostingPlanName: 'asp-${solutionSuffix}'
     websiteName: 'app-${solutionSuffix}'
     aiSearchProjectConnectionName: aifoundry.outputs.aiSearchConnectionName
@@ -219,7 +219,8 @@ module appserviceModule 'deploy_app_service.bicep' = {
   // dependsOn:[sqlDBModule]
 }
 
-output WEB_APP_URL string = appserviceModule.outputs.webAppUrl
+@description('Contains WebApp URL')
+output webAppUrl string = appserviceModule.outputs.webAppUrl
 
 // ========== Cosmos DB module ========== //
 module cosmosDBModule 'deploy_cosmos_db.bicep' = {
@@ -235,47 +236,85 @@ module cosmosDBModule 'deploy_cosmos_db.bicep' = {
 }
 
 @description('Contains Storage Account Name')
-output STORAGE_ACCOUNT_NAME string = storageAccount.outputs.storageName
+output storageAccountName string = storageAccount.outputs.storageName
 
 @description('Contains Storage Container Name')
-output STORAGE_CONTAINER_NAME string = storageAccount.outputs.storageContainer
+output storageContainerName string = storageAccount.outputs.storageContainer
 
 @description('Contains KeyVault Name')
-output KEY_VAULT_NAME string = kvault.outputs.keyvaultName
+output keyVaultName string = kvault.outputs.keyvaultName
 
 @description('Contains CosmosDB Account Name')
-output COSMOSDB_ACCOUNT_NAME string = cosmosDBModule.outputs.cosmosAccountName
+output cosmosDbAccountName string = cosmosDBModule.outputs.cosmosAccountName
 
 @description('Contains Resource Group Name')
-output RESOURCE_GROUP_NAME string = resourceGroup().name
+output resourceGroupName string = resourceGroup().name
 
 @description('Contains AI Foundry Name')
-output AI_FOUNDRY_NAME string = aifoundry.outputs.aiFoundryName
+output aiFoundryName string = aifoundry.outputs.aiFoundryName
 
 @description('Contains AI Foundry RG Name')
-output AI_FOUNDRY_RG_NAME string = aifoundry.outputs.aiFoundryRgName
+output aiFoundryRgName string = aifoundry.outputs.aiFoundryRgName
+
+@description('Contains AI Foundry Resource ID')
+output aiFoundryResourceId string = aifoundry.outputs.aiFoundryId
 
 @description('Contains AI Search Service Name')
-output AI_FOUNDRY_RESOURCE_ID string = aifoundry.outputs.aiFoundryId
-output AI_SEARCH_SERVICE_NAME string = aifoundry.outputs.aiSearchService
+output aiSearchServiceName string = aifoundry.outputs.aiSearchService
 
 @description('Contains Azure Search Connection Name')
-output AZURE_SEARCH_CONNECTION_NAME string = aifoundry.outputs.aiSearchConnectionName
-output AZURE_OPENAI_TITLE_PROMPT string = appserviceModule.outputs.azureOpenAiTitlePrompt
-output AZURE_OPENAI_GENERATE_SECTION_CONTENT_PROMPT string = appserviceModule.outputs.azureOpenAiGenerateSectionContentPrompt
-output AZURE_OPENAI_TEMPLATE_SYSTEM_MESSAGE string = appserviceModule.outputs.azureOpenAiTemplateSystemMessage
-output AZURE_OPENAI_SYSTEM_MESSAGE string = appserviceModule.outputs.azureOpenAISystemMessage
-output AZURE_OPENAI_MODEL string = appserviceModule.outputs.azureOpenAIModel
-output AZURE_OPENAI_RESOURCE string = appserviceModule.outputs.azureOpenAIResource
-output AZURE_SEARCH_SERVICE string = appserviceModule.outputs.aiSearchService
-output AZURE_SEARCH_INDEX string = appserviceModule.outputs.AzureSearchIndex
-output AZURE_COSMOSDB_ACCOUNT string = cosmosDBModule.outputs.cosmosAccountName
-output AZURE_COSMOSDB_DATABASE string = cosmosDBModule.outputs.cosmosDatabaseName
-output AZURE_COSMOSDB_CONVERSATIONS_CONTAINER string = cosmosDBModule.outputs.cosmosContainerName
-output AZURE_COSMOSDB_ENABLE_FEEDBACK string = appserviceModule.outputs.AZURE_COSMOSDB_ENABLE_FEEDBACK
-output AZURE_SEARCH_QUERY_TYPE string = appserviceModule.outputs.AzureSearchQueryType
-output AZURE_SEARCH_VECTOR_COLUMNS string = appserviceModule.outputs.AzureSearchVectorFields
-output AZURE_AI_AGENT_ENDPOINT string = aifoundry.outputs.aiFoundryProjectEndpoint
-output AZURE_AI_AGENT_API_VERSION string = azureAiAgentApiVersion
-output AZURE_AI_AGENT_MODEL_DEPLOYMENT_NAME string = appserviceModule.outputs.azureOpenAIModel
-output AZURE_APPLICATION_INSIGHTS_CONNECTION_STRING string = aifoundry.outputs.applicationInsightsConnectionString
+output azureSearchConnectionName string = aifoundry.outputs.aiSearchConnectionName
+
+@description('Contains OpenAI Title Prompt')
+output azureOpenaiTitlePrompt string = appserviceModule.outputs.azureOpenAiTitlePrompt
+
+@description('Contains OpenAI Generate Section Content Prompt')
+output azureOpenaiGENERATE_SECTION_CONTENT_PROMPT string = appserviceModule.outputs.azureOpenAiGenerateSectionContentPrompt
+
+@description('Contains OpenAI Template System Message')
+output azureOpenaiTemplateSystemMessage string = appserviceModule.outputs.azureOpenAiTemplateSystemMessage
+
+@description('Contains OpenAI System Message')
+output azureOpenaiSystemMessage string = appserviceModule.outputs.azureOpenAISystemMessage
+
+@description('Contains OpenAI Model')
+output azureOpenaiModel string = appserviceModule.outputs.azureOpenAIModel
+
+@description('Contains OpenAI Resource')
+output azureOpenaiResource string = appserviceModule.outputs.azureOpenAIResource
+
+@description('Contains Azure Search Service')
+output azureSearchService string = appserviceModule.outputs.aiSearchService
+
+@description('Contains Azure Search Index')
+output azureSearchIndex string = appserviceModule.outputs.AzureSearchIndex
+
+@description('Contains CosmosDB Account')
+output azureCosmosDbAccount string = cosmosDBModule.outputs.cosmosAccountName
+
+@description('Contains CosmosDB Database')
+output azureCOSMOSDB_DATABASE string = cosmosDBModule.outputs.cosmosDatabaseName
+
+@description('Contains CosmosDB Conversations Container')
+output azureCosmosDbConversationsContainer string = cosmosDBModule.outputs.cosmosContainerName
+
+@description('Contains CosmosDB Enabled Feedback')
+output azureCosmosDbEnableFeedback string = appserviceModule.outputs.azureCosmosDbEnableFeedback
+
+@description('Contains Search Query Type')
+output azureSearchQueryType string = appserviceModule.outputs.AzureSearchQueryType
+
+@description('Contains Search Vector Columns')
+output azureSearchVectorColumns string = appserviceModule.outputs.AzureSearchVectorFields
+
+@description('Contains AI Agent Endpoint')
+output azureAiAgentEndpoint string = aifoundry.outputs.aiFoundryProjectEndpoint
+
+@description('Contains AI Agent API Version')
+output azureAiAgentApiVersion string = azureAiAgentApiVersion
+
+@description('Contains AI Agent Model Deployment Name')
+output azureAiAgentModelDeploymentName string = appserviceModule.outputs.azureOpenAIModel
+
+@description('Contains Application Insights Connection String')
+output azureApplicationInsightsConnectionString string = aifoundry.outputs.applicationInsightsConnectionString

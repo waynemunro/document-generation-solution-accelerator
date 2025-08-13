@@ -259,7 +259,6 @@ module existing_AIProject_SearchConnectionModule 'deploy_aifp_aisearch_connectio
     aiSearchResourceId: aiSearch.id
     aiSearchLocation: aiSearch.location
     aiSearchConnectionName: aiSearchConnectionName
-    tags : tags
   }
 }
 
@@ -511,7 +510,6 @@ output aiFoundryName string = !empty(existingAIFoundryName) ? existingAIFoundryN
 
 @description('Contains Name of AI Foundry RG.')
 output aiFoundryRgName string = !empty(existingAIServiceResourceGroup) ? existingAIServiceResourceGroup : resourceGroup().name
-=======
 output aiFoundryId string = !empty(azureExistingAIProjectResourceId)
   ? existingAiFoundry.id
   : aiFoundry.id
