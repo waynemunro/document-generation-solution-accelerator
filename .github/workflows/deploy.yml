@@ -233,11 +233,6 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Setup Azure CLI
-        run: |
-          curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
-          az --version  # Verify installation
-
       - name: Setup Azure Developer CLI
         run: |
           curl -fsSL https://aka.ms/install-azd.sh | sudo bash
@@ -245,9 +240,7 @@ jobs:
 
       - name: Login to Azure
         run: |
-          az login --service-principal -u ${{ secrets.AZURE_CLIENT_ID }} -p ${{ secrets.AZURE_CLIENT_SECRET }} --tenant ${{ secrets.AZURE_TENANT_ID }}
           azd auth login --client-id ${{ secrets.AZURE_CLIENT_ID }} --client-secret ${{ secrets.AZURE_CLIENT_SECRET }} --tenant-id ${{ secrets.AZURE_TENANT_ID }}
-          az account set --subscription "${{ secrets.AZURE_SUBSCRIPTION_ID }}"
           azd config set defaults.subscription ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
       - name: Select Environment
@@ -272,166 +265,6 @@ jobs:
           echo "Deployment deleted successfully."
 
 
-      # - name: Extract AI Services and Key Vault Names
-      #   if: always()
-      #   run: |
-      #     echo "Fetching AI Services and Key Vault names before deletion..."
-          
-      #     # Get Key Vault name
-      #     KEYVAULT_NAME=$(az resource list --resource-group "${{ env.RESOURCE_GROUP_NAME }}" --resource-type "Microsoft.KeyVault/vaults" --query "[].name" -o tsv)
-      #     echo "Detected Key Vault: $KEYVAULT_NAME"
-      #     echo "KEYVAULT_NAME=$KEYVAULT_NAME" >> $GITHUB_ENV
-      
-
-      #      # Extract AI Services names
-      #     echo "Fetching AI Services..."
-      #     AI_SERVICES=$(az resource list --resource-group '${{ env.RESOURCE_GROUP_NAME }}' --resource-type "Microsoft.CognitiveServices/accounts" --query "[].name" -o tsv)
-
-      #     # Flatten newline-separated values to space-separated
-      #     AI_SERVICES=$(echo "$AI_SERVICES" | paste -sd ' ' -)
-
-      #     echo "Detected AI Services: $AI_SERVICES"
-      #     echo "AI_SERVICES=$AI_SERVICES" >> $GITHUB_ENV
-      
-      # - name: Delete Bicep Deployment
-      #   if: always()
-      #   run: |
-      #     set -e  
-      #     echo "Checking if resource group exists..."
-      #     rg_exists=$(az group exists --name ${{ env.RESOURCE_GROUP_NAME }})
-      #     if [ "$rg_exists" = "true" ]; then
-      #       echo "Resource group exists. Cleaning..."
-      #       az group delete \
-      #           --name ${{ env.RESOURCE_GROUP_NAME }} \
-      #           --yes \
-      #           --no-wait
-      #       echo "Resource group deleted...  ${{ env.RESOURCE_GROUP_NAME }}"
-      #     else
-      #       echo "Resource group does not exist."
-      #     fi
-
-      # - name: Wait for Resource Deletion to Complete
-      #   if: always()
-      #   run: |
-      #     echo "Waiting for all deployed resources (including AI Services) to be deleted..."
-      
-      #     # Convert AI_SERVICES space-separated string into an array
-      #     IFS=' ' read -r -a resources_to_check <<< "${{ env.AI_SERVICES }}"
-      
-      #     echo "Resources to check for deletion:"
-      #     printf '%s\n' "${resources_to_check[@]}"
-      
-      #     # Get the current resource list in YAML
-      #     resource_list=$(az resource list --subscription "${{ secrets.AZURE_SUBSCRIPTION_ID }}" --output yaml)
-      
-      #     # Set up retry logic
-      #     max_retries=3
-      #     retry_intervals=(30 60 120)
-      #     retries=0
-      
-      #     while true; do
-      #       resource_found=false
-      #       for resource in "${resources_to_check[@]}"; do
-      #         echo "Checking if resource '$resource' still exists..."
-      #         if echo "$resource_list" | grep -q "name: $resource"; then
-      #           echo "Resource '$resource' still exists."
-      #           resource_found=true
-      #         else
-      #           echo "Resource '$resource' has been deleted."
-      #         fi
-      #       done
-      
-      #       if [ "$resource_found" = true ]; then
-      #         retries=$((retries + 1))
-      #         if [ "$retries" -ge "$max_retries" ]; then
-      #           echo "Reached max retry attempts. Exiting wait loop."
-      #           break
-      #         else
-      #           echo "Some resources still exist. Waiting for ${retry_intervals[$((retries-1))]} seconds..."
-      #           sleep "${retry_intervals[$((retries-1))]}"
-      #           resource_list=$(az resource list --subscription "${{ secrets.AZURE_SUBSCRIPTION_ID }}" --output yaml)
-      #         fi
-      #       else
-      #         echo "All resources have been deleted."
-      #         break
-      #       fi
-      #     done
-        
-
-      # - name: Wait for Soft Deletion of Key Vault and AI Services
-      #   if: always()
-      #   run: |
-      #     echo "Waiting for resources to be soft deleted..."
-      
-      #     # Wait for Key Vault to be soft deleted
-      #     if [ -n "${{ env.KEYVAULT_NAME }}" ]; then
-      #       while true; do
-      #         DELETED_VAULT=$(az keyvault show-deleted --name ${{ env.KEYVAULT_NAME }} --query "id" -o tsv 2>/dev/null || echo "")
-      #         if [ -n "$DELETED_VAULT" ]; then
-      #           echo "Key Vault soft deleted!"
-      #           break
-      #         fi
-      #         echo "Key Vault not yet soft deleted. Retrying in 15s..."
-      #         sleep 15
-      #       done
-      #     fi
-
-      
-      #     # Wait for AI Services to be soft deleted
-      #     for AI_SERVICE in ${{ env.AI_SERVICES }}; do
-      #       while true; do
-      #         DELETED_AI_SERVICE=$(az cognitiveservices account list-deleted --query "[?name=='$AI_SERVICE'].id" -o tsv 2>/dev/null || echo "")
-      #         if [ -n "$DELETED_AI_SERVICE" ]; then
-      #           echo "AI Service $AI_SERVICE is soft deleted!"
-      #           break
-      #         fi
-      #         echo "AI Service $AI_SERVICE not yet soft deleted. Retrying in 15s..."
-      #         sleep 15
-      #       done
-      #     done
-              
-        
-      # - name: Purge Key Vault and AI Services
-      #   if: always()
-      #   run: |
-      #     echo "Purging soft deleted resources..."
-          
-      #     # Ensure AI_SERVICES is properly split into individual services
-      #     IFS=' ' read -r -a SERVICES <<< "${{ env.AI_SERVICES }}"
-
-      #     for AI_SERVICE in "${SERVICES[@]}"; do
-      #       echo "Checking location for AI Service: $AI_SERVICE"
-
-      #       # Fetch AI Service location
-      #       SERVICE_LOCATION=$(az cognitiveservices account list-deleted --query "[?name=='$AI_SERVICE'].location" -o tsv 2>/dev/null || echo "")
-
-      #       if [ -n "$SERVICE_LOCATION" ]; then
-      #         echo "Purging AI Service $AI_SERVICE in $SERVICE_LOCATION"
-      #         az cognitiveservices account purge --location "$SERVICE_LOCATION" --resource-group "${{ env.RESOURCE_GROUP_NAME }}" --name "$AI_SERVICE"
-      #       else
-      #         echo "Could not determine location for AI Service: $AI_SERVICE. Skipping purge."
-      #       fi
-      #     done
-
-      #     # --- Purge Key Vaults ---
-      #     echo "Starting purge for Key Vaults..."
-      #     IFS=' ' read -r -a VAULTS <<< "${{ env.KEYVAULT_NAME }}"
-
-      #     for VAULT in "${VAULTS[@]}"; do
-      #       echo "Checking location for Key Vault: $VAULT"
-
-      #       # Fetch Key Vault location
-      #       VAULT_LOCATION=$(az keyvault list-deleted --query "[?name=='$VAULT'].properties.location" -o tsv 2>/dev/null || echo "")
-
-      #       if [ -n "$VAULT_LOCATION" ]; then
-      #         echo "Purging Key Vault $VAULT in $VAULT_LOCATION"
-      #         az keyvault purge --name "$VAULT" --location "$VAULT_LOCATION"
-      #       else
-      #         echo "Could not determine location for Key Vault: $VAULT. Skipping purge."
-      #       fi
-      #     done
-
-
       - name: Send Notification on Failure
         if: failure() || needs.deploy.result == 'failure'
         run: |
@@ -451,6 +284,5 @@ jobs:
       - name: Logout from Azure
         if: always()
         run: |
-          az logout
           azd auth logout
           echo "Logged out from Azure."
