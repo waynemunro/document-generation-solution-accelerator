@@ -190,9 +190,9 @@ jobs:
           STORAGE_ACCOUNT_NAME=$(azd env get-value STORAGE_ACCOUNT_NAME)
           STORAGE_CONTAINER_NAME=$(azd env get-value STORAGE_CONTAINER_NAME)
           KEY_VAULT_NAME=$(azd env get-value KEY_VAULT_NAME)
-          AI_FOUNDRY_NAME=$(azd env get-value AI_FOUNDRY_NAME)
           AI_SEARCH_SERVICE_NAME=$(azd env get-value AI_SEARCH_SERVICE_NAME)
           COSMOSDB_ACCOUNT_NAME=$(azd env get-value COSMOSDB_ACCOUNT_NAME)
+          AI_FOUNDRY_RID=$(azd env get-value AI_FOUNDRY_RESOURCE_ID)
 
 
           echo "Running post-deployment script..."
@@ -203,10 +203,9 @@ jobs:
             "${KEY_VAULT_NAME}" \
             "${COSMOSDB_ACCOUNT_NAME}" \
             "${{ env.RESOURCE_GROUP_NAME }}" \
-            "${AI_FOUNDRY_NAME}" \
-            "${{ env.RESOURCE_GROUP_NAME }}" \
             "${AI_SEARCH_SERVICE_NAME}" \
-            "${{ secrets.AZURE_CLIENT_ID }}" 
+            "${{ secrets.AZURE_CLIENT_ID }}" \
+            "${AI_FOUNDRY_RID}"
 
       - name: Logout from Azure
         if: always()
