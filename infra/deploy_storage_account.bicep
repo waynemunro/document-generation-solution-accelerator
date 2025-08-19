@@ -3,17 +3,23 @@ targetScope = 'resourceGroup'
 
 @minLength(3)
 @maxLength(15)
-@description('Solution Name')
+@description('Required. Contains Solution Name')
 param solutionName string
 
-@description('Solution Location')
+@description('Required. Contains Solution Location')
 param solutionLocation string
 
-@description('Name')
+@description('Required. Contains Storage Account Name')
 param saName string
 
+@description('Required. Contains KeyVault Name')
 param keyVaultName string
+
+@description('Required. Contains managed identity ObjectID')
 param managedIdentityObjectId string
+
+@description('Optional. Tags to be applied to the resources.')
+param tags object = {}
 
 resource storageAccounts_resource 'Microsoft.Storage/storageAccounts@2022-09-01' = {
   name: saName
@@ -49,6 +55,7 @@ resource storageAccounts_resource 'Microsoft.Storage/storageAccounts@2022-09-01'
     }
     accessTier: 'Hot'
   }
+  tags : tags
 }
 
 resource storageAccounts_default 'Microsoft.Storage/storageAccounts/blobServices@2022-09-01' = {
@@ -104,7 +111,6 @@ resource roleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
   }
 }
 
-
 var storageAccountKeys = listKeys(storageAccounts_resource.id, '2021-04-01')
 // var storageAccountString = 'DefaultEndpointsProtocol=https;AccountName=${storageAccounts_resource.name};AccountKey=${storageAccounts_resource.listKeys().keys[0].value};EndpointSuffix=${environment().suffixes.storage}'
 
@@ -118,6 +124,7 @@ resource adlsAccountNameEntry 'Microsoft.KeyVault/vaults/secrets@2021-11-01-prev
   properties: {
     value: saName
   }
+  tags : tags
 }
 
 resource adlsAccountContainerEntry 'Microsoft.KeyVault/vaults/secrets@2021-11-01-preview' = {
@@ -126,6 +133,7 @@ resource adlsAccountContainerEntry 'Microsoft.KeyVault/vaults/secrets@2021-11-01
   properties: {
     value: 'data'
   }
+  tags : tags
 }
 
 resource adlsAccountKeyEntry 'Microsoft.KeyVault/vaults/secrets@2021-11-01-preview' = {
@@ -134,9 +142,13 @@ resource adlsAccountKeyEntry 'Microsoft.KeyVault/vaults/secrets@2021-11-01-previ
   properties: {
     value: storageAccountKeys.keys[0].value
   }
+  tags : tags
 }
 
+@description('Storage Account Name')
 output storageName string = saName
+
+@description('Storage Account Container Name')
 output storageContainer string = 'data'
 // output storageAccountOutput object = {
 //   id: storageAccounts_resource.id
