@@ -269,7 +269,7 @@ output azureSearchConnectionName string = aifoundry.outputs.aiSearchConnectionNa
 output azureOpenaiTitlePrompt string = appserviceModule.outputs.azureOpenAiTitlePrompt
 
 @description('Contains OpenAI Generate Section Content Prompt')
-output azureOpenaiGENERATE_SECTION_CONTENT_PROMPT string = appserviceModule.outputs.azureOpenAiGenerateSectionContentPrompt
+output azureOpenaiGenerateSectionContentPrompt string = appserviceModule.outputs.azureOpenAiGenerateSectionContentPrompt
 
 @description('Contains OpenAI Template System Message')
 output azureOpenaiTemplateSystemMessage string = appserviceModule.outputs.azureOpenAiTemplateSystemMessage
@@ -318,3 +318,6 @@ output azureAiAgentModelDeploymentName string = appserviceModule.outputs.azureOp
 
 @description('Contains Application Insights Connection String')
 output azureApplicationInsightsConnectionString string = aifoundry.outputs.applicationInsightsConnectionString
+
+@description('Contains Application Environment.')
+output appEnv string  = appserviceModule.outputs.appEnv
