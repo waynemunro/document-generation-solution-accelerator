@@ -145,7 +145,7 @@ To adjust quota settings, follow these [steps](./AzureGPTQuotaSettings.md).
 
   <summary><b>Reusing an Existing Azure AI Foundry Project</b></summary>
 
-  Guide to get your [Existing Project ID](/documents/re-use-foundry-project.md)
+  Guide to get your [Existing Project ID](/docs/re-use-foundry-project.md)
 
 </details>
 
