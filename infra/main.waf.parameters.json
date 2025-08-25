@@ -1,0 +1,51 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "solutionName": {
+      "value": "${AZURE_ENV_NAME}"
+    },
+    "location": {
+      "value": "${AZURE_LOCATION}"
+    },
+    "secondaryLocation": {
+      "value": "${AZURE_ENV_SECONDARY_LOCATION}"
+    },
+    "azureAiServiceLocation": {
+      "value": "${AZURE_ENV_OPENAI_LOCATION}"
+    },
+    "gptModelDeploymentType": {
+      "value": "${AZURE_ENV_MODEL_DEPLOYMENT_TYPE}"
+    },
+    "gptModelName": {
+      "value": "${AZURE_ENV_MODEL_NAME}"
+    },
+    "gptModelVersion": {
+      "value": "${AZURE_ENV_MODEL_VERSION}"
+    },
+    "gptModelCapacity": {
+      "value": "${AZURE_ENV_MODEL_CAPACITY}"
+    },
+    "enableTelemetry": {
+      "value": "${AZURE_ENV_ENABLE_TELEMETRY}"
+    },
+    "enableMonitoring": {
+      "value": true
+    },
+    "enablePrivateNetworking": {
+      "value": true
+    },
+    "enableScalability": {
+      "value": true
+    },
+    "vmSize": {
+      "value": "${AZURE_ENV_JUMPBOX_SIZE}"
+    },
+    "vmAdminUsername": {
+      "value": "${AZURE_ENV_JUMPBOX_ADMIN_USERNAME}"
+    },
+    "vmAdminPassword": {
+      "value": "${AZURE_ENV_JUMPBOX_ADMIN_PASSWORD}"
+    }
+  }
+}
