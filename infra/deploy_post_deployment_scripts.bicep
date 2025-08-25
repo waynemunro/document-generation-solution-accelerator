@@ -1,21 +1,49 @@
-@description('Solution Name')
+@minLength(3)
+@maxLength(15)
+@description('Required. Contains Solution Name')
 param solutionName string
-@description('Specifies the location for resources.')
+
+@description('Required. Specifies the location for resources.')
 param solutionLocation string
+
+@description('Required. Contains the Base URL')
 param baseUrl string
+
+@description('Required. Contains Managed Identity Object ID')
 param managedIdentityObjectId string
+
+@description('Required. Contains Managed Identity Client ID')
 param managedIdentityClientId string
+
+@description('Required. Contains Storage Account Name')
 param storageAccountName string
+
+@description('Required. Contains Container Name')
 param containerName string
+
+@description('Required. Contains Container App Name')
 param containerAppName string = 'ca-${ solutionName }'
+
+@description('Required. Contains Environment Name')
 param environmentName string = 'cae-${ solutionName }'
+
+@description('Optional. Contains Image Name')
 param imageName string = 'python:3.11-alpine'
+
+@description('Required. Contains SetupCopyKBFiles')
 param setupCopyKbFiles string = '${baseUrl}infra/scripts/copy_kb_files.sh'
+
+@description('Required. Contains URL of SetupCreateIndex Script')
 param setupCreateIndexScriptsUrl string = '${baseUrl}infra/scripts/run_create_index_scripts.sh'
+
+@description('Required. Contains KeyVault Name')
 param keyVaultName string
 
+@description('Required. Contains Log Analytics Workspace Resource Name')
 param logAnalyticsWorkspaceResourceName string
 
+@description('Optional. Tags to be applied to the resources.')
+param tags object = {}
 
 resource logAnalytics 'Microsoft.OperationalInsights/workspaces@2020-10-01' existing = {
   name: logAnalyticsWorkspaceResourceName
@@ -34,6 +62,7 @@ resource containerAppEnv 'Microsoft.App/managedEnvironments@2022-03-01' = {
       }
     }
   }
+  tags : tags
 }
 
 resource containerApp 'Microsoft.App/containerApps@2022-03-01' = {
@@ -85,4 +114,5 @@ resource containerApp 'Microsoft.App/containerApps@2022-03-01' = {
       ]
     }
   }
+  tags : tags
 }
