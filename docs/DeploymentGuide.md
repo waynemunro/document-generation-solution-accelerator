@@ -189,6 +189,9 @@ Once you've opened the project in [Codespaces](#github-codespaces), [Dev Contain
 
 7. You can now delete the resources by running `azd down`, if you are done trying out the application. 
 
+### 🛠️ Troubleshooting
+ If you encounter any issues during the deployment process, please refer  [troubleshooting](../docs/TroubleShootingSteps.md) document for detailed steps and solutions
+
 ## Post Deployment Steps
 
 1. **Add App Authentication**
