@@ -331,7 +331,7 @@ output systemAssignedMIPrincipalId string? = app.?identity.?principalId
 output location string = app.location
 
 @description('Default hostname of the app.')
-output defaultHostname string = app.properties.defaultHostName
+output defaultHostname string = 'https://${name}.azurewebsites.net'
 
 @description('Unique identifier that verifies the custom domains assigned to the app. Customer will add this ID to a txt record for verification.')
 output customDomainVerificationId string = app.properties.customDomainVerificationId

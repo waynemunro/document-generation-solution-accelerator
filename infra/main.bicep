@@ -84,7 +84,7 @@ param embeddingDeploymentCapacity int = 80
 param existingLogAnalyticsWorkspaceId string = ''
 
 @description('Optional. Resource ID of an existing Foundry project')
-param existingFoundryProjectResourceId string = ''
+param azureExistingAIProjectResourceId string = ''
 
 @description('Optional. Size of the Jumpbox Virtual Machine when created. Set to custom value if enablePrivateNetworking is true.')
 param vmSize string? 
@@ -121,6 +121,9 @@ param imageTag string = 'latest'
 
 @description('Optional. Enable/Disable usage telemetry for module.')
 param enableTelemetry bool = true
+
+@description('Optional. Enable purge protection for the Key Vault')
+param enablePurgeProtection bool = false
 
 // ============== //
 // Variables      //
@@ -340,6 +343,7 @@ var privateDnsZones = [
   'privatelink.vaultcore.azure.net'
   'privatelink.azurecr.io'
   'privatelink.azurewebsites.net'
+  'privatelink.search.windows.net'
 ]
  
 // DNS Zone Index Constants
@@ -358,6 +362,7 @@ var dnsZoneIndex = {
   keyVault: 11
   containerRegistry: 12
   appService: 13
+  searchService: 14
 }
 
 // ===================================================
@@ -414,6 +419,7 @@ module keyvault 'br/public:avm/res/key-vault/vault:0.12.1' = {
     enableVaultForTemplateDeployment: true
     enableRbacAuthorization: true
     enableSoftDelete: true
+    enablePurgeProtection: enablePurgeProtection
     softDeleteRetentionInDays: 7
     diagnosticSettings: enableMonitoring 
       ? [{ workspaceResourceId: logAnalyticsWorkspace!.outputs.resourceId }] 
@@ -469,10 +475,20 @@ module keyvault 'br/public:avm/res/key-vault/vault:0.12.1' = {
 // }
 
 // ========== AI Foundry: AI Services ========== //
-var aiFoundryAiServicesResourceName = 'aif-${solutionSuffix}'
-var aiFoundryAiServicesAiProjectResourceName = 'proj-${solutionSuffix}'
-var aiFoundryAIservicesEnabled = true
-var aiFoundryAiServicesModelDeployments = [
+var useExistingAiFoundryAiProject = !empty(azureExistingAIProjectResourceId)
+var aiFoundryAiServicesResourceGroupName = useExistingAiFoundryAiProject
+  ? split(azureExistingAIProjectResourceId, '/')[4]
+  : 'rg-${solutionSuffix}'
+var aiFoundryAiServicesSubscriptionId = useExistingAiFoundryAiProject
+  ? split(azureExistingAIProjectResourceId, '/')[2]
+  : subscription().id
+var aiFoundryAiServicesResourceName = useExistingAiFoundryAiProject
+  ? split(azureExistingAIProjectResourceId, '/')[8]
+  : 'aif-${solutionSuffix}'
+var aiFoundryAiProjectResourceName = useExistingAiFoundryAiProject
+  ? split(azureExistingAIProjectResourceId, '/')[10]
+  : 'proj-${solutionSuffix}' // AI Project resource id: /subscriptions/<subscription-id>/resourceGroups/<resource-group-name>/providers/Microsoft.CognitiveServices/accounts/<ai-services-name>/projects/<project-name>
+var aiFoundryAiServicesModelDeployment = [
   {
     format: 'OpenAI'
     name: gptModelName
@@ -485,7 +501,7 @@ var aiFoundryAiServicesModelDeployments = [
     raiPolicyName: 'Microsoft.Default'
   }
   {
-    format: 'embedding'
+    format: 'OpenAI'
     name: embeddingModel
     model: embeddingModel
     sku: {
@@ -496,23 +512,82 @@ var aiFoundryAiServicesModelDeployments = [
     raiPolicyName: 'Microsoft.Default'
   }
 ]
+var aiFoundryAiProjectDescription = 'AI Foundry Project'
 
-module aiFoundryAiServices 'modules/ai-services.bicep' = if (aiFoundryAIservicesEnabled) {
+resource existingAiFoundryAiServices 'Microsoft.CognitiveServices/accounts@2025-06-01' existing = if (useExistingAiFoundryAiProject) {
+  name: aiFoundryAiServicesResourceName
+  scope: resourceGroup(aiFoundryAiServicesSubscriptionId, aiFoundryAiServicesResourceGroupName)
+}
+
+module existingAiFoundryAiServicesDeployments 'modules/ai-services-deployments.bicep' = if (useExistingAiFoundryAiProject) {
+  name: take('module.ai-services-model-deployments.${existingAiFoundryAiServices.name}', 64)
+  scope: resourceGroup(aiFoundryAiServicesSubscriptionId, aiFoundryAiServicesResourceGroupName)
+  params: {
+    name: existingAiFoundryAiServices.name
+    deployments: [
+      for deployment in aiFoundryAiServicesModelDeployment: {
+        name: deployment.name
+        model: {
+          format: deployment.format
+          name: deployment.name
+          version: deployment.version
+        }
+        raiPolicyName: deployment.raiPolicyName
+        sku: {
+          name: deployment.sku.name
+          capacity: deployment.sku.capacity
+        }
+      }
+    ]
+    roleAssignments: [
+      {
+        roleDefinitionIdOrName: '53ca6127-db72-4b80-b1b0-d745d6d5456d' // Azure AI User
+        principalId: userAssignedIdentity.outputs.principalId
+        principalType: 'ServicePrincipal'
+      }
+      {
+        roleDefinitionIdOrName: '64702f94-c441-49e6-a78b-ef80e0188fee' // Azure AI Developer
+        principalId: userAssignedIdentity.outputs.principalId
+        principalType: 'ServicePrincipal'
+      }
+      {
+        roleDefinitionIdOrName: '5e0bd9bd-7b93-4f28-af87-19fc36ad61bd' // Cognitive Services OpenAI User
+        principalId: userAssignedIdentity.outputs.principalId
+        principalType: 'ServicePrincipal'
+      }
+    ]
+  }
+}
+
+module aiFoundryAiServices 'br:mcr.microsoft.com/bicep/avm/res/cognitive-services/account:0.13.2' = if (!useExistingAiFoundryAiProject) {
   name: take('avm.res.cognitive-services.account.${aiFoundryAiServicesResourceName}', 64)
   params: {
     name: aiFoundryAiServicesResourceName
     location: aiDeploymentsLocation
     tags: tags
-    existingFoundryProjectResourceId: existingFoundryProjectResourceId
-    projectName: aiFoundryAiServicesAiProjectResourceName
-    projectDescription: 'AI Foundry Project'
     sku: 'S0'
     kind: 'AIServices'
     disableLocalAuth: true
+    allowProjectManagement: true
     customSubDomainName: aiFoundryAiServicesResourceName
     apiProperties: {
       //staticsEnabled: false
     }
+    deployments: [
+      for deployment in aiFoundryAiServicesModelDeployment: {
+        name: deployment.name
+        model: {
+          format: deployment.format
+          name: deployment.name
+          version: deployment.version
+        }
+        raiPolicyName: deployment.raiPolicyName
+        sku: {
+          name: deployment.sku.name
+          capacity: deployment.sku.capacity
+        }
+      }
+    ]
     networkAcls: {
       defaultAction: 'Allow'
       virtualNetworkRules: []
@@ -539,7 +614,7 @@ module aiFoundryAiServices 'modules/ai-services.bicep' = if (aiFoundryAIservices
     // WAF aligned configuration for Monitoring
     diagnosticSettings: enableMonitoring ? [{ workspaceResourceId: logAnalyticsWorkspaceResourceId }] : null
     publicNetworkAccess: enablePrivateNetworking ? 'Disabled' : 'Enabled'
-    privateEndpoints: (enablePrivateNetworking &&  empty(existingFoundryProjectResourceId))
+    privateEndpoints: (enablePrivateNetworking)
       ? ([
           {
             name: 'pep-${aiFoundryAiServicesResourceName}'
@@ -564,20 +639,80 @@ module aiFoundryAiServices 'modules/ai-services.bicep' = if (aiFoundryAIservices
           }
         ])
       : []
-    deployments: [
-      for aiModeldeployment in aiFoundryAiServicesModelDeployments:{
-        name: aiModeldeployment.name
-        model: {
-          format: aiModeldeployment.format
-          name: aiModeldeployment.name
-          version: aiModeldeployment.version
-        }
-        raiPolicyName: aiModeldeployment.raiPolicyName
-        sku: {
-          name: aiModeldeployment.sku.name
-          capacity: aiModeldeployment.sku.capacity
-        }
+  }
+}
+
+resource existingAiFoundryAiServicesProject 'Microsoft.CognitiveServices/accounts/projects@2025-06-01' existing = if (useExistingAiFoundryAiProject) {
+  name: aiFoundryAiProjectResourceName
+  parent: existingAiFoundryAiServices
+}
+
+module aiFoundryAiServicesProject 'modules/ai-project.bicep' = if (!useExistingAiFoundryAiProject) {
+  name: take('module.ai-project.${aiFoundryAiProjectResourceName}', 64)
+  params: {
+    name: aiFoundryAiProjectResourceName
+    location: aiDeploymentsLocation
+    tags: tags
+    desc: aiFoundryAiProjectDescription
+    //Implicit dependencies below
+    aiServicesName: aiFoundryAiServices!.outputs.name
+    solutionName: solutionSuffix
+    azureExistingAIProjectResourceId: azureExistingAIProjectResourceId
+  }
+}
+
+// var aiFoundryAiProjectName = useExistingAiFoundryAiProject
+//   ? existingAiFoundryAiServicesProject.name
+//   : aiFoundryAiServicesProject!.outputs.name
+var aiFoundryAiProjectEndpoint = useExistingAiFoundryAiProject
+  ? existingAiFoundryAiServicesProject!.properties.endpoints['AI Foundry API']
+  : aiFoundryAiServicesProject!.outputs.apiEndpoint
+
+// If the above secretsExportConfiguration code not works to store the keys in key vault, uncomment below
+module saveFoundrySecretsInKeyVault 'br/public:avm/res/key-vault/vault:0.12.1' = {
+  name: take('saveFoundrySecretsInKeyVault.${keyVaultName}', 64)
+  params: {
+    name: keyVaultName
+    enablePurgeProtection: enablePurgeProtection
+    enableVaultForDeployment: true
+    enableVaultForDiskEncryption: true
+    enableVaultForTemplateDeployment: true
+    enableRbacAuthorization: true
+    enableSoftDelete: true
+    softDeleteRetentionInDays: 7
+    secrets: [
+      {name: 'AZURE-LOCATION', value: aiDeploymentsLocation}
+      {name: 'AZURE-RESOURCE-GROUP', value: resourceGroup().name}
+      {name: 'AZURE-SUBSCRIPTION-ID', value: subscription().subscriptionId}
+      // {
+      //   name: 'COG-SERVICES-NAME'
+      //   value: aiFoundryAiServicesResourceName
+      // }
+      // {
+      //   name: 'COG-SERVICES-KEY'
+      //   value: !useExistingAiFoundryAiProject ? existingAiFoundryAiServices!.listKeys().key1 : aiFoundryAiServices!.listKeys().key1
+      // }
+      {
+        name: 'COG-SERVICES-ENDPOINT'
+        value: aiFoundryAiServicesProject!.outputs.aoaiEndpoint
       }
+      {name: 'AZURE-SEARCH-INDEX', value: 'pdf_index'}
+      {
+        name: 'AZURE-SEARCH-SERVICE'
+        value: aiFoundryAiServicesProject!.outputs.aiSearchServiceName
+      }
+      {
+        name: 'AZURE-SEARCH-ENDPOINT'
+        value: 'https://${aiFoundryAiServicesProject!.outputs.aiSearchServiceName}.search.windows.net'
+      }
+      {name: 'AZURE-OPENAI-EMBEDDING-MODEL', value: embeddingModel}
+      {
+        name: 'AZURE-OPENAI-ENDPOINT'
+        value: aiFoundryAiServicesProject!.outputs.aoaiEndpoint
+      }
+      {name: 'AZURE-OPENAI-PREVIEW-API-VERSION', value: azureOpenaiAPIVersion}
+      {name: 'AZURE-OPEN-AI-DEPLOYMENT-MODEL', value: gptModelName}
+      {name: 'TENANT-ID', value: subscription().tenantId}
     ]
   }
 }
@@ -899,6 +1034,7 @@ module webSite 'modules/web-sites.bicep' = {
     location: solutionLocation
     kind: 'app,linux,container'
     serverFarmResourceId: webServerFarm.outputs.resourceId
+    managedIdentities: { userAssignedResourceIds: [userAssignedIdentity!.outputs.resourceId] }
     siteConfig: {
       linuxFxVersion: 'DOCKER|${acrName}.azurecr.io/webapp:${imageTag}'
       minTlsVersion: '1.2'
@@ -912,7 +1048,7 @@ module webSite 'modules/web-sites.bicep' = {
           WEBSITES_PORT: '3000'
           WEBSITES_CONTAINER_START_TIME_LIMIT: '1800' // 30 minutes, adjust as needed
           AUTH_ENABLED: 'false'
-          AZURE_SEARCH_SERVICE: aifoundry.outputs.aiSearchService
+          AZURE_SEARCH_SERVICE: aiFoundryAiServicesProject!.outputs.aiSearchServiceName
           AZURE_SEARCH_INDEX: 'pdf_index'
           AZURE_SEARCH_USE_SEMANTIC_SEARCH: 'False'
           AZURE_SEARCH_SEMANTIC_SEARCH_CONFIG: 'my-semantic-config'
@@ -927,17 +1063,17 @@ module webSite 'modules/web-sites.bicep' = {
           AZURE_SEARCH_VECTOR_COLUMNS: 'contentVector'
           AZURE_SEARCH_PERMITTED_GROUPS_COLUMN: ''
           AZURE_SEARCH_STRICTNESS: '3'
-          AZURE_SEARCH_CONNECTION_NAME: aifoundry.outputs.aiSearchConnectionName
+          AZURE_SEARCH_CONNECTION_NAME: aiFoundryAiServicesProject!.outputs.aiSearchConnectionName
           AZURE_OPENAI_API_VERSION: azureOpenaiAPIVersion
           AZURE_OPENAI_MODEL: gptModelName
-          AZURE_OPENAI_ENDPOINT: aifoundry.outputs.aoaiEndpoint
-          AZURE_OPENAI_RESOURCE: aifoundry.outputs.aiFoundryName
+          AZURE_OPENAI_ENDPOINT: aiFoundryAiServicesProject!.outputs.aoaiEndpoint
+          AZURE_OPENAI_RESOURCE: aiFoundryAiServices!.outputs.name
           AZURE_OPENAI_PREVIEW_API_VERSION: azureOpenaiAPIVersion
           AZURE_OPENAI_GENERATE_SECTION_CONTENT_PROMPT: azureOpenAiGenerateSectionContentPrompt
           AZURE_OPENAI_TEMPLATE_SYSTEM_MESSAGE: azureOpenAiTemplateSystemMessage
           AZURE_OPENAI_TITLE_PROMPT: azureOpenAiTitlePrompt
           AZURE_OPENAI_SYSTEM_MESSAGE: azureOpenAISystemMessage
-          AZURE_AI_AGENT_ENDPOINT: aifoundry.outputs.aiFoundryProjectEndpoint
+          AZURE_AI_AGENT_ENDPOINT: aiFoundryAiProjectEndpoint
           AZURE_AI_AGENT_MODEL_DEPLOYMENT_NAME: gptModelName
           AZURE_AI_AGENT_API_VERSION: azureAiAgentApiVersion
           SOLUTION_NAME: solutionName
@@ -950,6 +1086,7 @@ module webSite 'modules/web-sites.bicep' = {
           UWSGI_PROCESSES: '2'
           UWSGI_THREADS: '2'
           APP_ENV: 'Prod'
+          AZURE_CLIENT_ID: userAssignedIdentity.outputs.clientId // NOTE: This is the client ID of the managed identity, not the Entra application, and is needed for the App Service to access the Cosmos DB account.
         }
         // WAF aligned configuration for Monitoring
         applicationInsightResourceId: enableMonitoring ? applicationInsights!.outputs.resourceId : null
@@ -979,7 +1116,7 @@ module webSite 'modules/web-sites.bicep' = {
 }
 
 @description('Contains WebApp URL')
-output webAppUrl string = webSite.outputs.defaultHostname
+output webAppUrl string = 'https://${webSite.outputs.name}.azurewebsites.net'
 
 @description('Contains Storage Account Name')
 output storageAccountName string = storageAccount.outputs.name
@@ -997,19 +1134,19 @@ output cosmosDbAccountName string = cosmosDB.outputs.name
 output resourceGroupName string = resourceGroup().name
 
 @description('Contains AI Foundry Name')
-output aiFoundryName string = aifoundry.outputs.aiFoundryName
+output aiFoundryName string = aiFoundryAiServices!.outputs.name
 
 @description('Contains AI Foundry RG Name')
-output aiFoundryRgName string = aifoundry.outputs.aiFoundryRgName
+output aiFoundryRgName string = aiFoundryAiServices!.outputs.resourceGroupName
 
 @description('Contains AI Foundry Resource ID')
-output aiFoundryResourceId string = aifoundry.outputs.aiFoundryId
+output aiFoundryResourceId string = aiFoundryAiServices!.outputs.resourceId
 
 @description('Contains AI Search Service Name')
-output aiSearchServiceName string = aifoundry.outputs.aiSearchService
+output aiSearchServiceName string = aiFoundryAiServicesProject!.outputs.aiSearchServiceName
 
 @description('Contains Azure Search Connection Name')
-output azureSearchConnectionName string = aifoundry.outputs.aiSearchConnectionName
+output azureSearchConnectionName string = aiFoundryAiServicesProject!.outputs.aiSearchConnectionName
 
 @description('Contains OpenAI Title Prompt')
 output azureOpenaiTitlePrompt string = azureOpenAiTitlePrompt
@@ -1027,10 +1164,10 @@ output azureOpenaiSystemMessage string = azureOpenAISystemMessage
 output azureOpenaiModel string = gptModelName
 
 @description('Contains OpenAI Resource')
-output azureOpenaiResource string = aifoundry.outputs.aiFoundryName
+output azureOpenaiResource string = aiFoundryAiServices!.outputs.name
 
 @description('Contains Azure Search Service')
-output azureSearchService string = aifoundry.outputs.aiSearchService
+output azureSearchService string = aiFoundryAiServices!.outputs.name
 
 @description('Contains Azure Search Index')
 output azureSearchIndex string = 'pdf_index'
@@ -1054,7 +1191,7 @@ output azureSearchQueryType string = 'simple'
 output azureSearchVectorColumns string = 'contentVector'
 
 @description('Contains AI Agent Endpoint')
-output azureAiAgentEndpoint string = aifoundry.outputs.aiFoundryProjectEndpoint
+output azureAiAgentEndpoint string = aiFoundryAiServicesProject!.outputs.apiEndpoint
 
 @description('Contains AI Agent API Version')
 output azureAiAgentApiVersion string = azureAiAgentApiVersion
@@ -1062,8 +1199,8 @@ output azureAiAgentApiVersion string = azureAiAgentApiVersion
 @description('Contains AI Agent Model Deployment Name')
 output azureAiAgentModelDeploymentName string = gptModelName
 
-@description('Contains Application Insights Connection String')
-output azureApplicationInsightsConnectionString string = aifoundry.outputs.applicationInsightsConnectionString
+// @description('Contains Application Insights Connection String')
+// output azureApplicationInsightsConnectionString string = aifoundry.outputs.applicationInsightsConnectionString
 
 @description('Contains Application Environment.')
 output appEnv string  = 'Prod'
