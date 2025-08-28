@@ -6,7 +6,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.37.4.10188",
-      "templateHash": "1407013616119173842"
+      "templateHash": "5045744140101176110"
     },
     "name": "Document Generation Solution Accelerator",
     "description": "CSA CTO Gold Standard Solution Accelerator for Document Generation.\n"
@@ -183,14 +183,14 @@
     },
     "enableMonitoring": {
       "type": "bool",
-      "defaultValue": false,
+      "defaultValue": true,
       "metadata": {
         "description": "Optional. Enable monitoring applicable resources, aligned with the Well Architected Framework recommendations. This setting enables Application Insights and Log Analytics and configures all the resources applicable resources to send logs. Defaults to false."
       }
     },
     "enableScalability": {
       "type": "bool",
-      "defaultValue": false,
+      "defaultValue": true,
       "metadata": {
         "description": "Optional. Enable scalability for applicable resources, aligned with the Well Architected Framework recommendations. Defaults to false."
       }
@@ -204,7 +204,7 @@
     },
     "enablePrivateNetworking": {
       "type": "bool",
-      "defaultValue": false,
+      "defaultValue": true,
       "metadata": {
         "description": "Optional. Enable private networking for applicable resources, aligned with the Well Architected Framework recommendations. Defaults to false."
       }
@@ -275,16 +275,10 @@
       "privatelink.cognitiveservices.azure.com",
       "privatelink.openai.azure.com",
       "privatelink.services.ai.azure.com",
-      "privatelink.contentunderstanding.ai.azure.com",
       "[format('privatelink.blob.{0}', environment().suffixes.storage)]",
-      "[format('privatelink.queue.{0}', environment().suffixes.storage)]",
       "[format('privatelink.file.{0}', environment().suffixes.storage)]",
-      "privatelink.api.azureml.ms",
-      "privatelink.notebooks.azure.net",
       "privatelink.mongo.cosmos.azure.com",
-      "privatelink.azconfig.io",
       "privatelink.vaultcore.azure.net",
-      "privatelink.azurecr.io",
       "privatelink.azurewebsites.net",
       "privatelink.search.windows.net"
     ],
@@ -292,18 +286,12 @@
       "cognitiveServices": 0,
       "openAI": 1,
       "aiServices": 2,
-      "contentUnderstanding": 3,
-      "storageBlob": 4,
-      "storageQueue": 5,
-      "storageFile": 6,
-      "aiFoundry": 7,
-      "notebooks": 8,
-      "cosmosDB": 9,
-      "appConfig": 10,
-      "keyVault": 11,
-      "containerRegistry": 12,
-      "appService": 13,
-      "searchService": 14
+      "storageBlob": 3,
+      "storageFile": 4,
+      "cosmosDB": 5,
+      "keyVault": 6,
+      "appService": 7,
+      "searchService": 8
     },
     "keyVaultName": "[format('kv-{0}', variables('solutionSuffix'))]",
     "useExistingAiFoundryAiProject": "[not(empty(parameters('azureExistingAIProjectResourceId')))]",
@@ -4754,7 +4742,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.37.4.10188",
-              "templateHash": "988450370156009288"
+              "templateHash": "678037629782870181"
             }
           },
           "parameters": {
@@ -4896,8 +4884,7 @@
                               }
                             }
                           ]
-                        },
-                        "delegation": "Microsoft.App/environments"
+                        }
                       },
                       {
                         "name": "peps",
@@ -29809,9 +29796,9 @@
         }
       },
       "dependsOn": [
+        "[format('avmPrivateDnsZones[{0}]', variables('dnsZoneIndex').openAI)]",
         "[format('avmPrivateDnsZones[{0}]', variables('dnsZoneIndex').aiServices)]",
         "[format('avmPrivateDnsZones[{0}]', variables('dnsZoneIndex').cognitiveServices)]",
-        "[format('avmPrivateDnsZones[{0}]', variables('dnsZoneIndex').openAI)]",
         "logAnalyticsWorkspace",
         "network",
         "userAssignedIdentity"
@@ -30183,6 +30170,10 @@
               {
                 "name": "AZURE-SUBSCRIPTION-ID",
                 "value": "[subscription().subscriptionId]"
+              },
+              {
+                "name": "COG-SERVICES-NAME",
+                "value": "[variables('aiFoundryAiServicesResourceName')]"
               },
               {
                 "name": "COG-SERVICES-ENDPOINT",
@@ -33417,7 +33408,7 @@
           },
           "allowBlobPublicAccess": "[if(parameters('enablePrivateNetworking'), createObject('value', true()), createObject('value', false()))]",
           "publicNetworkAccess": "[if(parameters('enablePrivateNetworking'), createObject('value', 'Disabled'), createObject('value', 'Enabled'))]",
-          "privateEndpoints": "[if(parameters('enablePrivateNetworking'), createObject('value', createArray(createObject('name', format('pep-blob-{0}', variables('solutionSuffix')), 'privateDnsZoneGroup', createObject('privateDnsZoneGroupConfigs', createArray(createObject('name', 'storage-dns-zone-group-blob', 'privateDnsZoneResourceId', reference(format('avmPrivateDnsZones[{0}]', variables('dnsZoneIndex').storageBlob)).outputs.resourceId.value))), 'subnetResourceId', reference('network').outputs.subnetWebResourceId.value, 'service', 'blob'), createObject('name', format('pep-file-{0}', variables('solutionSuffix')), 'privateDnsZoneGroup', createObject('privateDnsZoneGroupConfigs', createArray(createObject('name', 'storage-dns-zone-group-file', 'privateDnsZoneResourceId', reference(format('avmPrivateDnsZones[{0}]', variables('dnsZoneIndex').storageFile)).outputs.resourceId.value))), 'service', 'file', 'subnetResourceId', reference('network').outputs.subnetWebResourceId.value))), createObject('value', createArray()))]"
+          "privateEndpoints": "[if(parameters('enablePrivateNetworking'), createObject('value', createArray(createObject('name', format('pep-blob-{0}', variables('solutionSuffix')), 'privateDnsZoneGroup', createObject('privateDnsZoneGroupConfigs', createArray(createObject('name', 'storage-dns-zone-group-blob', 'privateDnsZoneResourceId', reference(format('avmPrivateDnsZones[{0}]', variables('dnsZoneIndex').storageBlob)).outputs.resourceId.value))), 'subnetResourceId', reference('network').outputs.subnetWebResourceId.value, 'service', 'blob'), createObject('name', format('pep-file-{0}', variables('solutionSuffix')), 'privateDnsZoneGroup', createObject('privateDnsZoneGroupConfigs', createArray(createObject('name', 'storage-dns-zone-group-file', 'privateDnsZoneResourceId', reference(format('avmPrivateDnsZones[{0}]', variables('dnsZoneIndex').storageFile)).outputs.resourceId.value))), 'subnetResourceId', reference('network').outputs.subnetWebResourceId.value, 'service', 'file'))), createObject('value', createArray()))]"
         },
         "template": {
           "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
@@ -46764,8 +46755,6 @@
                 "properties": {
                   "SCM_DO_BUILD_DURING_DEPLOYMENT": "true",
                   "DOCKER_REGISTRY_SERVER_URL": "[format('https://{0}.azurecr.io', parameters('acrName'))]",
-                  "WEBSITES_PORT": "3000",
-                  "WEBSITES_CONTAINER_START_TIME_LIMIT": "1800",
                   "AUTH_ENABLED": "false",
                   "AZURE_SEARCH_SERVICE": "[reference('aiFoundryAiServicesProject').outputs.aiSearchServiceName.value]",
                   "AZURE_SEARCH_INDEX": "pdf_index",

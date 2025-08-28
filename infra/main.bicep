@@ -95,23 +95,22 @@ param vmAdminUsername string?
 
 @description('Optional. Admin password for the Jumpbox Virtual Machine. Set to custom value if enablePrivateNetworking is true.')
 @secure()
-//param vmAdminPassword string = newGuid()
 param vmAdminPassword string?
 
 @description('Optional. The tags to apply to all deployed Azure resources.')
 param tags resourceInput<'Microsoft.Resources/resourceGroups@2025-04-01'>.tags = {}
 
 @description('Optional. Enable monitoring applicable resources, aligned with the Well Architected Framework recommendations. This setting enables Application Insights and Log Analytics and configures all the resources applicable resources to send logs. Defaults to false.')
-param enableMonitoring bool = false
+param enableMonitoring bool = true
 
 @description('Optional. Enable scalability for applicable resources, aligned with the Well Architected Framework recommendations. Defaults to false.')
-param enableScalability bool = false
+param enableScalability bool = true
 
 @description('Optional. Enable redundancy for applicable resources, aligned with the Well Architected Framework recommendations. Defaults to false.')
 param enableRedundancy bool = false
 
 @description('Optional. Enable private networking for applicable resources, aligned with the Well Architected Framework recommendations. Defaults to false.')
-param enablePrivateNetworking bool = false
+param enablePrivateNetworking bool = true
 
 @description('Optional. The Container Registry hostname where the docker images are located.')
 param acrName string = 'byocgacontainerreg'
@@ -332,16 +331,10 @@ var privateDnsZones = [
   'privatelink.cognitiveservices.azure.com'
   'privatelink.openai.azure.com'
   'privatelink.services.ai.azure.com'
-  'privatelink.contentunderstanding.ai.azure.com'
   'privatelink.blob.${environment().suffixes.storage}'
-  'privatelink.queue.${environment().suffixes.storage}'
   'privatelink.file.${environment().suffixes.storage}'
-  'privatelink.api.azureml.ms'
-  'privatelink.notebooks.azure.net'
   'privatelink.mongo.cosmos.azure.com'
-  'privatelink.azconfig.io'
   'privatelink.vaultcore.azure.net'
-  'privatelink.azurecr.io'
   'privatelink.azurewebsites.net'
   'privatelink.search.windows.net'
 ]
@@ -351,18 +344,12 @@ var dnsZoneIndex = {
   cognitiveServices: 0
   openAI: 1
   aiServices: 2
-  contentUnderstanding: 3
-  storageBlob: 4
-  storageQueue: 5
-  storageFile: 6
-  aiFoundry: 7
-  notebooks: 8
-  cosmosDB: 9
-  appConfig: 10
-  keyVault: 11
-  containerRegistry: 12
-  appService: 13
-  searchService: 14
+  storageBlob: 3
+  storageFile: 4
+  cosmosDB: 5
+  keyVault: 6
+  appService: 7
+  searchService: 8
 }
 
 // ===================================================
@@ -684,10 +671,10 @@ module saveFoundrySecretsInKeyVault 'br/public:avm/res/key-vault/vault:0.12.1' =
       {name: 'AZURE-LOCATION', value: aiDeploymentsLocation}
       {name: 'AZURE-RESOURCE-GROUP', value: resourceGroup().name}
       {name: 'AZURE-SUBSCRIPTION-ID', value: subscription().subscriptionId}
-      // {
-      //   name: 'COG-SERVICES-NAME'
-      //   value: aiFoundryAiServicesResourceName
-      // }
+      {
+        name: 'COG-SERVICES-NAME'
+        value: aiFoundryAiServicesResourceName
+      }
       // {
       //   name: 'COG-SERVICES-KEY'
       //   value: !useExistingAiFoundryAiProject ? existingAiFoundryAiServices!.listKeys().key1 : aiFoundryAiServices!.listKeys().key1
@@ -798,8 +785,8 @@ module storageAccount 'br/public:avm/res/storage/storage-account:0.20.0' = {
                 }
               ]
             }
-            service: 'file'
             subnetResourceId: network!.outputs.subnetWebResourceId
+            service: 'file'
           }
         ]
       : []
@@ -1045,8 +1032,8 @@ module webSite 'modules/web-sites.bicep' = {
         properties: {
           SCM_DO_BUILD_DURING_DEPLOYMENT: 'true'
           DOCKER_REGISTRY_SERVER_URL: 'https://${acrName}.azurecr.io'
-          WEBSITES_PORT: '3000'
-          WEBSITES_CONTAINER_START_TIME_LIMIT: '1800' // 30 minutes, adjust as needed
+          // WEBSITES_PORT: '3000'
+          // WEBSITES_CONTAINER_START_TIME_LIMIT: '1800' // 30 minutes, adjust as needed
           AUTH_ENABLED: 'false'
           AZURE_SEARCH_SERVICE: aiFoundryAiServicesProject!.outputs.aiSearchServiceName
           AZURE_SEARCH_INDEX: 'pdf_index'
