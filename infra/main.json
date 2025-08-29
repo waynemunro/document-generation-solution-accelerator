@@ -6,7 +6,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.37.4.10188",
-      "templateHash": "16064952426626724338"
+      "templateHash": "12183275118675645429"
     },
     "name": "Document Generation Solution Accelerator",
     "description": "CSA CTO Gold Standard Solution Accelerator for Document Generation.\n"
@@ -211,14 +211,14 @@
     },
     "acrName": {
       "type": "string",
-      "defaultValue": "byocgacontainerreg",
+      "defaultValue": "testapwaf",
       "metadata": {
         "description": "Optional. The Container Registry hostname where the docker images are located."
       }
     },
     "imageTag": {
       "type": "string",
-      "defaultValue": "latest",
+      "defaultValue": "waf",
       "metadata": {
         "description": "Optional. Image Tag."
       }
@@ -401,7 +401,6 @@
         }
       },
       "dependsOn": [
-        "aiFoundryAiServicesProject",
         "aiSearch"
       ]
     },
@@ -30021,16 +30020,6 @@
           "roleAssignments": {
             "value": [
               {
-                "roleDefinitionIdOrName": "Cognitive Services Contributor",
-                "principalId": "[reference('userAssignedIdentity').outputs.principalId.value]",
-                "principalType": "ServicePrincipal"
-              },
-              {
-                "roleDefinitionIdOrName": "Cognitive Services OpenAI User",
-                "principalId": "[reference('userAssignedIdentity').outputs.principalId.value]",
-                "principalType": "ServicePrincipal"
-              },
-              {
                 "roleDefinitionIdOrName": "Search Index Data Contributor",
                 "principalId": "[reference('userAssignedIdentity').outputs.principalId.value]",
                 "principalType": "ServicePrincipal"
@@ -38209,8 +38198,8 @@
         }
       },
       "dependsOn": [
-        "[format('avmPrivateDnsZones[{0}]', variables('dnsZoneIndex').storageQueue)]",
         "[format('avmPrivateDnsZones[{0}]', variables('dnsZoneIndex').storageBlob)]",
+        "[format('avmPrivateDnsZones[{0}]', variables('dnsZoneIndex').storageQueue)]",
         "network",
         "userAssignedIdentity"
       ]

@@ -113,10 +113,10 @@ param enableRedundancy bool = false
 param enablePrivateNetworking bool = true
 
 @description('Optional. The Container Registry hostname where the docker images are located.')
-param acrName string = 'byocgacontainerreg'
+param acrName string = 'testapwaf'
 
 @description('Optional. Image Tag.')
-param imageTag string = 'latest'
+param imageTag string = 'waf'
 
 @description('Optional. Enable/Disable usage telemetry for module.')
 param enableTelemetry bool = true
@@ -679,16 +679,16 @@ module aiSearch 'br/public:avm/res/search/search-service:0.11.1' = {
     replicaCount: 1
     partitionCount: 1
     roleAssignments: [
-      {
-        roleDefinitionIdOrName: 'Cognitive Services Contributor' // Cognitive Search Contributor
-        principalId: userAssignedIdentity.outputs.principalId
-        principalType: 'ServicePrincipal'
-      }
-      {
-        roleDefinitionIdOrName: 'Cognitive Services OpenAI User'//'5e0bd9bd-7b93-4f28-af87-19fc36ad61bd'// Cognitive Services OpenAI User
-        principalId: userAssignedIdentity.outputs.principalId
-        principalType: 'ServicePrincipal'
-      }
+      // {
+      //   roleDefinitionIdOrName: 'Cognitive Services Contributor' // Cognitive Search Contributor
+      //   principalId: userAssignedIdentity.outputs.principalId
+      //   principalType: 'ServicePrincipal'
+      // }
+      // {
+      //   roleDefinitionIdOrName: 'Cognitive Services OpenAI User'//'5e0bd9bd-7b93-4f28-af87-19fc36ad61bd'// Cognitive Services OpenAI User
+      //   principalId: userAssignedIdentity.outputs.principalId
+      //   principalType: 'ServicePrincipal'
+      // }
       {
         roleDefinitionIdOrName: 'Search Index Data Contributor' // 1407120a-92aa-4202-b7e9-c0e197c71c8f
         principalId: userAssignedIdentity.outputs.principalId
@@ -729,9 +729,6 @@ resource aiSearchFoundryConnection 'Microsoft.CognitiveServices/accounts/project
       location: aiSearch.outputs.location
     }
   }
-  dependsOn: [
-    aiFoundryAiServicesProject
-  ]
 }
 
 module existing_AIProject_SearchConnectionModule 'modules/deploy_aifp_aisearch_connection.bicep' = if (useExistingAiFoundryAiProject) {
