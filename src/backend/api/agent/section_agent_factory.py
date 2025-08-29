@@ -19,7 +19,7 @@ class SectionAgentFactory(BaseAgentFactory):
         """
         project_client = AIProjectClient(
             endpoint=app_settings.azure_ai.agent_endpoint,
-            credential=await get_azure_credential_async(),
+            credential=await get_azure_credential_async(client_id=app_settings.base_settings.azure_client_id),
             api_version=app_settings.azure_ai.agent_api_version
         )
 
