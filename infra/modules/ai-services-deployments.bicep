@@ -156,12 +156,12 @@ var formattedRoleAssignments = [
   })
 ]
 
-resource cognitiveService 'Microsoft.CognitiveServices/accounts@2025-06-01' existing = {
+resource cognitiveService 'Microsoft.CognitiveServices/accounts@2025-04-01-preview' existing = {
   name: name
 }
 
 @batchSize(1)
-resource cognitiveService_deployments 'Microsoft.CognitiveServices/accounts/deployments@2024-10-01' = [
+resource cognitiveService_deployments 'Microsoft.CognitiveServices/accounts/deployments@2025-04-01-preview' = [
   for (deployment, index) in (deployments ?? []): {
     parent: cognitiveService
     name: deployment.?name ?? '${name}-deployments'

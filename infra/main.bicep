@@ -332,7 +332,7 @@ var privateDnsZones = [
   'privatelink.openai.azure.com'
   'privatelink.services.ai.azure.com'
   'privatelink.blob.${environment().suffixes.storage}'
-  'privatelink.file.${environment().suffixes.storage}'
+  'privatelink.queue.${environment().suffixes.storage}'
   'privatelink.mongo.cosmos.azure.com'
   'privatelink.vaultcore.azure.net'
   'privatelink.azurewebsites.net'
@@ -345,7 +345,7 @@ var dnsZoneIndex = {
   openAI: 1
   aiServices: 2
   storageBlob: 3
-  storageFile: 4
+  storageQueue: 4
   cosmosDB: 5
   keyVault: 6
   appService: 7
@@ -423,7 +423,7 @@ module keyvault 'br/public:avm/res/key-vault/vault:0.12.1' = {
               ]
             }
             service: 'vault'
-            subnetResourceId: network!.outputs.subnetWebResourceId
+            subnetResourceId: network!.outputs.subnetPrivateEndpointsResourceId
           }
         ]
       : []
@@ -437,6 +437,9 @@ module keyvault 'br/public:avm/res/key-vault/vault:0.12.1' = {
     ]
     enableTelemetry: enableTelemetry
   }
+  dependsOn:[
+    avmPrivateDnsZones
+  ]
 }
 
 // ==========AI Foundry and related resources ========== //
@@ -501,7 +504,7 @@ var aiFoundryAiServicesModelDeployment = [
 ]
 var aiFoundryAiProjectDescription = 'AI Foundry Project'
 
-resource existingAiFoundryAiServices 'Microsoft.CognitiveServices/accounts@2025-06-01' existing = if (useExistingAiFoundryAiProject) {
+resource existingAiFoundryAiServices 'Microsoft.CognitiveServices/accounts@2025-04-01-preview' existing = if (useExistingAiFoundryAiProject) {
   name: aiFoundryAiServicesResourceName
   scope: resourceGroup(aiFoundryAiServicesSubscriptionId, aiFoundryAiServicesResourceGroupName)
 }
@@ -606,7 +609,7 @@ module aiFoundryAiServices 'br:mcr.microsoft.com/bicep/avm/res/cognitive-service
           {
             name: 'pep-${aiFoundryAiServicesResourceName}'
             customNetworkInterfaceName: 'nic-${aiFoundryAiServicesResourceName}'
-            subnetResourceId: network!.outputs.subnetWebResourceId
+            subnetResourceId: network!.outputs.subnetPrivateEndpointsResourceId
             privateDnsZoneGroup: {
               privateDnsZoneGroupConfigs: [
                 {
@@ -629,7 +632,7 @@ module aiFoundryAiServices 'br:mcr.microsoft.com/bicep/avm/res/cognitive-service
   }
 }
 
-resource existingAiFoundryAiServicesProject 'Microsoft.CognitiveServices/accounts/projects@2025-06-01' existing = if (useExistingAiFoundryAiProject) {
+resource existingAiFoundryAiServicesProject 'Microsoft.CognitiveServices/accounts/projects@2025-04-01-preview' existing = if (useExistingAiFoundryAiProject) {
   name: aiFoundryAiProjectResourceName
   parent: existingAiFoundryAiServices
 }
@@ -643,64 +646,104 @@ module aiFoundryAiServicesProject 'modules/ai-project.bicep' = if (!useExistingA
     desc: aiFoundryAiProjectDescription
     //Implicit dependencies below
     aiServicesName: aiFoundryAiServices!.outputs.name
-    solutionName: solutionSuffix
     azureExistingAIProjectResourceId: azureExistingAIProjectResourceId
   }
 }
 
-// var aiFoundryAiProjectName = useExistingAiFoundryAiProject
-//   ? existingAiFoundryAiServicesProject.name
-//   : aiFoundryAiServicesProject!.outputs.name
 var aiFoundryAiProjectEndpoint = useExistingAiFoundryAiProject
   ? existingAiFoundryAiServicesProject!.properties.endpoints['AI Foundry API']
   : aiFoundryAiServicesProject!.outputs.apiEndpoint
 
-// If the above secretsExportConfiguration code not works to store the keys in key vault, uncomment below
-module saveFoundrySecretsInKeyVault 'br/public:avm/res/key-vault/vault:0.12.1' = {
-  name: take('saveFoundrySecretsInKeyVault.${keyVaultName}', 64)
+// ========== AI Foundry: AI Search ========== //
+var aiSearchName = 'srch-${solutionSuffix}'
+var aiSearchConnectionName = 'foundry-search-connection-${solutionSuffix}'
+module aiSearch 'br/public:avm/res/search/search-service:0.11.1' = {
+  name: take('avm.res.cognitive-search-services.${aiSearchName}', 64)
   params: {
-    name: keyVaultName
-    enablePurgeProtection: enablePurgeProtection
-    enableVaultForDeployment: true
-    enableVaultForDiskEncryption: true
-    enableVaultForTemplateDeployment: true
-    enableRbacAuthorization: true
-    enableSoftDelete: true
-    softDeleteRetentionInDays: 7
-    secrets: [
-      {name: 'AZURE-LOCATION', value: aiDeploymentsLocation}
-      {name: 'AZURE-RESOURCE-GROUP', value: resourceGroup().name}
-      {name: 'AZURE-SUBSCRIPTION-ID', value: subscription().subscriptionId}
-      {
-        name: 'COG-SERVICES-NAME'
-        value: aiFoundryAiServicesResourceName
+    name: aiSearchName
+    authOptions: {
+      aadOrApiKey: {
+        aadAuthFailureMode: 'http401WithBearerChallenge'
       }
-      // {
-      //   name: 'COG-SERVICES-KEY'
-      //   value: !useExistingAiFoundryAiProject ? existingAiFoundryAiServices!.listKeys().key1 : aiFoundryAiServices!.listKeys().key1
-      // }
+    }
+    tags: tags
+    diagnosticSettings: enableMonitoring ? [{ workspaceResourceId: logAnalyticsWorkspaceResourceId }] : null
+    disableLocalAuth: false
+    hostingMode: 'default'
+    sku: 'standard'
+    managedIdentities: { userAssignedResourceIds: [userAssignedIdentity!.outputs.resourceId] }
+    networkRuleSet: {
+      bypass: 'AzureServices'
+      ipRules: []
+    }
+    replicaCount: 1
+    partitionCount: 1
+    roleAssignments: [
       {
-        name: 'COG-SERVICES-ENDPOINT'
-        value: aiFoundryAiServicesProject!.outputs.aoaiEndpoint
-      }
-      {name: 'AZURE-SEARCH-INDEX', value: 'pdf_index'}
-      {
-        name: 'AZURE-SEARCH-SERVICE'
-        value: aiFoundryAiServicesProject!.outputs.aiSearchServiceName
+        roleDefinitionIdOrName: 'Cognitive Services Contributor' // Cognitive Search Contributor
+        principalId: userAssignedIdentity.outputs.principalId
+        principalType: 'ServicePrincipal'
       }
       {
-        name: 'AZURE-SEARCH-ENDPOINT'
-        value: 'https://${aiFoundryAiServicesProject!.outputs.aiSearchServiceName}.search.windows.net'
+        roleDefinitionIdOrName: 'Cognitive Services OpenAI User'//'5e0bd9bd-7b93-4f28-af87-19fc36ad61bd'// Cognitive Services OpenAI User
+        principalId: userAssignedIdentity.outputs.principalId
+        principalType: 'ServicePrincipal'
       }
-      {name: 'AZURE-OPENAI-EMBEDDING-MODEL', value: embeddingModel}
       {
-        name: 'AZURE-OPENAI-ENDPOINT'
-        value: aiFoundryAiServicesProject!.outputs.aoaiEndpoint
+        roleDefinitionIdOrName: 'Search Index Data Contributor' // 1407120a-92aa-4202-b7e9-c0e197c71c8f
+        principalId: userAssignedIdentity.outputs.principalId
+        principalType: 'ServicePrincipal'
       }
-      {name: 'AZURE-OPENAI-PREVIEW-API-VERSION', value: azureOpenaiAPIVersion}
-      {name: 'AZURE-OPEN-AI-DEPLOYMENT-MODEL', value: gptModelName}
-      {name: 'TENANT-ID', value: subscription().tenantId}
     ]
+    semanticSearch: 'free'
+    // WAF aligned configuration for Private Networking
+    publicNetworkAccess: enablePrivateNetworking ? 'Disabled' : 'Enabled'
+    privateEndpoints: enablePrivateNetworking
+    ? [
+        {
+          name: 'pep-${aiSearchName}'
+          customNetworkInterfaceName: 'nic-${aiSearchName}'
+          privateDnsZoneGroup: {
+            privateDnsZoneGroupConfigs: [
+              { privateDnsZoneResourceId: avmPrivateDnsZones[dnsZoneIndex.searchService]!.outputs.resourceId }
+            ]
+          }
+          service: 'searchService'
+          subnetResourceId: network!.outputs.subnetPrivateEndpointsResourceId
+        }
+      ]
+    : []
+  }
+}
+
+resource aiSearchFoundryConnection 'Microsoft.CognitiveServices/accounts/projects/connections@2025-04-01-preview' = if (!useExistingAiFoundryAiProject) {
+  name: '${aiFoundryAiServicesResourceName}/${aiFoundryAiProjectResourceName}/${aiSearchConnectionName}'
+  properties: {
+    category: 'CognitiveSearch'
+    target: 'https://${aiSearchName}.search.windows.net'
+    authType: 'AAD'
+    isSharedToAll: true
+    metadata: {
+      ApiType: 'Azure'
+      ResourceId: aiSearch.outputs.resourceId
+      location: aiSearch.outputs.location
+    }
+  }
+  dependsOn: [
+    aiFoundryAiServicesProject
+  ]
+}
+
+module existing_AIProject_SearchConnectionModule 'modules/deploy_aifp_aisearch_connection.bicep' = if (useExistingAiFoundryAiProject) {
+  name: 'aiProjectSearchConnectionDeployment'
+  scope: resourceGroup(aiFoundryAiServicesSubscriptionId, aiFoundryAiServicesResourceGroupName)
+  params: {
+    existingAIProjectName: aiFoundryAiProjectResourceName
+    existingAIFoundryName: aiFoundryAiServicesResourceName
+    aiSearchName: aiSearchName
+    aiSearchResourceId: aiSearch.outputs.resourceId
+    aiSearchLocation: aiSearch.outputs.location
+    aiSearchConnectionName: aiSearchConnectionName
   }
 }
 
@@ -724,7 +767,7 @@ module storageAccount 'br/public:avm/res/storage/storage-account:0.20.0' = {
   params: {
     name: storageAccountName
     location: solutionLocation
-    skuName: 'Premium_LRS'
+    skuName: 'Standard_LRS'
     managedIdentities: { systemAssigned: true }
     minimumTlsVersion: 'TLS1_2'
     enableTelemetry: enableTelemetry
@@ -772,21 +815,21 @@ module storageAccount 'br/public:avm/res/storage/storage-account:0.20.0' = {
                 }
               ]
             }
-            subnetResourceId: network!.outputs.subnetWebResourceId
+            subnetResourceId: network!.outputs.subnetPrivateEndpointsResourceId
             service: 'blob'
           }
           {
-            name: 'pep-file-${solutionSuffix}'
+            name: 'pep-queue-${solutionSuffix}'
             privateDnsZoneGroup: {
               privateDnsZoneGroupConfigs: [
                 {
-                  name: 'storage-dns-zone-group-file'
-                  privateDnsZoneResourceId: avmPrivateDnsZones[dnsZoneIndex.storageFile]!.outputs.resourceId
+                  name: 'storage-dns-zone-group-queue'
+                  privateDnsZoneResourceId: avmPrivateDnsZones[dnsZoneIndex.storageQueue]!.outputs.resourceId
                 }
               ]
             }
-            subnetResourceId: network!.outputs.subnetWebResourceId
-            service: 'file'
+            subnetResourceId: network!.outputs.subnetPrivateEndpointsResourceId
+            service: 'queue'
           }
         ]
       : []
@@ -867,7 +910,7 @@ module cosmosDB 'br/public:avm/res/document-db/database-account:0.15.0' = {
               ]
             }
             service: 'Sql'
-            subnetResourceId: network!.outputs.subnetWebResourceId
+            subnetResourceId: network!.outputs.subnetPrivateEndpointsResourceId
           }
         ]
       : []
@@ -942,6 +985,38 @@ module saveSecretsInKeyVault 'br/public:avm/res/key-vault/vault:0.12.1' = {
         name: 'AZURE-COSMOSDB-ENABLE-FEEDBACK'
         value: 'True'
       }
+      {name: 'AZURE-LOCATION', value: aiDeploymentsLocation}
+      {name: 'AZURE-RESOURCE-GROUP', value: resourceGroup().name}
+      {name: 'AZURE-SUBSCRIPTION-ID', value: subscription().subscriptionId}
+      {
+        name: 'COG-SERVICES-NAME'
+        value: aiFoundryAiServicesResourceName
+      }
+      // {
+      //   name: 'COG-SERVICES-KEY'
+      //   value: !useExistingAiFoundryAiProject ? existingAiFoundryAiServices!.listKeys().key1 : aiFoundryAiServices!.listKeys().key1
+      // }
+      {
+        name: 'COG-SERVICES-ENDPOINT'
+        value: aiFoundryAiServicesProject!.outputs.aoaiEndpoint
+      }
+      {name: 'AZURE-SEARCH-INDEX', value: 'pdf_index'}
+      {
+        name: 'AZURE-SEARCH-SERVICE'
+        value: aiSearch.name
+      }
+      {
+        name: 'AZURE-SEARCH-ENDPOINT'
+        value: 'https://${aiSearch.name}.search.windows.net'
+      }
+      {name: 'AZURE-OPENAI-EMBEDDING-MODEL', value: embeddingModel}
+      {
+        name: 'AZURE-OPENAI-ENDPOINT'
+        value: aiFoundryAiServicesProject!.outputs.aoaiEndpoint
+      }
+      {name: 'AZURE-OPENAI-PREVIEW-API-VERSION', value: azureOpenaiAPIVersion}
+      {name: 'AZURE-OPEN-AI-DEPLOYMENT-MODEL', value: gptModelName}
+      {name: 'TENANT-ID', value: subscription().tenantId}
     ]
   }
 }
@@ -1035,7 +1110,7 @@ module webSite 'modules/web-sites.bicep' = {
           // WEBSITES_PORT: '3000'
           // WEBSITES_CONTAINER_START_TIME_LIMIT: '1800' // 30 minutes, adjust as needed
           AUTH_ENABLED: 'false'
-          AZURE_SEARCH_SERVICE: aiFoundryAiServicesProject!.outputs.aiSearchServiceName
+          AZURE_SEARCH_SERVICE: aiSearch.name
           AZURE_SEARCH_INDEX: 'pdf_index'
           AZURE_SEARCH_USE_SEMANTIC_SEARCH: 'False'
           AZURE_SEARCH_SEMANTIC_SEARCH_CONFIG: 'my-semantic-config'
@@ -1050,7 +1125,7 @@ module webSite 'modules/web-sites.bicep' = {
           AZURE_SEARCH_VECTOR_COLUMNS: 'contentVector'
           AZURE_SEARCH_PERMITTED_GROUPS_COLUMN: ''
           AZURE_SEARCH_STRICTNESS: '3'
-          AZURE_SEARCH_CONNECTION_NAME: aiFoundryAiServicesProject!.outputs.aiSearchConnectionName
+          AZURE_SEARCH_CONNECTION_NAME: aiSearchConnectionName
           AZURE_OPENAI_API_VERSION: azureOpenaiAPIVersion
           AZURE_OPENAI_MODEL: gptModelName
           AZURE_OPENAI_ENDPOINT: aiFoundryAiServicesProject!.outputs.aoaiEndpoint
@@ -1094,7 +1169,7 @@ module webSite 'modules/web-sites.bicep' = {
               privateDnsZoneGroupConfigs: [{ privateDnsZoneResourceId: avmPrivateDnsZones[dnsZoneIndex.appService]!.outputs.resourceId }]
             }
             service: 'sites'
-            subnetResourceId: network!.outputs.subnetWebResourceId
+            subnetResourceId: network!.outputs.subnetPrivateEndpointsResourceId
           }
         ]
       : null
@@ -1130,10 +1205,10 @@ output aiFoundryRgName string = aiFoundryAiServices!.outputs.resourceGroupName
 output aiFoundryResourceId string = aiFoundryAiServices!.outputs.resourceId
 
 @description('Contains AI Search Service Name')
-output aiSearchServiceName string = aiFoundryAiServicesProject!.outputs.aiSearchServiceName
+output aiSearchServiceName string = aiSearch.name
 
 @description('Contains Azure Search Connection Name')
-output azureSearchConnectionName string = aiFoundryAiServicesProject!.outputs.aiSearchConnectionName
+output azureSearchConnectionName string = aiSearchConnectionName
 
 @description('Contains OpenAI Title Prompt')
 output azureOpenaiTitlePrompt string = azureOpenAiTitlePrompt
@@ -1186,8 +1261,8 @@ output azureAiAgentApiVersion string = azureAiAgentApiVersion
 @description('Contains AI Agent Model Deployment Name')
 output azureAiAgentModelDeploymentName string = gptModelName
 
-// @description('Contains Application Insights Connection String')
-// output azureApplicationInsightsConnectionString string = aifoundry.outputs.applicationInsightsConnectionString
+@description('Contains Application Insights Connection String')
+output azureApplicationInsightsConnectionString string = enableMonitoring ? applicationInsights!.outputs.connectionString : ''
 
 @description('Contains Application Environment.')
 output appEnv string  = 'Prod'

@@ -6,7 +6,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.37.4.10188",
-      "templateHash": "5045744140101176110"
+      "templateHash": "16064952426626724338"
     },
     "name": "Document Generation Solution Accelerator",
     "description": "CSA CTO Gold Standard Solution Accelerator for Document Generation.\n"
@@ -276,7 +276,7 @@
       "privatelink.openai.azure.com",
       "privatelink.services.ai.azure.com",
       "[format('privatelink.blob.{0}', environment().suffixes.storage)]",
-      "[format('privatelink.file.{0}', environment().suffixes.storage)]",
+      "[format('privatelink.queue.{0}', environment().suffixes.storage)]",
       "privatelink.mongo.cosmos.azure.com",
       "privatelink.vaultcore.azure.net",
       "privatelink.azurewebsites.net",
@@ -287,7 +287,7 @@
       "openAI": 1,
       "aiServices": 2,
       "storageBlob": 3,
-      "storageFile": 4,
+      "storageQueue": 4,
       "cosmosDB": 5,
       "keyVault": 6,
       "appService": 7,
@@ -324,6 +324,8 @@
       }
     ],
     "aiFoundryAiProjectDescription": "AI Foundry Project",
+    "aiSearchName": "[format('srch-{0}', variables('solutionSuffix'))]",
+    "aiSearchConnectionName": "[format('foundry-search-connection-{0}', variables('solutionSuffix'))]",
     "storageAccountName": "[format('st{0}', variables('solutionSuffix'))]",
     "cosmosDBResourceName": "[format('cosmos-{0}', variables('solutionSuffix'))]",
     "cosmosDBDatabaseName": "db_conversation_history",
@@ -368,7 +370,7 @@
       "condition": "[variables('useExistingAiFoundryAiProject')]",
       "existing": true,
       "type": "Microsoft.CognitiveServices/accounts",
-      "apiVersion": "2025-06-01",
+      "apiVersion": "2025-04-01-preview",
       "subscriptionId": "[variables('aiFoundryAiServicesSubscriptionId')]",
       "resourceGroup": "[variables('aiFoundryAiServicesResourceGroupName')]",
       "name": "[variables('aiFoundryAiServicesResourceName')]"
@@ -377,10 +379,31 @@
       "condition": "[variables('useExistingAiFoundryAiProject')]",
       "existing": true,
       "type": "Microsoft.CognitiveServices/accounts/projects",
-      "apiVersion": "2025-06-01",
+      "apiVersion": "2025-04-01-preview",
       "subscriptionId": "[variables('aiFoundryAiServicesSubscriptionId')]",
       "resourceGroup": "[variables('aiFoundryAiServicesResourceGroupName')]",
       "name": "[format('{0}/{1}', variables('aiFoundryAiServicesResourceName'), variables('aiFoundryAiProjectResourceName'))]"
+    },
+    "aiSearchFoundryConnection": {
+      "condition": "[not(variables('useExistingAiFoundryAiProject'))]",
+      "type": "Microsoft.CognitiveServices/accounts/projects/connections",
+      "apiVersion": "2025-04-01-preview",
+      "name": "[format('{0}/{1}/{2}', variables('aiFoundryAiServicesResourceName'), variables('aiFoundryAiProjectResourceName'), variables('aiSearchConnectionName'))]",
+      "properties": {
+        "category": "CognitiveSearch",
+        "target": "[format('https://{0}.search.windows.net', variables('aiSearchName'))]",
+        "authType": "AAD",
+        "isSharedToAll": true,
+        "metadata": {
+          "ApiType": "Azure",
+          "ResourceId": "[reference('aiSearch').outputs.resourceId.value]",
+          "location": "[reference('aiSearch').outputs.location.value]"
+        }
+      },
+      "dependsOn": [
+        "aiFoundryAiServicesProject",
+        "aiSearch"
+      ]
     },
     "logAnalyticsWorkspace": {
       "condition": "[and(parameters('enableMonitoring'), not(variables('useExistingLogAnalytics')))]",
@@ -4742,7 +4765,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.37.4.10188",
-              "templateHash": "678037629782870181"
+              "templateHash": "3782899527809411245"
             }
           },
           "parameters": {
@@ -4884,7 +4907,8 @@
                               }
                             }
                           ]
-                        }
+                        },
+                        "delegation": "Microsoft.Web/serverFarms"
                       },
                       {
                         "name": "peps",
@@ -23663,7 +23687,7 @@
             "value": 7
           },
           "diagnosticSettings": "[if(parameters('enableMonitoring'), createObject('value', createArray(createObject('workspaceResourceId', reference('logAnalyticsWorkspace').outputs.resourceId.value))), createObject('value', createArray()))]",
-          "privateEndpoints": "[if(parameters('enablePrivateNetworking'), createObject('value', createArray(createObject('name', format('pep-{0}', variables('keyVaultName')), 'customNetworkInterfaceName', format('nic-{0}', variables('keyVaultName')), 'privateDnsZoneGroup', createObject('privateDnsZoneGroupConfigs', createArray(createObject('privateDnsZoneResourceId', reference(format('avmPrivateDnsZones[{0}]', variables('dnsZoneIndex').keyVault)).outputs.resourceId.value))), 'service', 'vault', 'subnetResourceId', reference('network').outputs.subnetWebResourceId.value))), createObject('value', createArray()))]",
+          "privateEndpoints": "[if(parameters('enablePrivateNetworking'), createObject('value', createArray(createObject('name', format('pep-{0}', variables('keyVaultName')), 'customNetworkInterfaceName', format('nic-{0}', variables('keyVaultName')), 'privateDnsZoneGroup', createObject('privateDnsZoneGroupConfigs', createArray(createObject('privateDnsZoneResourceId', reference(format('avmPrivateDnsZones[{0}]', variables('dnsZoneIndex').keyVault)).outputs.resourceId.value))), 'service', 'vault', 'subnetResourceId', reference('network').outputs.subnetPrivateEndpointsResourceId.value))), createObject('value', createArray()))]",
           "roleAssignments": {
             "value": [
               {
@@ -26795,7 +26819,7 @@
         }
       },
       "dependsOn": [
-        "[format('avmPrivateDnsZones[{0}]', variables('dnsZoneIndex').keyVault)]",
+        "avmPrivateDnsZones",
         "logAnalyticsWorkspace",
         "network",
         "userAssignedIdentity"
@@ -26854,7 +26878,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.37.4.10188",
-              "templateHash": "1082820832327327752"
+              "templateHash": "2655660447689660274"
             }
           },
           "definitions": {
@@ -27134,7 +27158,7 @@
             "cognitiveService": {
               "existing": true,
               "type": "Microsoft.CognitiveServices/accounts",
-              "apiVersion": "2025-06-01",
+              "apiVersion": "2025-04-01-preview",
               "name": "[parameters('name')]"
             },
             "cognitiveService_deployments": {
@@ -27145,7 +27169,7 @@
                 "batchSize": 1
               },
               "type": "Microsoft.CognitiveServices/accounts/deployments",
-              "apiVersion": "2024-10-01",
+              "apiVersion": "2025-04-01-preview",
               "name": "[format('{0}/{1}', parameters('name'), coalesce(tryGet(coalesce(parameters('deployments'), createArray())[copyIndex()], 'name'), format('{0}-deployments', parameters('name'))))]",
               "properties": {
                 "model": "[coalesce(parameters('deployments'), createArray())[copyIndex()].model]",
@@ -27262,7 +27286,7 @@
           },
           "diagnosticSettings": "[if(parameters('enableMonitoring'), createObject('value', createArray(createObject('workspaceResourceId', if(variables('useExistingLogAnalytics'), parameters('existingLogAnalyticsWorkspaceId'), reference('logAnalyticsWorkspace').outputs.resourceId.value)))), createObject('value', null()))]",
           "publicNetworkAccess": "[if(parameters('enablePrivateNetworking'), createObject('value', 'Disabled'), createObject('value', 'Enabled'))]",
-          "privateEndpoints": "[if(parameters('enablePrivateNetworking'), createObject('value', createArray(createObject('name', format('pep-{0}', variables('aiFoundryAiServicesResourceName')), 'customNetworkInterfaceName', format('nic-{0}', variables('aiFoundryAiServicesResourceName')), 'subnetResourceId', reference('network').outputs.subnetWebResourceId.value, 'privateDnsZoneGroup', createObject('privateDnsZoneGroupConfigs', createArray(createObject('name', 'ai-services-dns-zone-cognitiveservices', 'privateDnsZoneResourceId', reference(format('avmPrivateDnsZones[{0}]', variables('dnsZoneIndex').cognitiveServices)).outputs.resourceId.value), createObject('name', 'ai-services-dns-zone-openai', 'privateDnsZoneResourceId', reference(format('avmPrivateDnsZones[{0}]', variables('dnsZoneIndex').openAI)).outputs.resourceId.value), createObject('name', 'ai-services-dns-zone-aiservices', 'privateDnsZoneResourceId', reference(format('avmPrivateDnsZones[{0}]', variables('dnsZoneIndex').aiServices)).outputs.resourceId.value)))))), createObject('value', createArray()))]"
+          "privateEndpoints": "[if(parameters('enablePrivateNetworking'), createObject('value', createArray(createObject('name', format('pep-{0}', variables('aiFoundryAiServicesResourceName')), 'customNetworkInterfaceName', format('nic-{0}', variables('aiFoundryAiServicesResourceName')), 'subnetResourceId', reference('network').outputs.subnetPrivateEndpointsResourceId.value, 'privateDnsZoneGroup', createObject('privateDnsZoneGroupConfigs', createArray(createObject('name', 'ai-services-dns-zone-cognitiveservices', 'privateDnsZoneResourceId', reference(format('avmPrivateDnsZones[{0}]', variables('dnsZoneIndex').cognitiveServices)).outputs.resourceId.value), createObject('name', 'ai-services-dns-zone-openai', 'privateDnsZoneResourceId', reference(format('avmPrivateDnsZones[{0}]', variables('dnsZoneIndex').openAI)).outputs.resourceId.value), createObject('name', 'ai-services-dns-zone-aiservices', 'privateDnsZoneResourceId', reference(format('avmPrivateDnsZones[{0}]', variables('dnsZoneIndex').aiServices)).outputs.resourceId.value)))))), createObject('value', createArray()))]"
         },
         "template": {
           "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
@@ -29830,9 +29854,6 @@
           "aiServicesName": {
             "value": "[reference('aiFoundryAiServices').outputs.name.value]"
           },
-          "solutionName": {
-            "value": "[variables('solutionSuffix')]"
-          },
           "azureExistingAIProjectResourceId": {
             "value": "[parameters('azureExistingAIProjectResourceId')]"
           }
@@ -29844,7 +29865,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.37.4.10188",
-              "templateHash": "17907890189053325208"
+              "templateHash": "16971799313952419347"
             }
           },
           "parameters": {
@@ -29881,12 +29902,6 @@
                 "description": "Required. Azure Existing AI Project ResourceID."
               }
             },
-            "solutionName": {
-              "type": "string",
-              "metadata": {
-                "description": "Required. Contains Solution Name"
-              }
-            },
             "tags": {
               "type": "object",
               "defaultValue": {},
@@ -29896,13 +29911,7 @@
             }
           },
           "variables": {
-            "aiSearchName": "[format('srch-{0}', parameters('solutionName'))]",
-            "aiSearchConnectionName": "[format('foundry-search-connection-{0}', parameters('solutionName'))]",
             "useExistingAiFoundryAiProject": "[not(empty(parameters('azureExistingAIProjectResourceId')))]",
-            "aiFoundryAiServicesResourceGroupName": "[if(variables('useExistingAiFoundryAiProject'), split(parameters('azureExistingAIProjectResourceId'), '/')[4], '')]",
-            "aiFoundryAiServicesResourceName": "[if(variables('useExistingAiFoundryAiProject'), split(parameters('azureExistingAIProjectResourceId'), '/')[8], '')]",
-            "aiFoundryAiServicesSubscriptionId": "[if(variables('useExistingAiFoundryAiProject'), split(parameters('azureExistingAIProjectResourceId'), '/')[2], subscription().id)]",
-            "aiFoundryAiProjectResourceName": "[if(variables('useExistingAiFoundryAiProject'), split(parameters('azureExistingAIProjectResourceId'), '/')[10], '')]",
             "existingOpenAIEndpoint": "[if(variables('useExistingAiFoundryAiProject'), format('https://{0}.openai.azure.com/', split(parameters('azureExistingAIProjectResourceId'), '/')[8]), '')]"
           },
           "resources": [
@@ -29919,158 +29928,6 @@
                 "description": "[parameters('desc')]",
                 "displayName": "[parameters('name')]"
               }
-            },
-            {
-              "type": "Microsoft.Search/searchServices",
-              "apiVersion": "2024-06-01-preview",
-              "name": "[variables('aiSearchName')]",
-              "location": "[parameters('location')]",
-              "sku": {
-                "name": "basic"
-              },
-              "identity": {
-                "type": "SystemAssigned"
-              },
-              "properties": {
-                "replicaCount": 1,
-                "partitionCount": 1,
-                "hostingMode": "default",
-                "publicNetworkAccess": "enabled",
-                "networkRuleSet": {
-                  "ipRules": []
-                },
-                "encryptionWithCmk": {
-                  "enforcement": "Unspecified"
-                },
-                "disableLocalAuth": true,
-                "semanticSearch": "free"
-              },
-              "tags": "[parameters('tags')]"
-            },
-            {
-              "condition": "[not(variables('useExistingAiFoundryAiProject'))]",
-              "type": "Microsoft.CognitiveServices/accounts/projects/connections",
-              "apiVersion": "2025-04-01-preview",
-              "name": "[format('{0}/{1}/{2}', parameters('aiServicesName'), parameters('name'), variables('aiSearchConnectionName'))]",
-              "properties": {
-                "category": "CognitiveSearch",
-                "target": "[format('https://{0}.search.windows.net', variables('aiSearchName'))]",
-                "authType": "AAD",
-                "isSharedToAll": true,
-                "metadata": {
-                  "ApiType": "Azure",
-                  "ResourceId": "[resourceId('Microsoft.Search/searchServices', variables('aiSearchName'))]",
-                  "location": "[reference(resourceId('Microsoft.Search/searchServices', variables('aiSearchName')), '2024-06-01-preview', 'full').location]"
-                }
-              },
-              "dependsOn": [
-                "[resourceId('Microsoft.CognitiveServices/accounts/projects', parameters('aiServicesName'), parameters('name'))]",
-                "[resourceId('Microsoft.Search/searchServices', variables('aiSearchName'))]"
-              ]
-            },
-            {
-              "condition": "[variables('useExistingAiFoundryAiProject')]",
-              "type": "Microsoft.Resources/deployments",
-              "apiVersion": "2022-09-01",
-              "name": "aiProjectSearchConnectionDeployment",
-              "subscriptionId": "[variables('aiFoundryAiServicesSubscriptionId')]",
-              "resourceGroup": "[variables('aiFoundryAiServicesResourceGroupName')]",
-              "properties": {
-                "expressionEvaluationOptions": {
-                  "scope": "inner"
-                },
-                "mode": "Incremental",
-                "parameters": {
-                  "existingAIProjectName": {
-                    "value": "[variables('aiFoundryAiProjectResourceName')]"
-                  },
-                  "existingAIFoundryName": {
-                    "value": "[variables('aiFoundryAiServicesResourceName')]"
-                  },
-                  "aiSearchName": {
-                    "value": "[variables('aiSearchName')]"
-                  },
-                  "aiSearchResourceId": {
-                    "value": "[resourceId('Microsoft.Search/searchServices', variables('aiSearchName'))]"
-                  },
-                  "aiSearchLocation": {
-                    "value": "[reference(resourceId('Microsoft.Search/searchServices', variables('aiSearchName')), '2024-06-01-preview', 'full').location]"
-                  },
-                  "aiSearchConnectionName": {
-                    "value": "[variables('aiSearchConnectionName')]"
-                  }
-                },
-                "template": {
-                  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
-                  "contentVersion": "1.0.0.0",
-                  "metadata": {
-                    "_generator": {
-                      "name": "bicep",
-                      "version": "0.37.4.10188",
-                      "templateHash": "6038840175458269917"
-                    }
-                  },
-                  "parameters": {
-                    "existingAIProjectName": {
-                      "type": "string",
-                      "metadata": {
-                        "description": "Required. Existing AI Project Name"
-                      }
-                    },
-                    "existingAIFoundryName": {
-                      "type": "string",
-                      "metadata": {
-                        "description": "Required. Existing AI Foundry Name"
-                      }
-                    },
-                    "aiSearchName": {
-                      "type": "string",
-                      "metadata": {
-                        "description": "Required. AI Search Name"
-                      }
-                    },
-                    "aiSearchResourceId": {
-                      "type": "string",
-                      "metadata": {
-                        "description": "Required. AI Search Resource ID"
-                      }
-                    },
-                    "aiSearchLocation": {
-                      "type": "string",
-                      "metadata": {
-                        "description": "Required. AI Search Location"
-                      }
-                    },
-                    "aiSearchConnectionName": {
-                      "type": "string",
-                      "metadata": {
-                        "description": "Required. AI Search Connection Name"
-                      }
-                    }
-                  },
-                  "resources": [
-                    {
-                      "type": "Microsoft.CognitiveServices/accounts/projects/connections",
-                      "apiVersion": "2025-04-01-preview",
-                      "name": "[format('{0}/{1}/{2}', parameters('existingAIFoundryName'), parameters('existingAIProjectName'), parameters('aiSearchConnectionName'))]",
-                      "properties": {
-                        "category": "CognitiveSearch",
-                        "target": "[format('https://{0}.search.windows.net', parameters('aiSearchName'))]",
-                        "authType": "AAD",
-                        "isSharedToAll": true,
-                        "metadata": {
-                          "ApiType": "Azure",
-                          "ResourceId": "[parameters('aiSearchResourceId')]",
-                          "location": "[parameters('aiSearchLocation')]"
-                        }
-                      }
-                    }
-                  ]
-                }
-              },
-              "dependsOn": [
-                "[resourceId('Microsoft.Search/searchServices', variables('aiSearchName'))]"
-              ]
             }
           ],
           "outputs": {
@@ -30101,20 +29958,6 @@
                 "description": "Contains AI Endpoint."
               },
               "value": "[if(not(empty(variables('existingOpenAIEndpoint'))), variables('existingOpenAIEndpoint'), reference(resourceId('Microsoft.CognitiveServices/accounts', parameters('aiServicesName')), '2025-06-01').endpoints['OpenAI Language Model Instance API'])]"
-            },
-            "aiSearchServiceName": {
-              "type": "string",
-              "metadata": {
-                "description": "Contains AI Search Service."
-              },
-              "value": "[variables('aiSearchName')]"
-            },
-            "aiSearchConnectionName": {
-              "type": "string",
-              "metadata": {
-                "description": "Contains Name of AI Search Connection."
-              },
-              "value": "[variables('aiSearchConnectionName')]"
             }
           }
         }
@@ -30123,10 +29966,10 @@
         "aiFoundryAiServices"
       ]
     },
-    "saveFoundrySecretsInKeyVault": {
+    "aiSearch": {
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "2022-09-01",
-      "name": "[take(format('saveFoundrySecretsInKeyVault.{0}', variables('keyVaultName')), 64)]",
+      "name": "[take(format('avm.res.cognitive-search-services.{0}', variables('aiSearchName')), 64)]",
       "properties": {
         "expressionEvaluationOptions": {
           "scope": "inner"
@@ -30134,85 +29977,71 @@
         "mode": "Incremental",
         "parameters": {
           "name": {
-            "value": "[variables('keyVaultName')]"
+            "value": "[variables('aiSearchName')]"
           },
-          "enablePurgeProtection": {
-            "value": "[parameters('enablePurgeProtection')]"
+          "authOptions": {
+            "value": {
+              "aadOrApiKey": {
+                "aadAuthFailureMode": "http401WithBearerChallenge"
+              }
+            }
           },
-          "enableVaultForDeployment": {
-            "value": true
+          "tags": {
+            "value": "[parameters('tags')]"
           },
-          "enableVaultForDiskEncryption": {
-            "value": true
+          "diagnosticSettings": "[if(parameters('enableMonitoring'), createObject('value', createArray(createObject('workspaceResourceId', if(variables('useExistingLogAnalytics'), parameters('existingLogAnalyticsWorkspaceId'), reference('logAnalyticsWorkspace').outputs.resourceId.value)))), createObject('value', null()))]",
+          "disableLocalAuth": {
+            "value": false
           },
-          "enableVaultForTemplateDeployment": {
-            "value": true
+          "hostingMode": {
+            "value": "default"
           },
-          "enableRbacAuthorization": {
-            "value": true
+          "sku": {
+            "value": "standard"
           },
-          "enableSoftDelete": {
-            "value": true
+          "managedIdentities": {
+            "value": {
+              "userAssignedResourceIds": [
+                "[reference('userAssignedIdentity').outputs.resourceId.value]"
+              ]
+            }
           },
-          "softDeleteRetentionInDays": {
-            "value": 7
+          "networkRuleSet": {
+            "value": {
+              "bypass": "AzureServices",
+              "ipRules": []
+            }
           },
-          "secrets": {
+          "replicaCount": {
+            "value": 1
+          },
+          "partitionCount": {
+            "value": 1
+          },
+          "roleAssignments": {
             "value": [
               {
-                "name": "AZURE-LOCATION",
-                "value": "[parameters('aiDeploymentsLocation')]"
+                "roleDefinitionIdOrName": "Cognitive Services Contributor",
+                "principalId": "[reference('userAssignedIdentity').outputs.principalId.value]",
+                "principalType": "ServicePrincipal"
               },
               {
-                "name": "AZURE-RESOURCE-GROUP",
-                "value": "[resourceGroup().name]"
+                "roleDefinitionIdOrName": "Cognitive Services OpenAI User",
+                "principalId": "[reference('userAssignedIdentity').outputs.principalId.value]",
+                "principalType": "ServicePrincipal"
               },
               {
-                "name": "AZURE-SUBSCRIPTION-ID",
-                "value": "[subscription().subscriptionId]"
-              },
-              {
-                "name": "COG-SERVICES-NAME",
-                "value": "[variables('aiFoundryAiServicesResourceName')]"
-              },
-              {
-                "name": "COG-SERVICES-ENDPOINT",
-                "value": "[reference('aiFoundryAiServicesProject').outputs.aoaiEndpoint.value]"
-              },
-              {
-                "name": "AZURE-SEARCH-INDEX",
-                "value": "pdf_index"
-              },
-              {
-                "name": "AZURE-SEARCH-SERVICE",
-                "value": "[reference('aiFoundryAiServicesProject').outputs.aiSearchServiceName.value]"
-              },
-              {
-                "name": "AZURE-SEARCH-ENDPOINT",
-                "value": "[format('https://{0}.search.windows.net', reference('aiFoundryAiServicesProject').outputs.aiSearchServiceName.value)]"
-              },
-              {
-                "name": "AZURE-OPENAI-EMBEDDING-MODEL",
-                "value": "[parameters('embeddingModel')]"
-              },
-              {
-                "name": "AZURE-OPENAI-ENDPOINT",
-                "value": "[reference('aiFoundryAiServicesProject').outputs.aoaiEndpoint.value]"
-              },
-              {
-                "name": "AZURE-OPENAI-PREVIEW-API-VERSION",
-                "value": "[parameters('azureOpenaiAPIVersion')]"
-              },
-              {
-                "name": "AZURE-OPEN-AI-DEPLOYMENT-MODEL",
-                "value": "[parameters('gptModelName')]"
-              },
-              {
-                "name": "TENANT-ID",
-                "value": "[subscription().tenantId]"
+                "roleDefinitionIdOrName": "Search Index Data Contributor",
+                "principalId": "[reference('userAssignedIdentity').outputs.principalId.value]",
+                "principalType": "ServicePrincipal"
               }
             ]
-          }
+          },
+          "semanticSearch": {
+            "value": "free"
+          },
+          "publicNetworkAccess": "[if(parameters('enablePrivateNetworking'), createObject('value', 'Disabled'), createObject('value', 'Enabled'))]",
+          "privateEndpoints": "[if(parameters('enablePrivateNetworking'), createObject('value', createArray(createObject('name', format('pep-{0}', variables('aiSearchName')), 'customNetworkInterfaceName', format('nic-{0}', variables('aiSearchName')), 'privateDnsZoneGroup', createObject('privateDnsZoneGroupConfigs', createArray(createObject('privateDnsZoneResourceId', reference(format('avmPrivateDnsZones[{0}]', variables('dnsZoneIndex').searchService)).outputs.resourceId.value))), 'service', 'searchService', 'subnetResourceId', reference('network').outputs.subnetPrivateEndpointsResourceId.value))), createObject('value', createArray()))]"
         },
         "template": {
           "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
@@ -30221,11 +30050,11 @@
           "metadata": {
             "_generator": {
               "name": "bicep",
-              "version": "0.33.93.31351",
-              "templateHash": "17553975707245390963"
+              "version": "0.37.4.10188",
+              "templateHash": "10902281417196168235"
             },
-            "name": "Key Vaults",
-            "description": "This module deploys a Key Vault."
+            "name": "Search Services",
+            "description": "This module deploys a Search Service."
           },
           "definitions": {
             "privateEndpointOutputType": {
@@ -30291,467 +30120,155 @@
                 "__bicep_export!": true
               }
             },
-            "credentialOutputType": {
+            "secretsExportConfigurationType": {
               "type": "object",
               "properties": {
-                "resourceId": {
+                "keyVaultResourceId": {
                   "type": "string",
                   "metadata": {
-                    "description": "The item's resourceId."
+                    "description": "Required. The key vault name where to store the API Admin keys generated by the modules."
                   }
                 },
-                "uri": {
+                "primaryAdminKeyName": {
                   "type": "string",
+                  "nullable": true,
                   "metadata": {
-                    "description": "The item's uri."
+                    "description": "Optional. The primaryAdminKey secret name to create."
                   }
                 },
-                "uriWithVersion": {
+                "secondaryAdminKeyName": {
                   "type": "string",
+                  "nullable": true,
                   "metadata": {
-                    "description": "The item's uri with version."
+                    "description": "Optional. The secondaryAdminKey secret name to create."
                   }
                 }
-              },
-              "metadata": {
-                "__bicep_export!": true,
-                "description": "The type for a credential output."
               }
             },
-            "accessPolicyType": {
+            "secretsOutputType": {
               "type": "object",
-              "properties": {
-                "tenantId": {
-                  "type": "string",
-                  "nullable": true,
-                  "metadata": {
-                    "description": "Optional. The tenant ID that is used for authenticating requests to the key vault."
-                  }
-                },
-                "objectId": {
-                  "type": "string",
-                  "metadata": {
-                    "description": "Required. The object ID of a user, service principal or security group in the tenant for the vault."
-                  }
-                },
-                "applicationId": {
-                  "type": "string",
-                  "nullable": true,
-                  "metadata": {
-                    "description": "Optional. Application ID of the client making request on behalf of a principal."
-                  }
-                },
-                "permissions": {
-                  "type": "object",
-                  "properties": {
-                    "keys": {
-                      "type": "array",
-                      "allowedValues": [
-                        "all",
-                        "backup",
-                        "create",
-                        "decrypt",
-                        "delete",
-                        "encrypt",
-                        "get",
-                        "getrotationpolicy",
-                        "import",
-                        "list",
-                        "purge",
-                        "recover",
-                        "release",
-                        "restore",
-                        "rotate",
-                        "setrotationpolicy",
-                        "sign",
-                        "unwrapKey",
-                        "update",
-                        "verify",
-                        "wrapKey"
-                      ],
-                      "nullable": true,
-                      "metadata": {
-                        "description": "Optional. Permissions to keys."
-                      }
-                    },
-                    "secrets": {
-                      "type": "array",
-                      "allowedValues": [
-                        "all",
-                        "backup",
-                        "delete",
-                        "get",
-                        "list",
-                        "purge",
-                        "recover",
-                        "restore",
-                        "set"
-                      ],
-                      "nullable": true,
-                      "metadata": {
-                        "description": "Optional. Permissions to secrets."
-                      }
-                    },
-                    "certificates": {
-                      "type": "array",
-                      "allowedValues": [
-                        "all",
-                        "backup",
-                        "create",
-                        "delete",
-                        "deleteissuers",
-                        "get",
-                        "getissuers",
-                        "import",
-                        "list",
-                        "listissuers",
-                        "managecontacts",
-                        "manageissuers",
-                        "purge",
-                        "recover",
-                        "restore",
-                        "setissuers",
-                        "update"
-                      ],
-                      "nullable": true,
-                      "metadata": {
-                        "description": "Optional. Permissions to certificates."
-                      }
-                    },
-                    "storage": {
-                      "type": "array",
-                      "allowedValues": [
-                        "all",
-                        "backup",
-                        "delete",
-                        "deletesas",
-                        "get",
-                        "getsas",
-                        "list",
-                        "listsas",
-                        "purge",
-                        "recover",
-                        "regeneratekey",
-                        "restore",
-                        "set",
-                        "setsas",
-                        "update"
-                      ],
-                      "nullable": true,
-                      "metadata": {
-                        "description": "Optional. Permissions to storage accounts."
-                      }
-                    }
-                  },
-                  "metadata": {
-                    "description": "Required. Permissions the identity has for keys, secrets and certificates."
-                  }
+              "properties": {},
+              "additionalProperties": {
+                "$ref": "#/definitions/secretSetType",
+                "metadata": {
+                  "description": "An exported secret's references."
                 }
-              },
-              "metadata": {
-                "__bicep_export!": true,
-                "description": "The type for an access policy."
               }
             },
-            "secretType": {
+            "authOptionsType": {
               "type": "object",
               "properties": {
-                "name": {
-                  "type": "string",
-                  "metadata": {
-                    "description": "Required. The name of the secret."
-                  }
-                },
-                "tags": {
-                  "type": "object",
-                  "nullable": true,
-                  "metadata": {
-                    "description": "Optional. Resource tags."
-                  }
-                },
-                "attributes": {
+                "aadOrApiKey": {
                   "type": "object",
                   "properties": {
-                    "enabled": {
-                      "type": "bool",
+                    "aadAuthFailureMode": {
+                      "type": "string",
+                      "allowedValues": [
+                        "http401WithBearerChallenge",
+                        "http403"
+                      ],
                       "nullable": true,
                       "metadata": {
-                        "description": "Optional. Defines whether the secret is enabled or disabled."
-                      }
-                    },
-                    "exp": {
-                      "type": "int",
-                      "nullable": true,
-                      "metadata": {
-                        "description": "Optional. Defines when the secret will become invalid. Defined in seconds since 1970-01-01T00:00:00Z."
-                      }
-                    },
-                    "nbf": {
-                      "type": "int",
-                      "nullable": true,
-                      "metadata": {
-                        "description": "Optional. If set, defines the date from which onwards the secret becomes valid. Defined in seconds since 1970-01-01T00:00:00Z."
+                        "description": "Optional. Describes what response the data plane API of a search service would send for requests that failed authentication."
                       }
                     }
                   },
                   "nullable": true,
                   "metadata": {
-                    "description": "Optional. Contains attributes of the secret."
+                    "description": "Optional. Indicates that either the API key or an access token from a Microsoft Entra ID tenant can be used for authentication."
                   }
                 },
-                "contentType": {
-                  "type": "string",
+                "apiKeyOnly": {
+                  "type": "object",
                   "nullable": true,
                   "metadata": {
-                    "description": "Optional. The content type of the secret."
+                    "description": "Optional. Indicates that only the API key can be used for authentication."
+                  }
+                }
+              },
+              "metadata": {
+                "__bicep_export!": true
+              }
+            },
+            "networkRuleSetType": {
+              "type": "object",
+              "properties": {
+                "bypass": {
+                  "type": "string",
+                  "allowedValues": [
+                    "AzurePortal",
+                    "AzureServices",
+                    "None"
+                  ],
+                  "nullable": true,
+                  "metadata": {
+                    "description": "Optional. Network specific rules that determine how the Azure AI Search service may be reached."
                   }
                 },
+                "ipRules": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/ipRuleType"
+                  },
+                  "nullable": true,
+                  "metadata": {
+                    "description": "Optional. A list of IP restriction rules that defines the inbound network(s) with allowing access to the search service endpoint. At the meantime, all other public IP networks are blocked by the firewall. These restriction rules are applied only when the 'publicNetworkAccess' of the search service is 'enabled'; otherwise, traffic over public interface is not allowed even with any public IP rules, and private endpoint connections would be the exclusive access method."
+                  }
+                }
+              },
+              "metadata": {
+                "__bicep_export!": true
+              }
+            },
+            "ipRuleType": {
+              "type": "object",
+              "properties": {
                 "value": {
-                  "type": "securestring",
+                  "type": "string",
                   "metadata": {
-                    "description": "Required. The value of the secret. NOTE: \"value\" will never be returned from the service, as APIs using this model are is intended for internal use in ARM deployments. Users should use the data-plane REST service for interaction with vault secrets."
-                  }
-                },
-                "roleAssignments": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/definitions/roleAssignmentType"
-                  },
-                  "nullable": true,
-                  "metadata": {
-                    "description": "Optional. Array of role assignments to create."
+                    "description": "Required. Value corresponding to a single IPv4 address (eg., 123.1.2.3) or an IP range in CIDR format (eg., 123.1.2.3/24) to be allowed."
                   }
                 }
               },
               "metadata": {
-                "__bicep_export!": true,
-                "description": "The type for a secret output."
+                "__bicep_export!": true
               }
             },
-            "keyType": {
+            "_1.lockType": {
               "type": "object",
               "properties": {
                 "name": {
                   "type": "string",
-                  "metadata": {
-                    "description": "Required. The name of the key."
-                  }
-                },
-                "tags": {
-                  "type": "object",
                   "nullable": true,
                   "metadata": {
-                    "description": "Optional. Resource tags."
+                    "description": "Optional. Specify the name of lock."
                   }
                 },
-                "attributes": {
-                  "type": "object",
-                  "properties": {
-                    "enabled": {
-                      "type": "bool",
-                      "nullable": true,
-                      "metadata": {
-                        "description": "Optional. Defines whether the key is enabled or disabled."
-                      }
-                    },
-                    "exp": {
-                      "type": "int",
-                      "nullable": true,
-                      "metadata": {
-                        "description": "Optional. Defines when the key will become invalid. Defined in seconds since 1970-01-01T00:00:00Z."
-                      }
-                    },
-                    "nbf": {
-                      "type": "int",
-                      "nullable": true,
-                      "metadata": {
-                        "description": "Optional. If set, defines the date from which onwards the key becomes valid. Defined in seconds since 1970-01-01T00:00:00Z."
-                      }
-                    }
-                  },
-                  "nullable": true,
-                  "metadata": {
-                    "description": "Optional. Contains attributes of the key."
-                  }
-                },
-                "curveName": {
+                "kind": {
                   "type": "string",
                   "allowedValues": [
-                    "P-256",
-                    "P-256K",
-                    "P-384",
-                    "P-521"
+                    "CanNotDelete",
+                    "None",
+                    "ReadOnly"
                   ],
                   "nullable": true,
                   "metadata": {
-                    "description": "Optional. The elliptic curve name. Only works if \"keySize\" equals \"EC\" or \"EC-HSM\". Default is \"P-256\"."
+                    "description": "Optional. Specify the type of lock."
                   }
                 },
-                "keyOps": {
-                  "type": "array",
-                  "allowedValues": [
-                    "decrypt",
-                    "encrypt",
-                    "import",
-                    "release",
-                    "sign",
-                    "unwrapKey",
-                    "verify",
-                    "wrapKey"
-                  ],
-                  "nullable": true,
-                  "metadata": {
-                    "description": "Optional. The allowed operations on this key."
-                  }
-                },
-                "keySize": {
-                  "type": "int",
-                  "allowedValues": [
-                    2048,
-                    3072,
-                    4096
-                  ],
-                  "nullable": true,
-                  "metadata": {
-                    "description": "Optional. The key size in bits. Only works if \"keySize\" equals \"RSA\" or \"RSA-HSM\". Default is \"4096\"."
-                  }
-                },
-                "kty": {
+                "notes": {
                   "type": "string",
-                  "allowedValues": [
-                    "EC",
-                    "EC-HSM",
-                    "RSA",
-                    "RSA-HSM"
-                  ],
                   "nullable": true,
                   "metadata": {
-                    "description": "Optional. The type of the key. Default is \"EC\"."
-                  }
-                },
-                "releasePolicy": {
-                  "type": "object",
-                  "properties": {
-                    "contentType": {
-                      "type": "string",
-                      "nullable": true,
-                      "metadata": {
-                        "description": "Optional. Content type and version of key release policy."
-                      }
-                    },
-                    "data": {
-                      "type": "string",
-                      "nullable": true,
-                      "metadata": {
-                        "description": "Optional. Blob encoding the policy rules under which the key can be released."
-                      }
-                    }
-                  },
-                  "nullable": true,
-                  "metadata": {
-                    "description": "Optional. Key release policy."
-                  }
-                },
-                "rotationPolicy": {
-                  "$ref": "#/definitions/rotationPolicyType",
-                  "nullable": true,
-                  "metadata": {
-                    "description": "Optional. Key rotation policy."
-                  }
-                },
-                "roleAssignments": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/definitions/roleAssignmentType"
-                  },
-                  "nullable": true,
-                  "metadata": {
-                    "description": "Optional. Array of role assignments to create."
+                    "description": "Optional. Specify the notes of the lock."
                   }
                 }
               },
               "metadata": {
-                "__bicep_export!": true,
-                "description": "The type for a key."
-              }
-            },
-            "rotationPolicyType": {
-              "type": "object",
-              "properties": {
-                "attributes": {
-                  "type": "object",
-                  "properties": {
-                    "expiryTime": {
-                      "type": "string",
-                      "nullable": true,
-                      "metadata": {
-                        "description": "Optional. The expiration time for the new key version. It should be in ISO8601 format. Eg: \"P90D\", \"P1Y\"."
-                      }
-                    }
-                  },
-                  "nullable": true,
-                  "metadata": {
-                    "description": "Optional. The attributes of key rotation policy."
-                  }
-                },
-                "lifetimeActions": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "properties": {
-                      "action": {
-                        "type": "object",
-                        "properties": {
-                          "type": {
-                            "type": "string",
-                            "allowedValues": [
-                              "Notify",
-                              "Rotate"
-                            ],
-                            "nullable": true,
-                            "metadata": {
-                              "description": "Optional. The type of action."
-                            }
-                          }
-                        },
-                        "nullable": true,
-                        "metadata": {
-                          "description": "Optional. The action of key rotation policy lifetimeAction."
-                        }
-                      },
-                      "trigger": {
-                        "type": "object",
-                        "properties": {
-                          "timeAfterCreate": {
-                            "type": "string",
-                            "nullable": true,
-                            "metadata": {
-                              "description": "Optional. The time duration after key creation to rotate the key. It only applies to rotate. It will be in ISO 8601 duration format. Eg: \"P90D\", \"P1Y\"."
-                            }
-                          },
-                          "timeBeforeExpiry": {
-                            "type": "string",
-                            "nullable": true,
-                            "metadata": {
-                              "description": "Optional. The time duration before key expiring to rotate or notify. It will be in ISO 8601 duration format. Eg: \"P90D\", \"P1Y\"."
-                            }
-                          }
-                        },
-                        "nullable": true,
-                        "metadata": {
-                          "description": "Optional. The trigger of key rotation policy lifetimeAction."
-                        }
-                      }
-                    }
-                  },
-                  "nullable": true,
-                  "metadata": {
-                    "description": "Optional. The lifetimeActions for key rotation action."
-                  }
+                "description": "An AVM-aligned type for a lock.",
+                "__bicep_imported_from!": {
+                  "sourceTemplate": "br:mcr.microsoft.com/bicep/avm/utl/types/avm-common-types:0.6.1"
                 }
-              },
-              "metadata": {
-                "description": "The type for a rotation policy."
               }
             },
             "_1.privateEndpointCustomDnsConfigType": {
@@ -30776,7 +30293,7 @@
               },
               "metadata": {
                 "__bicep_imported_from!": {
-                  "sourceTemplate": "br:mcr.microsoft.com/bicep/avm/utl/types/avm-common-types:0.5.1"
+                  "sourceTemplate": "br:mcr.microsoft.com/bicep/avm/utl/types/avm-common-types:0.6.1"
                 }
               }
             },
@@ -30818,7 +30335,7 @@
               },
               "metadata": {
                 "__bicep_imported_from!": {
-                  "sourceTemplate": "br:mcr.microsoft.com/bicep/avm/utl/types/avm-common-types:0.5.1"
+                  "sourceTemplate": "br:mcr.microsoft.com/bicep/avm/utl/types/avm-common-types:0.6.1"
                 }
               }
             },
@@ -30859,7 +30376,82 @@
               },
               "metadata": {
                 "__bicep_imported_from!": {
-                  "sourceTemplate": "br:mcr.microsoft.com/bicep/avm/utl/types/avm-common-types:0.5.1"
+                  "sourceTemplate": "br:mcr.microsoft.com/bicep/avm/utl/types/avm-common-types:0.6.1"
+                }
+              }
+            },
+            "_1.roleAssignmentType": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "nullable": true,
+                  "metadata": {
+                    "description": "Optional. The name (as GUID) of the role assignment. If not provided, a GUID will be generated."
+                  }
+                },
+                "roleDefinitionIdOrName": {
+                  "type": "string",
+                  "metadata": {
+                    "description": "Required. The role to assign. You can provide either the display name of the role definition, the role definition GUID, or its fully qualified ID in the following format: '/providers/Microsoft.Authorization/roleDefinitions/c2f4ef07-c644-48eb-af81-4b1b4947fb11'."
+                  }
+                },
+                "principalId": {
+                  "type": "string",
+                  "metadata": {
+                    "description": "Required. The principal ID of the principal (user/group/identity) to assign the role to."
+                  }
+                },
+                "principalType": {
+                  "type": "string",
+                  "allowedValues": [
+                    "Device",
+                    "ForeignGroup",
+                    "Group",
+                    "ServicePrincipal",
+                    "User"
+                  ],
+                  "nullable": true,
+                  "metadata": {
+                    "description": "Optional. The principal type of the assigned principal ID."
+                  }
+                },
+                "description": {
+                  "type": "string",
+                  "nullable": true,
+                  "metadata": {
+                    "description": "Optional. The description of the role assignment."
+                  }
+                },
+                "condition": {
+                  "type": "string",
+                  "nullable": true,
+                  "metadata": {
+                    "description": "Optional. The conditions on the role assignment. This limits the resources it can be assigned to. e.g.: @Resource[Microsoft.Storage/storageAccounts/blobServices/containers:ContainerName] StringEqualsIgnoreCase \"foo_storage_container\"."
+                  }
+                },
+                "conditionVersion": {
+                  "type": "string",
+                  "allowedValues": [
+                    "2.0"
+                  ],
+                  "nullable": true,
+                  "metadata": {
+                    "description": "Optional. Version of the condition."
+                  }
+                },
+                "delegatedManagedIdentityResourceId": {
+                  "type": "string",
+                  "nullable": true,
+                  "metadata": {
+                    "description": "Optional. The Resource Id of the delegated managed identity resource."
+                  }
+                }
+              },
+              "metadata": {
+                "description": "An AVM-aligned type for a role assignment.",
+                "__bicep_imported_from!": {
+                  "sourceTemplate": "br:mcr.microsoft.com/bicep/avm/utl/types/avm-common-types:0.6.1"
                 }
               }
             },
@@ -31006,10 +30598,45 @@
                   "metadata": {
                     "description": "Optional. Specify the type of lock."
                   }
+                },
+                "notes": {
+                  "type": "string",
+                  "nullable": true,
+                  "metadata": {
+                    "description": "Optional. Specify the notes of the lock."
+                  }
                 }
               },
               "metadata": {
                 "description": "An AVM-aligned type for a lock.",
+                "__bicep_imported_from!": {
+                  "sourceTemplate": "br:mcr.microsoft.com/bicep/avm/utl/types/avm-common-types:0.6.0"
+                }
+              }
+            },
+            "managedIdentityAllType": {
+              "type": "object",
+              "properties": {
+                "systemAssigned": {
+                  "type": "bool",
+                  "nullable": true,
+                  "metadata": {
+                    "description": "Optional. Enables system assigned managed identity on the resource."
+                  }
+                },
+                "userAssignedResourceIds": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "nullable": true,
+                  "metadata": {
+                    "description": "Optional. The resource ID(s) to assign to the resource. Required if a user assigned identity is used for encryption."
+                  }
+                }
+              },
+              "metadata": {
+                "description": "An AVM-aligned type for a managed identity configuration. To be used if both a system-assigned & user-assigned identities are supported by the resource provider.",
                 "__bicep_imported_from!": {
                   "sourceTemplate": "br:mcr.microsoft.com/bicep/avm/utl/types/avm-common-types:0.5.1"
                 }
@@ -31119,7 +30746,7 @@
                   }
                 },
                 "lock": {
-                  "$ref": "#/definitions/lockType",
+                  "$ref": "#/definitions/_1.lockType",
                   "nullable": true,
                   "metadata": {
                     "description": "Optional. Specify the type of lock."
@@ -31128,7 +30755,7 @@
                 "roleAssignments": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/definitions/roleAssignmentType"
+                    "$ref": "#/definitions/_1.roleAssignmentType"
                   },
                   "nullable": true,
                   "metadata": {
@@ -31139,6 +30766,9 @@
                   "type": "object",
                   "nullable": true,
                   "metadata": {
+                    "__bicep_resource_derived_type!": {
+                      "source": "Microsoft.Network/privateEndpoints@2024-07-01#properties/tags"
+                    },
                     "description": "Optional. Tags to be applied on all resources/Resource Groups in this deployment."
                   }
                 },
@@ -31153,7 +30783,7 @@
               "metadata": {
                 "description": "An AVM-aligned type for a private endpoint. To be used if the private endpoint's default service / groupId can be assumed (i.e., for services that only have one Private Endpoint type like 'vault' for key vault).",
                 "__bicep_imported_from!": {
-                  "sourceTemplate": "br:mcr.microsoft.com/bicep/avm/utl/types/avm-common-types:0.5.1"
+                  "sourceTemplate": "br:mcr.microsoft.com/bicep/avm/utl/types/avm-common-types:0.6.1"
                 }
               }
             },
@@ -31231,154 +30861,109 @@
                   "sourceTemplate": "br:mcr.microsoft.com/bicep/avm/utl/types/avm-common-types:0.5.1"
                 }
               }
+            },
+            "secretSetType": {
+              "type": "object",
+              "properties": {
+                "secretResourceId": {
+                  "type": "string",
+                  "metadata": {
+                    "description": "The resourceId of the exported secret."
+                  }
+                },
+                "secretUri": {
+                  "type": "string",
+                  "metadata": {
+                    "description": "The secret URI of the exported secret."
+                  }
+                }
+              },
+              "metadata": {
+                "__bicep_imported_from!": {
+                  "sourceTemplate": "modules/keyVaultExport.bicep"
+                }
+              }
             }
           },
           "parameters": {
             "name": {
               "type": "string",
-              "maxLength": 24,
               "metadata": {
-                "description": "Required. Name of the Key Vault. Must be globally unique."
+                "description": "Required. The name of the Azure Cognitive Search service to create or update. Search service names must only contain lowercase letters, digits or dashes, cannot use dash as the first two or last one characters, cannot contain consecutive dashes, and must be between 2 and 60 characters in length. Search service names must be globally unique since they are part of the service URI (https://<name>.search.windows.net). You cannot change the service name after the service is created."
+              }
+            },
+            "authOptions": {
+              "$ref": "#/definitions/authOptionsType",
+              "nullable": true,
+              "metadata": {
+                "description": "Optional. Defines the options for how the data plane API of a Search service authenticates requests. Must remain an empty object {} if 'disableLocalAuth' is set to true."
+              }
+            },
+            "disableLocalAuth": {
+              "type": "bool",
+              "defaultValue": true,
+              "metadata": {
+                "description": "Optional. When set to true, calls to the search service will not be permitted to utilize API keys for authentication. This cannot be set to true if 'authOptions' are defined."
+              }
+            },
+            "enableTelemetry": {
+              "type": "bool",
+              "defaultValue": true,
+              "metadata": {
+                "description": "Optional. Enable/Disable usage telemetry for module."
+              }
+            },
+            "cmkEnforcement": {
+              "type": "string",
+              "defaultValue": "Unspecified",
+              "allowedValues": [
+                "Disabled",
+                "Enabled",
+                "Unspecified"
+              ],
+              "metadata": {
+                "description": "Optional. Describes a policy that determines how resources within the search service are to be encrypted with Customer Managed Keys."
+              }
+            },
+            "hostingMode": {
+              "type": "string",
+              "defaultValue": "default",
+              "allowedValues": [
+                "default",
+                "highDensity"
+              ],
+              "metadata": {
+                "description": "Optional. Applicable only for the standard3 SKU. You can set this property to enable up to 3 high density partitions that allow up to 1000 indexes, which is much higher than the maximum indexes allowed for any other SKU. For the standard3 SKU, the value is either 'default' or 'highDensity'. For all other SKUs, this value must be 'default'."
               }
             },
             "location": {
               "type": "string",
               "defaultValue": "[resourceGroup().location]",
               "metadata": {
-                "description": "Optional. Location for all resources."
-              }
-            },
-            "accessPolicies": {
-              "type": "array",
-              "items": {
-                "$ref": "#/definitions/accessPolicyType"
-              },
-              "nullable": true,
-              "metadata": {
-                "description": "Optional. All access policies to create."
-              }
-            },
-            "secrets": {
-              "type": "array",
-              "items": {
-                "$ref": "#/definitions/secretType"
-              },
-              "nullable": true,
-              "metadata": {
-                "description": "Optional. All secrets to create."
-              }
-            },
-            "keys": {
-              "type": "array",
-              "items": {
-                "$ref": "#/definitions/keyType"
-              },
-              "nullable": true,
-              "metadata": {
-                "description": "Optional. All keys to create."
-              }
-            },
-            "enableVaultForDeployment": {
-              "type": "bool",
-              "defaultValue": true,
-              "metadata": {
-                "description": "Optional. Specifies if the vault is enabled for deployment by script or compute."
-              }
-            },
-            "enableVaultForTemplateDeployment": {
-              "type": "bool",
-              "defaultValue": true,
-              "metadata": {
-                "description": "Optional. Specifies if the vault is enabled for a template deployment."
-              }
-            },
-            "enableVaultForDiskEncryption": {
-              "type": "bool",
-              "defaultValue": true,
-              "metadata": {
-                "description": "Optional. Specifies if the azure platform has access to the vault for enabling disk encryption scenarios."
-              }
-            },
-            "enableSoftDelete": {
-              "type": "bool",
-              "defaultValue": true,
-              "metadata": {
-                "description": "Optional. Switch to enable/disable Key Vault's soft delete feature."
-              }
-            },
-            "softDeleteRetentionInDays": {
-              "type": "int",
-              "defaultValue": 90,
-              "metadata": {
-                "description": "Optional. softDelete data retention days. It accepts >=7 and <=90."
-              }
-            },
-            "enableRbacAuthorization": {
-              "type": "bool",
-              "defaultValue": true,
-              "metadata": {
-                "description": "Optional. Property that controls how data actions are authorized. When true, the key vault will use Role Based Access Control (RBAC) for authorization of data actions, and the access policies specified in vault properties will be ignored. When false, the key vault will use the access policies specified in vault properties, and any policy stored on Azure Resource Manager will be ignored. Note that management actions are always authorized with RBAC."
-              }
-            },
-            "createMode": {
-              "type": "string",
-              "defaultValue": "default",
-              "metadata": {
-                "description": "Optional. The vault's create mode to indicate whether the vault need to be recovered or not. - recover or default."
-              }
-            },
-            "enablePurgeProtection": {
-              "type": "bool",
-              "defaultValue": true,
-              "metadata": {
-                "description": "Optional. Provide 'true' to enable Key Vault's purge protection feature."
-              }
-            },
-            "sku": {
-              "type": "string",
-              "defaultValue": "premium",
-              "allowedValues": [
-                "premium",
-                "standard"
-              ],
-              "metadata": {
-                "description": "Optional. Specifies the SKU for the vault."
-              }
-            },
-            "networkAcls": {
-              "type": "object",
-              "nullable": true,
-              "metadata": {
-                "description": "Optional. Rules governing the accessibility of the resource from specific network locations."
-              }
-            },
-            "publicNetworkAccess": {
-              "type": "string",
-              "defaultValue": "",
-              "allowedValues": [
-                "",
-                "Enabled",
-                "Disabled"
-              ],
-              "metadata": {
-                "description": "Optional. Whether or not public network access is allowed for this resource. For security reasons it should be disabled. If not specified, it will be disabled by default if private endpoints are set and networkAcls are not set."
+                "description": "Optional. Location for all Resources."
               }
             },
             "lock": {
               "$ref": "#/definitions/lockType",
               "nullable": true,
               "metadata": {
-                "description": "Optional. The lock settings of the service."
+                "description": "Optional. The lock settings for all Resources in the solution."
               }
             },
-            "roleAssignments": {
-              "type": "array",
-              "items": {
-                "$ref": "#/definitions/roleAssignmentType"
-              },
+            "networkRuleSet": {
+              "$ref": "#/definitions/networkRuleSetType",
               "nullable": true,
               "metadata": {
-                "description": "Optional. Array of role assignments to create."
+                "description": "Optional. Network specific rules that determine how the Azure Cognitive Search service may be reached."
+              }
+            },
+            "partitionCount": {
+              "type": "int",
+              "defaultValue": 1,
+              "minValue": 1,
+              "maxValue": 12,
+              "metadata": {
+                "description": "Optional. The number of partitions in the search service; if specified, it can be 1, 2, 3, 4, 6, or 12. Values greater than 1 are only valid for standard SKUs. For 'standard3' services with hostingMode set to 'highDensity', the allowed values are between 1 and 3."
               }
             },
             "privateEndpoints": {
@@ -31391,11 +30976,83 @@
                 "description": "Optional. Configuration details for private endpoints. For security reasons, it is recommended to use private endpoints whenever possible."
               }
             },
-            "tags": {
-              "type": "object",
+            "sharedPrivateLinkResources": {
+              "type": "array",
+              "defaultValue": [],
+              "metadata": {
+                "description": "Optional. The sharedPrivateLinkResources to create as part of the search Service."
+              }
+            },
+            "publicNetworkAccess": {
+              "type": "string",
+              "defaultValue": "Enabled",
+              "allowedValues": [
+                "Enabled",
+                "Disabled"
+              ],
+              "metadata": {
+                "description": "Optional. This value can be set to 'Enabled' to avoid breaking changes on existing customer resources and templates. If set to 'Disabled', traffic over public interface is not allowed, and private endpoint connections would be the exclusive access method."
+              }
+            },
+            "secretsExportConfiguration": {
+              "$ref": "#/definitions/secretsExportConfigurationType",
               "nullable": true,
               "metadata": {
-                "description": "Optional. Resource tags."
+                "description": "Optional. Key vault reference and secret settings for the module's secrets export."
+              }
+            },
+            "replicaCount": {
+              "type": "int",
+              "defaultValue": 3,
+              "minValue": 1,
+              "maxValue": 12,
+              "metadata": {
+                "description": "Optional. The number of replicas in the search service. If specified, it must be a value between 1 and 12 inclusive for standard SKUs or between 1 and 3 inclusive for basic SKU."
+              }
+            },
+            "roleAssignments": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/roleAssignmentType"
+              },
+              "nullable": true,
+              "metadata": {
+                "description": "Optional. Array of role assignments to create."
+              }
+            },
+            "semanticSearch": {
+              "type": "string",
+              "nullable": true,
+              "allowedValues": [
+                "disabled",
+                "free",
+                "standard"
+              ],
+              "metadata": {
+                "description": "Optional. Sets options that control the availability of semantic search. This configuration is only possible for certain search SKUs in certain locations."
+              }
+            },
+            "sku": {
+              "type": "string",
+              "defaultValue": "standard",
+              "allowedValues": [
+                "basic",
+                "free",
+                "standard",
+                "standard2",
+                "standard3",
+                "storage_optimized_l1",
+                "storage_optimized_l2"
+              ],
+              "metadata": {
+                "description": "Optional. Defines the SKU of an Azure Cognitive Search Service, which determines price tier and capacity limits."
+              }
+            },
+            "managedIdentities": {
+              "$ref": "#/definitions/managedIdentityAllType",
+              "nullable": true,
+              "metadata": {
+                "description": "Optional. The managed identity definition for this resource."
               }
             },
             "diagnosticSettings": {
@@ -31408,12 +31065,15 @@
                 "description": "Optional. The diagnostic settings of the service."
               }
             },
-            "enableTelemetry": {
-              "type": "bool",
-              "defaultValue": true,
+            "tags": {
+              "type": "object",
               "metadata": {
-                "description": "Optional. Enable/Disable usage telemetry for module."
-              }
+                "__bicep_resource_derived_type!": {
+                  "source": "Microsoft.Search/searchServices@2025-02-01-preview#properties/tags"
+                },
+                "description": "Optional. Tags to help categorize the resource in the Azure portal."
+              },
+              "nullable": true
             }
           },
           "variables": {
@@ -31422,34 +31082,19 @@
                 "name": "formattedRoleAssignments",
                 "count": "[length(coalesce(parameters('roleAssignments'), createArray()))]",
                 "input": "[union(coalesce(parameters('roleAssignments'), createArray())[copyIndex('formattedRoleAssignments')], createObject('roleDefinitionId', coalesce(tryGet(variables('builtInRoleNames'), coalesce(parameters('roleAssignments'), createArray())[copyIndex('formattedRoleAssignments')].roleDefinitionIdOrName), if(contains(coalesce(parameters('roleAssignments'), createArray())[copyIndex('formattedRoleAssignments')].roleDefinitionIdOrName, '/providers/Microsoft.Authorization/roleDefinitions/'), coalesce(parameters('roleAssignments'), createArray())[copyIndex('formattedRoleAssignments')].roleDefinitionIdOrName, subscriptionResourceId('Microsoft.Authorization/roleDefinitions', coalesce(parameters('roleAssignments'), createArray())[copyIndex('formattedRoleAssignments')].roleDefinitionIdOrName)))))]"
-              },
-              {
-                "name": "formattedAccessPolicies",
-                "count": "[length(coalesce(parameters('accessPolicies'), createArray()))]",
-                "input": {
-                  "applicationId": "[coalesce(tryGet(coalesce(parameters('accessPolicies'), createArray())[copyIndex('formattedAccessPolicies')], 'applicationId'), '')]",
-                  "objectId": "[coalesce(parameters('accessPolicies'), createArray())[copyIndex('formattedAccessPolicies')].objectId]",
-                  "permissions": "[coalesce(parameters('accessPolicies'), createArray())[copyIndex('formattedAccessPolicies')].permissions]",
-                  "tenantId": "[coalesce(tryGet(coalesce(parameters('accessPolicies'), createArray())[copyIndex('formattedAccessPolicies')], 'tenantId'), tenant().tenantId)]"
-                }
               }
             ],
             "enableReferencedModulesTelemetry": false,
+            "formattedUserAssignedIdentities": "[reduce(map(coalesce(tryGet(parameters('managedIdentities'), 'userAssignedResourceIds'), createArray()), lambda('id', createObject(format('{0}', lambdaVariables('id')), createObject()))), createObject(), lambda('cur', 'next', union(lambdaVariables('cur'), lambdaVariables('next'))))]",
+            "identity": "[if(not(empty(parameters('managedIdentities'))), createObject('type', if(coalesce(tryGet(parameters('managedIdentities'), 'systemAssigned'), false()), if(not(empty(coalesce(tryGet(parameters('managedIdentities'), 'userAssignedResourceIds'), createObject()))), 'SystemAssigned,UserAssigned', 'SystemAssigned'), if(not(empty(coalesce(tryGet(parameters('managedIdentities'), 'userAssignedResourceIds'), createObject()))), 'UserAssigned', '')), 'userAssignedIdentities', if(not(empty(variables('formattedUserAssignedIdentities'))), variables('formattedUserAssignedIdentities'), null())), null())]",
             "builtInRoleNames": {
               "Contributor": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'b24988ac-6180-42a0-ab88-20f7382dd24c')]",
-              "Key Vault Administrator": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '00482a5a-887f-4fb3-b363-3b7fe8e74483')]",
-              "Key Vault Certificates Officer": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'a4417e6f-fecd-4de8-b567-7b0420556985')]",
-              "Key Vault Certificate User": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'db79e9a7-68ee-4b58-9aeb-b90e7c24fcba')]",
-              "Key Vault Contributor": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'f25e0fa2-a7c8-4377-a976-54943a77a395')]",
-              "Key Vault Crypto Officer": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '14b46e9e-c2b7-41b4-b07b-48a6ebf60603')]",
-              "Key Vault Crypto Service Encryption User": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'e147488a-f6f5-4113-8e2d-b22465e65bf6')]",
-              "Key Vault Crypto User": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '12338af0-0e69-4776-bea7-57ae8d297424')]",
-              "Key Vault Reader": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '21090545-7ca7-4776-b22c-e363652d74d2')]",
-              "Key Vault Secrets Officer": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'b86a8fe4-44ce-4948-aee5-eccb2c155cd7')]",
-              "Key Vault Secrets User": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '4633458b-17de-408a-b874-0445c86b69e6')]",
               "Owner": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '8e3af657-a8ff-443c-a75c-2fe8c4bcb635')]",
               "Reader": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'acdd72a7-3385-48ef-bd42-f606fba81ae7')]",
               "Role Based Access Control Administrator": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'f58310d9-a9f6-439a-9e8d-f62e7b41a168')]",
+              "Search Index Data Contributor": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '8ebe5a00-799e-43f5-93ac-243d3dce84a7')]",
+              "Search Index Data Reader": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '1407120a-92aa-4202-b7e9-c0e197c71c8f')]",
+              "Search Service Contributor": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '7ca78c08-252a-4471-8644-bb5ff32d4ba0')]",
               "User Access Administrator": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '18d7d88d-d35e-4fb5-a5c3-7773c20a72d9')]"
             }
           },
@@ -31458,7 +31103,7 @@
               "condition": "[parameters('enableTelemetry')]",
               "type": "Microsoft.Resources/deployments",
               "apiVersion": "2024-03-01",
-              "name": "[format('46d3xbcp.res.keyvault-vault.{0}.{1}', replace('0.12.1', '.', '-'), substring(uniqueString(deployment().name, parameters('location')), 0, 4))]",
+              "name": "[format('46d3xbcp.res.search-searchservice.{0}.{1}', replace('0.11.1', '.', '-'), substring(uniqueString(deployment().name, parameters('location')), 0, 4))]",
               "properties": {
                 "mode": "Incremental",
                 "template": {
@@ -31474,53 +31119,38 @@
                 }
               }
             },
-            "keyVault": {
-              "type": "Microsoft.KeyVault/vaults",
-              "apiVersion": "2022-07-01",
+            "searchService": {
+              "type": "Microsoft.Search/searchServices",
+              "apiVersion": "2025-02-01-preview",
               "name": "[parameters('name')]",
               "location": "[parameters('location')]",
+              "sku": {
+                "name": "[parameters('sku')]"
+              },
               "tags": "[parameters('tags')]",
+              "identity": "[variables('identity')]",
               "properties": {
-                "enabledForDeployment": "[parameters('enableVaultForDeployment')]",
-                "enabledForTemplateDeployment": "[parameters('enableVaultForTemplateDeployment')]",
-                "enabledForDiskEncryption": "[parameters('enableVaultForDiskEncryption')]",
-                "enableSoftDelete": "[parameters('enableSoftDelete')]",
-                "softDeleteRetentionInDays": "[parameters('softDeleteRetentionInDays')]",
-                "enableRbacAuthorization": "[parameters('enableRbacAuthorization')]",
-                "createMode": "[parameters('createMode')]",
-                "enablePurgeProtection": "[if(parameters('enablePurgeProtection'), parameters('enablePurgeProtection'), null())]",
-                "tenantId": "[subscription().tenantId]",
-                "accessPolicies": "[variables('formattedAccessPolicies')]",
-                "sku": {
-                  "name": "[parameters('sku')]",
-                  "family": "A"
+                "authOptions": "[parameters('authOptions')]",
+                "disableLocalAuth": "[parameters('disableLocalAuth')]",
+                "encryptionWithCmk": {
+                  "enforcement": "[parameters('cmkEnforcement')]"
                 },
-                "networkAcls": "[if(not(empty(coalesce(parameters('networkAcls'), createObject()))), createObject('bypass', tryGet(parameters('networkAcls'), 'bypass'), 'defaultAction', tryGet(parameters('networkAcls'), 'defaultAction'), 'virtualNetworkRules', coalesce(tryGet(parameters('networkAcls'), 'virtualNetworkRules'), createArray()), 'ipRules', coalesce(tryGet(parameters('networkAcls'), 'ipRules'), createArray())), null())]",
-                "publicNetworkAccess": "[if(not(empty(parameters('publicNetworkAccess'))), parameters('publicNetworkAccess'), if(and(not(empty(coalesce(parameters('privateEndpoints'), createArray()))), empty(coalesce(parameters('networkAcls'), createObject()))), 'Disabled', null()))]"
+                "hostingMode": "[parameters('hostingMode')]",
+                "networkRuleSet": "[parameters('networkRuleSet')]",
+                "partitionCount": "[parameters('partitionCount')]",
+                "replicaCount": "[parameters('replicaCount')]",
+                "publicNetworkAccess": "[toLower(parameters('publicNetworkAccess'))]",
+                "semanticSearch": "[parameters('semanticSearch')]"
               }
             },
-            "keyVault_lock": {
-              "condition": "[and(not(empty(coalesce(parameters('lock'), createObject()))), not(equals(tryGet(parameters('lock'), 'kind'), 'None')))]",
-              "type": "Microsoft.Authorization/locks",
-              "apiVersion": "2020-05-01",
-              "scope": "[format('Microsoft.KeyVault/vaults/{0}', parameters('name'))]",
-              "name": "[coalesce(tryGet(parameters('lock'), 'name'), format('lock-{0}', parameters('name')))]",
-              "properties": {
-                "level": "[coalesce(tryGet(parameters('lock'), 'kind'), '')]",
-                "notes": "[if(equals(tryGet(parameters('lock'), 'kind'), 'CanNotDelete'), 'Cannot delete resource or child resources.', 'Cannot delete or modify the resource or child resources.')]"
-              },
-              "dependsOn": [
-                "keyVault"
-              ]
-            },
-            "keyVault_diagnosticSettings": {
+            "searchService_diagnosticSettings": {
               "copy": {
-                "name": "keyVault_diagnosticSettings",
+                "name": "searchService_diagnosticSettings",
                 "count": "[length(coalesce(parameters('diagnosticSettings'), createArray()))]"
               },
               "type": "Microsoft.Insights/diagnosticSettings",
               "apiVersion": "2021-05-01-preview",
-              "scope": "[format('Microsoft.KeyVault/vaults/{0}', parameters('name'))]",
+              "scope": "[format('Microsoft.Search/searchServices/{0}', parameters('name'))]",
               "name": "[coalesce(tryGet(coalesce(parameters('diagnosticSettings'), createArray())[copyIndex()], 'name'), format('{0}-diagnosticSettings', parameters('name')))]",
               "properties": {
                 "copy": [
@@ -31551,18 +31181,32 @@
                 "logAnalyticsDestinationType": "[tryGet(coalesce(parameters('diagnosticSettings'), createArray())[copyIndex()], 'logAnalyticsDestinationType')]"
               },
               "dependsOn": [
-                "keyVault"
+                "searchService"
               ]
             },
-            "keyVault_roleAssignments": {
+            "searchService_lock": {
+              "condition": "[and(not(empty(coalesce(parameters('lock'), createObject()))), not(equals(tryGet(parameters('lock'), 'kind'), 'None')))]",
+              "type": "Microsoft.Authorization/locks",
+              "apiVersion": "2020-05-01",
+              "scope": "[format('Microsoft.Search/searchServices/{0}', parameters('name'))]",
+              "name": "[coalesce(tryGet(parameters('lock'), 'name'), format('lock-{0}', parameters('name')))]",
+              "properties": {
+                "level": "[coalesce(tryGet(parameters('lock'), 'kind'), '')]",
+                "notes": "[coalesce(tryGet(parameters('lock'), 'notes'), if(equals(tryGet(parameters('lock'), 'kind'), 'CanNotDelete'), 'Cannot delete resource or child resources.', 'Cannot delete or modify the resource or child resources.'))]"
+              },
+              "dependsOn": [
+                "searchService"
+              ]
+            },
+            "searchService_roleAssignments": {
               "copy": {
-                "name": "keyVault_roleAssignments",
+                "name": "searchService_roleAssignments",
                 "count": "[length(coalesce(variables('formattedRoleAssignments'), createArray()))]"
               },
               "type": "Microsoft.Authorization/roleAssignments",
               "apiVersion": "2022-04-01",
-              "scope": "[format('Microsoft.KeyVault/vaults/{0}', parameters('name'))]",
-              "name": "[coalesce(tryGet(coalesce(variables('formattedRoleAssignments'), createArray())[copyIndex()], 'name'), guid(resourceId('Microsoft.KeyVault/vaults', parameters('name')), coalesce(variables('formattedRoleAssignments'), createArray())[copyIndex()].principalId, coalesce(variables('formattedRoleAssignments'), createArray())[copyIndex()].roleDefinitionId))]",
+              "scope": "[format('Microsoft.Search/searchServices/{0}', parameters('name'))]",
+              "name": "[coalesce(tryGet(coalesce(variables('formattedRoleAssignments'), createArray())[copyIndex()], 'name'), guid(resourceId('Microsoft.Search/searchServices', parameters('name')), coalesce(variables('formattedRoleAssignments'), createArray())[copyIndex()].principalId, coalesce(variables('formattedRoleAssignments'), createArray())[copyIndex()].roleDefinitionId))]",
               "properties": {
                 "roleDefinitionId": "[coalesce(variables('formattedRoleAssignments'), createArray())[copyIndex()].roleDefinitionId]",
                 "principalId": "[coalesce(variables('formattedRoleAssignments'), createArray())[copyIndex()].principalId]",
@@ -31573,922 +31217,17 @@
                 "delegatedManagedIdentityResourceId": "[tryGet(coalesce(variables('formattedRoleAssignments'), createArray())[copyIndex()], 'delegatedManagedIdentityResourceId')]"
               },
               "dependsOn": [
-                "keyVault"
+                "searchService"
               ]
             },
-            "keyVault_accessPolicies": {
-              "condition": "[not(empty(parameters('accessPolicies')))]",
-              "type": "Microsoft.Resources/deployments",
-              "apiVersion": "2022-09-01",
-              "name": "[format('{0}-KeyVault-AccessPolicies', uniqueString(deployment().name, parameters('location')))]",
-              "properties": {
-                "expressionEvaluationOptions": {
-                  "scope": "inner"
-                },
-                "mode": "Incremental",
-                "parameters": {
-                  "keyVaultName": {
-                    "value": "[parameters('name')]"
-                  },
-                  "accessPolicies": {
-                    "value": "[parameters('accessPolicies')]"
-                  }
-                },
-                "template": {
-                  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
-                  "languageVersion": "2.0",
-                  "contentVersion": "1.0.0.0",
-                  "metadata": {
-                    "_generator": {
-                      "name": "bicep",
-                      "version": "0.33.93.31351",
-                      "templateHash": "6321524620984159084"
-                    },
-                    "name": "Key Vault Access Policies",
-                    "description": "This module deploys a Key Vault Access Policy."
-                  },
-                  "definitions": {
-                    "accessPoliciesType": {
-                      "type": "object",
-                      "properties": {
-                        "tenantId": {
-                          "type": "string",
-                          "nullable": true,
-                          "metadata": {
-                            "description": "Optional. The tenant ID that is used for authenticating requests to the key vault."
-                          }
-                        },
-                        "objectId": {
-                          "type": "string",
-                          "metadata": {
-                            "description": "Required. The object ID of a user, service principal or security group in the tenant for the vault."
-                          }
-                        },
-                        "applicationId": {
-                          "type": "string",
-                          "nullable": true,
-                          "metadata": {
-                            "description": "Optional. Application ID of the client making request on behalf of a principal."
-                          }
-                        },
-                        "permissions": {
-                          "type": "object",
-                          "properties": {
-                            "keys": {
-                              "type": "array",
-                              "allowedValues": [
-                                "all",
-                                "backup",
-                                "create",
-                                "decrypt",
-                                "delete",
-                                "encrypt",
-                                "get",
-                                "getrotationpolicy",
-                                "import",
-                                "list",
-                                "purge",
-                                "recover",
-                                "release",
-                                "restore",
-                                "rotate",
-                                "setrotationpolicy",
-                                "sign",
-                                "unwrapKey",
-                                "update",
-                                "verify",
-                                "wrapKey"
-                              ],
-                              "nullable": true,
-                              "metadata": {
-                                "description": "Optional. Permissions to keys."
-                              }
-                            },
-                            "secrets": {
-                              "type": "array",
-                              "allowedValues": [
-                                "all",
-                                "backup",
-                                "delete",
-                                "get",
-                                "list",
-                                "purge",
-                                "recover",
-                                "restore",
-                                "set"
-                              ],
-                              "nullable": true,
-                              "metadata": {
-                                "description": "Optional. Permissions to secrets."
-                              }
-                            },
-                            "certificates": {
-                              "type": "array",
-                              "allowedValues": [
-                                "all",
-                                "backup",
-                                "create",
-                                "delete",
-                                "deleteissuers",
-                                "get",
-                                "getissuers",
-                                "import",
-                                "list",
-                                "listissuers",
-                                "managecontacts",
-                                "manageissuers",
-                                "purge",
-                                "recover",
-                                "restore",
-                                "setissuers",
-                                "update"
-                              ],
-                              "nullable": true,
-                              "metadata": {
-                                "description": "Optional. Permissions to certificates."
-                              }
-                            },
-                            "storage": {
-                              "type": "array",
-                              "allowedValues": [
-                                "all",
-                                "backup",
-                                "delete",
-                                "deletesas",
-                                "get",
-                                "getsas",
-                                "list",
-                                "listsas",
-                                "purge",
-                                "recover",
-                                "regeneratekey",
-                                "restore",
-                                "set",
-                                "setsas",
-                                "update"
-                              ],
-                              "nullable": true,
-                              "metadata": {
-                                "description": "Optional. Permissions to storage accounts."
-                              }
-                            }
-                          },
-                          "metadata": {
-                            "description": "Required. Permissions the identity has for keys, secrets and certificates."
-                          }
-                        }
-                      },
-                      "metadata": {
-                        "__bicep_export!": true,
-                        "description": "The type for an access policy."
-                      }
-                    }
-                  },
-                  "parameters": {
-                    "keyVaultName": {
-                      "type": "string",
-                      "metadata": {
-                        "description": "Conditional. The name of the parent key vault. Required if the template is used in a standalone deployment."
-                      }
-                    },
-                    "accessPolicies": {
-                      "type": "array",
-                      "items": {
-                        "$ref": "#/definitions/accessPoliciesType"
-                      },
-                      "nullable": true,
-                      "metadata": {
-                        "description": "Optional. An array of 0 to 16 identities that have access to the key vault. All identities in the array must use the same tenant ID as the key vault's tenant ID."
-                      }
-                    }
-                  },
-                  "resources": {
-                    "keyVault": {
-                      "existing": true,
-                      "type": "Microsoft.KeyVault/vaults",
-                      "apiVersion": "2022-07-01",
-                      "name": "[parameters('keyVaultName')]"
-                    },
-                    "policies": {
-                      "type": "Microsoft.KeyVault/vaults/accessPolicies",
-                      "apiVersion": "2023-07-01",
-                      "name": "[format('{0}/{1}', parameters('keyVaultName'), 'add')]",
-                      "properties": {
-                        "copy": [
-                          {
-                            "name": "accessPolicies",
-                            "count": "[length(coalesce(parameters('accessPolicies'), createArray()))]",
-                            "input": {
-                              "applicationId": "[coalesce(tryGet(coalesce(parameters('accessPolicies'), createArray())[copyIndex('accessPolicies')], 'applicationId'), '')]",
-                              "objectId": "[coalesce(parameters('accessPolicies'), createArray())[copyIndex('accessPolicies')].objectId]",
-                              "permissions": "[coalesce(parameters('accessPolicies'), createArray())[copyIndex('accessPolicies')].permissions]",
-                              "tenantId": "[coalesce(tryGet(coalesce(parameters('accessPolicies'), createArray())[copyIndex('accessPolicies')], 'tenantId'), tenant().tenantId)]"
-                            }
-                          }
-                        ]
-                      }
-                    }
-                  },
-                  "outputs": {
-                    "resourceGroupName": {
-                      "type": "string",
-                      "metadata": {
-                        "description": "The name of the resource group the access policies assignment was created in."
-                      },
-                      "value": "[resourceGroup().name]"
-                    },
-                    "name": {
-                      "type": "string",
-                      "metadata": {
-                        "description": "The name of the access policies assignment."
-                      },
-                      "value": "add"
-                    },
-                    "resourceId": {
-                      "type": "string",
-                      "metadata": {
-                        "description": "The resource ID of the access policies assignment."
-                      },
-                      "value": "[resourceId('Microsoft.KeyVault/vaults/accessPolicies', parameters('keyVaultName'), 'add')]"
-                    }
-                  }
-                }
-              },
-              "dependsOn": [
-                "keyVault"
-              ]
-            },
-            "keyVault_secrets": {
+            "searchService_privateEndpoints": {
               "copy": {
-                "name": "keyVault_secrets",
-                "count": "[length(coalesce(parameters('secrets'), createArray()))]"
-              },
-              "type": "Microsoft.Resources/deployments",
-              "apiVersion": "2022-09-01",
-              "name": "[format('{0}-KeyVault-Secret-{1}', uniqueString(deployment().name, parameters('location')), copyIndex())]",
-              "properties": {
-                "expressionEvaluationOptions": {
-                  "scope": "inner"
-                },
-                "mode": "Incremental",
-                "parameters": {
-                  "name": {
-                    "value": "[coalesce(parameters('secrets'), createArray())[copyIndex()].name]"
-                  },
-                  "value": {
-                    "value": "[coalesce(parameters('secrets'), createArray())[copyIndex()].value]"
-                  },
-                  "keyVaultName": {
-                    "value": "[parameters('name')]"
-                  },
-                  "attributesEnabled": {
-                    "value": "[tryGet(tryGet(coalesce(parameters('secrets'), createArray())[copyIndex()], 'attributes'), 'enabled')]"
-                  },
-                  "attributesExp": {
-                    "value": "[tryGet(tryGet(coalesce(parameters('secrets'), createArray())[copyIndex()], 'attributes'), 'exp')]"
-                  },
-                  "attributesNbf": {
-                    "value": "[tryGet(tryGet(coalesce(parameters('secrets'), createArray())[copyIndex()], 'attributes'), 'nbf')]"
-                  },
-                  "contentType": {
-                    "value": "[tryGet(coalesce(parameters('secrets'), createArray())[copyIndex()], 'contentType')]"
-                  },
-                  "tags": {
-                    "value": "[coalesce(tryGet(coalesce(parameters('secrets'), createArray())[copyIndex()], 'tags'), parameters('tags'))]"
-                  },
-                  "roleAssignments": {
-                    "value": "[tryGet(coalesce(parameters('secrets'), createArray())[copyIndex()], 'roleAssignments')]"
-                  }
-                },
-                "template": {
-                  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
-                  "languageVersion": "2.0",
-                  "contentVersion": "1.0.0.0",
-                  "metadata": {
-                    "_generator": {
-                      "name": "bicep",
-                      "version": "0.33.93.31351",
-                      "templateHash": "4741547827723795923"
-                    },
-                    "name": "Key Vault Secrets",
-                    "description": "This module deploys a Key Vault Secret."
-                  },
-                  "definitions": {
-                    "roleAssignmentType": {
-                      "type": "object",
-                      "properties": {
-                        "name": {
-                          "type": "string",
-                          "nullable": true,
-                          "metadata": {
-                            "description": "Optional. The name (as GUID) of the role assignment. If not provided, a GUID will be generated."
-                          }
-                        },
-                        "roleDefinitionIdOrName": {
-                          "type": "string",
-                          "metadata": {
-                            "description": "Required. The role to assign. You can provide either the display name of the role definition, the role definition GUID, or its fully qualified ID in the following format: '/providers/Microsoft.Authorization/roleDefinitions/c2f4ef07-c644-48eb-af81-4b1b4947fb11'."
-                          }
-                        },
-                        "principalId": {
-                          "type": "string",
-                          "metadata": {
-                            "description": "Required. The principal ID of the principal (user/group/identity) to assign the role to."
-                          }
-                        },
-                        "principalType": {
-                          "type": "string",
-                          "allowedValues": [
-                            "Device",
-                            "ForeignGroup",
-                            "Group",
-                            "ServicePrincipal",
-                            "User"
-                          ],
-                          "nullable": true,
-                          "metadata": {
-                            "description": "Optional. The principal type of the assigned principal ID."
-                          }
-                        },
-                        "description": {
-                          "type": "string",
-                          "nullable": true,
-                          "metadata": {
-                            "description": "Optional. The description of the role assignment."
-                          }
-                        },
-                        "condition": {
-                          "type": "string",
-                          "nullable": true,
-                          "metadata": {
-                            "description": "Optional. The conditions on the role assignment. This limits the resources it can be assigned to. e.g.: @Resource[Microsoft.Storage/storageAccounts/blobServices/containers:ContainerName] StringEqualsIgnoreCase \"foo_storage_container\"."
-                          }
-                        },
-                        "conditionVersion": {
-                          "type": "string",
-                          "allowedValues": [
-                            "2.0"
-                          ],
-                          "nullable": true,
-                          "metadata": {
-                            "description": "Optional. Version of the condition."
-                          }
-                        },
-                        "delegatedManagedIdentityResourceId": {
-                          "type": "string",
-                          "nullable": true,
-                          "metadata": {
-                            "description": "Optional. The Resource Id of the delegated managed identity resource."
-                          }
-                        }
-                      },
-                      "metadata": {
-                        "description": "An AVM-aligned type for a role assignment.",
-                        "__bicep_imported_from!": {
-                          "sourceTemplate": "br:mcr.microsoft.com/bicep/avm/utl/types/avm-common-types:0.5.1"
-                        }
-                      }
-                    }
-                  },
-                  "parameters": {
-                    "keyVaultName": {
-                      "type": "string",
-                      "metadata": {
-                        "description": "Conditional. The name of the parent key vault. Required if the template is used in a standalone deployment."
-                      }
-                    },
-                    "name": {
-                      "type": "string",
-                      "metadata": {
-                        "description": "Required. The name of the secret."
-                      }
-                    },
-                    "tags": {
-                      "type": "object",
-                      "nullable": true,
-                      "metadata": {
-                        "description": "Optional. Resource tags."
-                      }
-                    },
-                    "attributesEnabled": {
-                      "type": "bool",
-                      "defaultValue": true,
-                      "metadata": {
-                        "description": "Optional. Determines whether the object is enabled."
-                      }
-                    },
-                    "attributesExp": {
-                      "type": "int",
-                      "nullable": true,
-                      "metadata": {
-                        "description": "Optional. Expiry date in seconds since 1970-01-01T00:00:00Z. For security reasons, it is recommended to set an expiration date whenever possible."
-                      }
-                    },
-                    "attributesNbf": {
-                      "type": "int",
-                      "nullable": true,
-                      "metadata": {
-                        "description": "Optional. Not before date in seconds since 1970-01-01T00:00:00Z."
-                      }
-                    },
-                    "contentType": {
-                      "type": "securestring",
-                      "nullable": true,
-                      "metadata": {
-                        "description": "Optional. The content type of the secret."
-                      }
-                    },
-                    "value": {
-                      "type": "securestring",
-                      "metadata": {
-                        "description": "Required. The value of the secret. NOTE: \"value\" will never be returned from the service, as APIs using this model are is intended for internal use in ARM deployments. Users should use the data-plane REST service for interaction with vault secrets."
-                      }
-                    },
-                    "roleAssignments": {
-                      "type": "array",
-                      "items": {
-                        "$ref": "#/definitions/roleAssignmentType"
-                      },
-                      "nullable": true,
-                      "metadata": {
-                        "description": "Optional. Array of role assignments to create."
-                      }
-                    }
-                  },
-                  "variables": {
-                    "copy": [
-                      {
-                        "name": "formattedRoleAssignments",
-                        "count": "[length(coalesce(parameters('roleAssignments'), createArray()))]",
-                        "input": "[union(coalesce(parameters('roleAssignments'), createArray())[copyIndex('formattedRoleAssignments')], createObject('roleDefinitionId', coalesce(tryGet(variables('builtInRoleNames'), coalesce(parameters('roleAssignments'), createArray())[copyIndex('formattedRoleAssignments')].roleDefinitionIdOrName), if(contains(coalesce(parameters('roleAssignments'), createArray())[copyIndex('formattedRoleAssignments')].roleDefinitionIdOrName, '/providers/Microsoft.Authorization/roleDefinitions/'), coalesce(parameters('roleAssignments'), createArray())[copyIndex('formattedRoleAssignments')].roleDefinitionIdOrName, subscriptionResourceId('Microsoft.Authorization/roleDefinitions', coalesce(parameters('roleAssignments'), createArray())[copyIndex('formattedRoleAssignments')].roleDefinitionIdOrName)))))]"
-                      }
-                    ],
-                    "builtInRoleNames": {
-                      "Contributor": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'b24988ac-6180-42a0-ab88-20f7382dd24c')]",
-                      "Key Vault Administrator": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '00482a5a-887f-4fb3-b363-3b7fe8e74483')]",
-                      "Key Vault Contributor": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'f25e0fa2-a7c8-4377-a976-54943a77a395')]",
-                      "Key Vault Reader": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '21090545-7ca7-4776-b22c-e363652d74d2')]",
-                      "Key Vault Secrets Officer": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'b86a8fe4-44ce-4948-aee5-eccb2c155cd7')]",
-                      "Key Vault Secrets User": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '4633458b-17de-408a-b874-0445c86b69e6')]",
-                      "Owner": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '8e3af657-a8ff-443c-a75c-2fe8c4bcb635')]",
-                      "Reader": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'acdd72a7-3385-48ef-bd42-f606fba81ae7')]",
-                      "Role Based Access Control Administrator": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'f58310d9-a9f6-439a-9e8d-f62e7b41a168')]",
-                      "User Access Administrator": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '18d7d88d-d35e-4fb5-a5c3-7773c20a72d9')]"
-                    }
-                  },
-                  "resources": {
-                    "keyVault": {
-                      "existing": true,
-                      "type": "Microsoft.KeyVault/vaults",
-                      "apiVersion": "2022-07-01",
-                      "name": "[parameters('keyVaultName')]"
-                    },
-                    "secret": {
-                      "type": "Microsoft.KeyVault/vaults/secrets",
-                      "apiVersion": "2022-07-01",
-                      "name": "[format('{0}/{1}', parameters('keyVaultName'), parameters('name'))]",
-                      "tags": "[parameters('tags')]",
-                      "properties": {
-                        "contentType": "[parameters('contentType')]",
-                        "attributes": {
-                          "enabled": "[parameters('attributesEnabled')]",
-                          "exp": "[parameters('attributesExp')]",
-                          "nbf": "[parameters('attributesNbf')]"
-                        },
-                        "value": "[parameters('value')]"
-                      }
-                    },
-                    "secret_roleAssignments": {
-                      "copy": {
-                        "name": "secret_roleAssignments",
-                        "count": "[length(coalesce(variables('formattedRoleAssignments'), createArray()))]"
-                      },
-                      "type": "Microsoft.Authorization/roleAssignments",
-                      "apiVersion": "2022-04-01",
-                      "scope": "[format('Microsoft.KeyVault/vaults/{0}/secrets/{1}', parameters('keyVaultName'), parameters('name'))]",
-                      "name": "[coalesce(tryGet(coalesce(variables('formattedRoleAssignments'), createArray())[copyIndex()], 'name'), guid(resourceId('Microsoft.KeyVault/vaults/secrets', parameters('keyVaultName'), parameters('name')), coalesce(variables('formattedRoleAssignments'), createArray())[copyIndex()].principalId, coalesce(variables('formattedRoleAssignments'), createArray())[copyIndex()].roleDefinitionId))]",
-                      "properties": {
-                        "roleDefinitionId": "[coalesce(variables('formattedRoleAssignments'), createArray())[copyIndex()].roleDefinitionId]",
-                        "principalId": "[coalesce(variables('formattedRoleAssignments'), createArray())[copyIndex()].principalId]",
-                        "description": "[tryGet(coalesce(variables('formattedRoleAssignments'), createArray())[copyIndex()], 'description')]",
-                        "principalType": "[tryGet(coalesce(variables('formattedRoleAssignments'), createArray())[copyIndex()], 'principalType')]",
-                        "condition": "[tryGet(coalesce(variables('formattedRoleAssignments'), createArray())[copyIndex()], 'condition')]",
-                        "conditionVersion": "[if(not(empty(tryGet(coalesce(variables('formattedRoleAssignments'), createArray())[copyIndex()], 'condition'))), coalesce(tryGet(coalesce(variables('formattedRoleAssignments'), createArray())[copyIndex()], 'conditionVersion'), '2.0'), null())]",
-                        "delegatedManagedIdentityResourceId": "[tryGet(coalesce(variables('formattedRoleAssignments'), createArray())[copyIndex()], 'delegatedManagedIdentityResourceId')]"
-                      },
-                      "dependsOn": [
-                        "secret"
-                      ]
-                    }
-                  },
-                  "outputs": {
-                    "name": {
-                      "type": "string",
-                      "metadata": {
-                        "description": "The name of the secret."
-                      },
-                      "value": "[parameters('name')]"
-                    },
-                    "resourceId": {
-                      "type": "string",
-                      "metadata": {
-                        "description": "The resource ID of the secret."
-                      },
-                      "value": "[resourceId('Microsoft.KeyVault/vaults/secrets', parameters('keyVaultName'), parameters('name'))]"
-                    },
-                    "secretUri": {
-                      "type": "string",
-                      "metadata": {
-                        "description": "The uri of the secret."
-                      },
-                      "value": "[reference('secret').secretUri]"
-                    },
-                    "secretUriWithVersion": {
-                      "type": "string",
-                      "metadata": {
-                        "description": "The uri with version of the secret."
-                      },
-                      "value": "[reference('secret').secretUriWithVersion]"
-                    },
-                    "resourceGroupName": {
-                      "type": "string",
-                      "metadata": {
-                        "description": "The name of the resource group the secret was created in."
-                      },
-                      "value": "[resourceGroup().name]"
-                    }
-                  }
-                }
-              },
-              "dependsOn": [
-                "keyVault"
-              ]
-            },
-            "keyVault_keys": {
-              "copy": {
-                "name": "keyVault_keys",
-                "count": "[length(coalesce(parameters('keys'), createArray()))]"
-              },
-              "type": "Microsoft.Resources/deployments",
-              "apiVersion": "2022-09-01",
-              "name": "[format('{0}-KeyVault-Key-{1}', uniqueString(deployment().name, parameters('location')), copyIndex())]",
-              "properties": {
-                "expressionEvaluationOptions": {
-                  "scope": "inner"
-                },
-                "mode": "Incremental",
-                "parameters": {
-                  "name": {
-                    "value": "[coalesce(parameters('keys'), createArray())[copyIndex()].name]"
-                  },
-                  "keyVaultName": {
-                    "value": "[parameters('name')]"
-                  },
-                  "attributesEnabled": {
-                    "value": "[tryGet(tryGet(coalesce(parameters('keys'), createArray())[copyIndex()], 'attributes'), 'enabled')]"
-                  },
-                  "attributesExp": {
-                    "value": "[tryGet(tryGet(coalesce(parameters('keys'), createArray())[copyIndex()], 'attributes'), 'exp')]"
-                  },
-                  "attributesNbf": {
-                    "value": "[tryGet(tryGet(coalesce(parameters('keys'), createArray())[copyIndex()], 'attributes'), 'nbf')]"
-                  },
-                  "curveName": "[if(and(not(equals(tryGet(coalesce(parameters('keys'), createArray())[copyIndex()], 'kty'), 'RSA')), not(equals(tryGet(coalesce(parameters('keys'), createArray())[copyIndex()], 'kty'), 'RSA-HSM'))), createObject('value', coalesce(tryGet(coalesce(parameters('keys'), createArray())[copyIndex()], 'curveName'), 'P-256')), createObject('value', null()))]",
-                  "keyOps": {
-                    "value": "[tryGet(coalesce(parameters('keys'), createArray())[copyIndex()], 'keyOps')]"
-                  },
-                  "keySize": "[if(or(equals(tryGet(coalesce(parameters('keys'), createArray())[copyIndex()], 'kty'), 'RSA'), equals(tryGet(coalesce(parameters('keys'), createArray())[copyIndex()], 'kty'), 'RSA-HSM')), createObject('value', coalesce(tryGet(coalesce(parameters('keys'), createArray())[copyIndex()], 'keySize'), 4096)), createObject('value', null()))]",
-                  "releasePolicy": {
-                    "value": "[coalesce(tryGet(coalesce(parameters('keys'), createArray())[copyIndex()], 'releasePolicy'), createObject())]"
-                  },
-                  "kty": {
-                    "value": "[coalesce(tryGet(coalesce(parameters('keys'), createArray())[copyIndex()], 'kty'), 'EC')]"
-                  },
-                  "tags": {
-                    "value": "[coalesce(tryGet(coalesce(parameters('keys'), createArray())[copyIndex()], 'tags'), parameters('tags'))]"
-                  },
-                  "roleAssignments": {
-                    "value": "[tryGet(coalesce(parameters('keys'), createArray())[copyIndex()], 'roleAssignments')]"
-                  },
-                  "rotationPolicy": {
-                    "value": "[tryGet(coalesce(parameters('keys'), createArray())[copyIndex()], 'rotationPolicy')]"
-                  }
-                },
-                "template": {
-                  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
-                  "languageVersion": "2.0",
-                  "contentVersion": "1.0.0.0",
-                  "metadata": {
-                    "_generator": {
-                      "name": "bicep",
-                      "version": "0.33.93.31351",
-                      "templateHash": "12000970886778046699"
-                    },
-                    "name": "Key Vault Keys",
-                    "description": "This module deploys a Key Vault Key."
-                  },
-                  "definitions": {
-                    "roleAssignmentType": {
-                      "type": "object",
-                      "properties": {
-                        "name": {
-                          "type": "string",
-                          "nullable": true,
-                          "metadata": {
-                            "description": "Optional. The name (as GUID) of the role assignment. If not provided, a GUID will be generated."
-                          }
-                        },
-                        "roleDefinitionIdOrName": {
-                          "type": "string",
-                          "metadata": {
-                            "description": "Required. The role to assign. You can provide either the display name of the role definition, the role definition GUID, or its fully qualified ID in the following format: '/providers/Microsoft.Authorization/roleDefinitions/c2f4ef07-c644-48eb-af81-4b1b4947fb11'."
-                          }
-                        },
-                        "principalId": {
-                          "type": "string",
-                          "metadata": {
-                            "description": "Required. The principal ID of the principal (user/group/identity) to assign the role to."
-                          }
-                        },
-                        "principalType": {
-                          "type": "string",
-                          "allowedValues": [
-                            "Device",
-                            "ForeignGroup",
-                            "Group",
-                            "ServicePrincipal",
-                            "User"
-                          ],
-                          "nullable": true,
-                          "metadata": {
-                            "description": "Optional. The principal type of the assigned principal ID."
-                          }
-                        },
-                        "description": {
-                          "type": "string",
-                          "nullable": true,
-                          "metadata": {
-                            "description": "Optional. The description of the role assignment."
-                          }
-                        },
-                        "condition": {
-                          "type": "string",
-                          "nullable": true,
-                          "metadata": {
-                            "description": "Optional. The conditions on the role assignment. This limits the resources it can be assigned to. e.g.: @Resource[Microsoft.Storage/storageAccounts/blobServices/containers:ContainerName] StringEqualsIgnoreCase \"foo_storage_container\"."
-                          }
-                        },
-                        "conditionVersion": {
-                          "type": "string",
-                          "allowedValues": [
-                            "2.0"
-                          ],
-                          "nullable": true,
-                          "metadata": {
-                            "description": "Optional. Version of the condition."
-                          }
-                        },
-                        "delegatedManagedIdentityResourceId": {
-                          "type": "string",
-                          "nullable": true,
-                          "metadata": {
-                            "description": "Optional. The Resource Id of the delegated managed identity resource."
-                          }
-                        }
-                      },
-                      "metadata": {
-                        "description": "An AVM-aligned type for a role assignment.",
-                        "__bicep_imported_from!": {
-                          "sourceTemplate": "br:mcr.microsoft.com/bicep/avm/utl/types/avm-common-types:0.5.1"
-                        }
-                      }
-                    }
-                  },
-                  "parameters": {
-                    "keyVaultName": {
-                      "type": "string",
-                      "metadata": {
-                        "description": "Conditional. The name of the parent key vault. Required if the template is used in a standalone deployment."
-                      }
-                    },
-                    "name": {
-                      "type": "string",
-                      "metadata": {
-                        "description": "Required. The name of the key."
-                      }
-                    },
-                    "tags": {
-                      "type": "object",
-                      "nullable": true,
-                      "metadata": {
-                        "description": "Optional. Resource tags."
-                      }
-                    },
-                    "attributesEnabled": {
-                      "type": "bool",
-                      "defaultValue": true,
-                      "metadata": {
-                        "description": "Optional. Determines whether the object is enabled."
-                      }
-                    },
-                    "attributesExp": {
-                      "type": "int",
-                      "nullable": true,
-                      "metadata": {
-                        "description": "Optional. Expiry date in seconds since 1970-01-01T00:00:00Z. For security reasons, it is recommended to set an expiration date whenever possible."
-                      }
-                    },
-                    "attributesNbf": {
-                      "type": "int",
-                      "nullable": true,
-                      "metadata": {
-                        "description": "Optional. Not before date in seconds since 1970-01-01T00:00:00Z."
-                      }
-                    },
-                    "curveName": {
-                      "type": "string",
-                      "defaultValue": "P-256",
-                      "allowedValues": [
-                        "P-256",
-                        "P-256K",
-                        "P-384",
-                        "P-521"
-                      ],
-                      "metadata": {
-                        "description": "Optional. The elliptic curve name."
-                      }
-                    },
-                    "keyOps": {
-                      "type": "array",
-                      "nullable": true,
-                      "allowedValues": [
-                        "decrypt",
-                        "encrypt",
-                        "import",
-                        "sign",
-                        "unwrapKey",
-                        "verify",
-                        "wrapKey"
-                      ],
-                      "metadata": {
-                        "description": "Optional. Array of JsonWebKeyOperation."
-                      }
-                    },
-                    "keySize": {
-                      "type": "int",
-                      "nullable": true,
-                      "metadata": {
-                        "description": "Optional. The key size in bits. For example: 2048, 3072, or 4096 for RSA."
-                      }
-                    },
-                    "kty": {
-                      "type": "string",
-                      "defaultValue": "EC",
-                      "allowedValues": [
-                        "EC",
-                        "EC-HSM",
-                        "RSA",
-                        "RSA-HSM"
-                      ],
-                      "metadata": {
-                        "description": "Optional. The type of the key."
-                      }
-                    },
-                    "releasePolicy": {
-                      "type": "object",
-                      "nullable": true,
-                      "metadata": {
-                        "description": "Optional. Key release policy."
-                      }
-                    },
-                    "roleAssignments": {
-                      "type": "array",
-                      "items": {
-                        "$ref": "#/definitions/roleAssignmentType"
-                      },
-                      "nullable": true,
-                      "metadata": {
-                        "description": "Optional. Array of role assignments to create."
-                      }
-                    },
-                    "rotationPolicy": {
-                      "type": "object",
-                      "nullable": true,
-                      "metadata": {
-                        "description": "Optional. Key rotation policy properties object."
-                      }
-                    }
-                  },
-                  "variables": {
-                    "copy": [
-                      {
-                        "name": "formattedRoleAssignments",
-                        "count": "[length(coalesce(parameters('roleAssignments'), createArray()))]",
-                        "input": "[union(coalesce(parameters('roleAssignments'), createArray())[copyIndex('formattedRoleAssignments')], createObject('roleDefinitionId', coalesce(tryGet(variables('builtInRoleNames'), coalesce(parameters('roleAssignments'), createArray())[copyIndex('formattedRoleAssignments')].roleDefinitionIdOrName), if(contains(coalesce(parameters('roleAssignments'), createArray())[copyIndex('formattedRoleAssignments')].roleDefinitionIdOrName, '/providers/Microsoft.Authorization/roleDefinitions/'), coalesce(parameters('roleAssignments'), createArray())[copyIndex('formattedRoleAssignments')].roleDefinitionIdOrName, subscriptionResourceId('Microsoft.Authorization/roleDefinitions', coalesce(parameters('roleAssignments'), createArray())[copyIndex('formattedRoleAssignments')].roleDefinitionIdOrName)))))]"
-                      }
-                    ],
-                    "builtInRoleNames": {
-                      "Contributor": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'b24988ac-6180-42a0-ab88-20f7382dd24c')]",
-                      "Key Vault Administrator": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '00482a5a-887f-4fb3-b363-3b7fe8e74483')]",
-                      "Key Vault Contributor": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'f25e0fa2-a7c8-4377-a976-54943a77a395')]",
-                      "Key Vault Crypto Officer": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '14b46e9e-c2b7-41b4-b07b-48a6ebf60603')]",
-                      "Key Vault Crypto Service Encryption User": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'e147488a-f6f5-4113-8e2d-b22465e65bf6')]",
-                      "Key Vault Crypto User": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '12338af0-0e69-4776-bea7-57ae8d297424')]",
-                      "Key Vault Reader": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '21090545-7ca7-4776-b22c-e363652d74d2')]",
-                      "Owner": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '8e3af657-a8ff-443c-a75c-2fe8c4bcb635')]",
-                      "Reader": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'acdd72a7-3385-48ef-bd42-f606fba81ae7')]",
-                      "Role Based Access Control Administrator": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'f58310d9-a9f6-439a-9e8d-f62e7b41a168')]",
-                      "User Access Administrator": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '18d7d88d-d35e-4fb5-a5c3-7773c20a72d9')]"
-                    }
-                  },
-                  "resources": {
-                    "keyVault": {
-                      "existing": true,
-                      "type": "Microsoft.KeyVault/vaults",
-                      "apiVersion": "2022-07-01",
-                      "name": "[parameters('keyVaultName')]"
-                    },
-                    "key": {
-                      "type": "Microsoft.KeyVault/vaults/keys",
-                      "apiVersion": "2022-07-01",
-                      "name": "[format('{0}/{1}', parameters('keyVaultName'), parameters('name'))]",
-                      "tags": "[parameters('tags')]",
-                      "properties": "[shallowMerge(createArray(createObject('attributes', createObject('enabled', parameters('attributesEnabled'), 'exp', parameters('attributesExp'), 'nbf', parameters('attributesNbf')), 'curveName', parameters('curveName'), 'keyOps', parameters('keyOps'), 'keySize', parameters('keySize'), 'kty', parameters('kty'), 'release_policy', coalesce(parameters('releasePolicy'), createObject())), if(not(empty(parameters('rotationPolicy'))), createObject('rotationPolicy', parameters('rotationPolicy')), createObject())))]"
-                    },
-                    "key_roleAssignments": {
-                      "copy": {
-                        "name": "key_roleAssignments",
-                        "count": "[length(coalesce(variables('formattedRoleAssignments'), createArray()))]"
-                      },
-                      "type": "Microsoft.Authorization/roleAssignments",
-                      "apiVersion": "2022-04-01",
-                      "scope": "[format('Microsoft.KeyVault/vaults/{0}/keys/{1}', parameters('keyVaultName'), parameters('name'))]",
-                      "name": "[coalesce(tryGet(coalesce(variables('formattedRoleAssignments'), createArray())[copyIndex()], 'name'), guid(resourceId('Microsoft.KeyVault/vaults/keys', parameters('keyVaultName'), parameters('name')), coalesce(variables('formattedRoleAssignments'), createArray())[copyIndex()].principalId, coalesce(variables('formattedRoleAssignments'), createArray())[copyIndex()].roleDefinitionId))]",
-                      "properties": {
-                        "roleDefinitionId": "[coalesce(variables('formattedRoleAssignments'), createArray())[copyIndex()].roleDefinitionId]",
-                        "principalId": "[coalesce(variables('formattedRoleAssignments'), createArray())[copyIndex()].principalId]",
-                        "description": "[tryGet(coalesce(variables('formattedRoleAssignments'), createArray())[copyIndex()], 'description')]",
-                        "principalType": "[tryGet(coalesce(variables('formattedRoleAssignments'), createArray())[copyIndex()], 'principalType')]",
-                        "condition": "[tryGet(coalesce(variables('formattedRoleAssignments'), createArray())[copyIndex()], 'condition')]",
-                        "conditionVersion": "[if(not(empty(tryGet(coalesce(variables('formattedRoleAssignments'), createArray())[copyIndex()], 'condition'))), coalesce(tryGet(coalesce(variables('formattedRoleAssignments'), createArray())[copyIndex()], 'conditionVersion'), '2.0'), null())]",
-                        "delegatedManagedIdentityResourceId": "[tryGet(coalesce(variables('formattedRoleAssignments'), createArray())[copyIndex()], 'delegatedManagedIdentityResourceId')]"
-                      },
-                      "dependsOn": [
-                        "key"
-                      ]
-                    }
-                  },
-                  "outputs": {
-                    "keyUri": {
-                      "type": "string",
-                      "metadata": {
-                        "description": "The uri of the key."
-                      },
-                      "value": "[reference('key').keyUri]"
-                    },
-                    "keyUriWithVersion": {
-                      "type": "string",
-                      "metadata": {
-                        "description": "The uri with version of the key."
-                      },
-                      "value": "[reference('key').keyUriWithVersion]"
-                    },
-                    "name": {
-                      "type": "string",
-                      "metadata": {
-                        "description": "The name of the key."
-                      },
-                      "value": "[parameters('name')]"
-                    },
-                    "resourceId": {
-                      "type": "string",
-                      "metadata": {
-                        "description": "The resource ID of the key."
-                      },
-                      "value": "[resourceId('Microsoft.KeyVault/vaults/keys', parameters('keyVaultName'), parameters('name'))]"
-                    },
-                    "resourceGroupName": {
-                      "type": "string",
-                      "metadata": {
-                        "description": "The name of the resource group the key was created in."
-                      },
-                      "value": "[resourceGroup().name]"
-                    }
-                  }
-                }
-              },
-              "dependsOn": [
-                "keyVault"
-              ]
-            },
-            "keyVault_privateEndpoints": {
-              "copy": {
-                "name": "keyVault_privateEndpoints",
+                "name": "searchService_privateEndpoints",
                 "count": "[length(coalesce(parameters('privateEndpoints'), createArray()))]"
               },
               "type": "Microsoft.Resources/deployments",
               "apiVersion": "2022-09-01",
-              "name": "[format('{0}-keyVault-PrivateEndpoint-{1}', uniqueString(deployment().name, parameters('location')), copyIndex())]",
+              "name": "[format('{0}-searchService-PrivateEndpoint-{1}', uniqueString(deployment().name, parameters('location')), copyIndex())]",
               "subscriptionId": "[split(coalesce(tryGet(coalesce(parameters('privateEndpoints'), createArray())[copyIndex()], 'resourceGroupResourceId'), resourceGroup().id), '/')[2]]",
               "resourceGroup": "[split(coalesce(tryGet(coalesce(parameters('privateEndpoints'), createArray())[copyIndex()], 'resourceGroupResourceId'), resourceGroup().id), '/')[4]]",
               "properties": {
@@ -32498,10 +31237,10 @@
                 "mode": "Incremental",
                 "parameters": {
                   "name": {
-                    "value": "[coalesce(tryGet(coalesce(parameters('privateEndpoints'), createArray())[copyIndex()], 'name'), format('pep-{0}-{1}-{2}', last(split(resourceId('Microsoft.KeyVault/vaults', parameters('name')), '/')), coalesce(tryGet(coalesce(parameters('privateEndpoints'), createArray())[copyIndex()], 'service'), 'vault'), copyIndex()))]"
+                    "value": "[coalesce(tryGet(coalesce(parameters('privateEndpoints'), createArray())[copyIndex()], 'name'), format('pep-{0}-{1}-{2}', last(split(resourceId('Microsoft.Search/searchServices', parameters('name')), '/')), coalesce(tryGet(coalesce(parameters('privateEndpoints'), createArray())[copyIndex()], 'service'), 'searchService'), copyIndex()))]"
                   },
-                  "privateLinkServiceConnections": "[if(not(equals(tryGet(coalesce(parameters('privateEndpoints'), createArray())[copyIndex()], 'isManualConnection'), true())), createObject('value', createArray(createObject('name', coalesce(tryGet(coalesce(parameters('privateEndpoints'), createArray())[copyIndex()], 'privateLinkServiceConnectionName'), format('{0}-{1}-{2}', last(split(resourceId('Microsoft.KeyVault/vaults', parameters('name')), '/')), coalesce(tryGet(coalesce(parameters('privateEndpoints'), createArray())[copyIndex()], 'service'), 'vault'), copyIndex())), 'properties', createObject('privateLinkServiceId', resourceId('Microsoft.KeyVault/vaults', parameters('name')), 'groupIds', createArray(coalesce(tryGet(coalesce(parameters('privateEndpoints'), createArray())[copyIndex()], 'service'), 'vault')))))), createObject('value', null()))]",
-                  "manualPrivateLinkServiceConnections": "[if(equals(tryGet(coalesce(parameters('privateEndpoints'), createArray())[copyIndex()], 'isManualConnection'), true()), createObject('value', createArray(createObject('name', coalesce(tryGet(coalesce(parameters('privateEndpoints'), createArray())[copyIndex()], 'privateLinkServiceConnectionName'), format('{0}-{1}-{2}', last(split(resourceId('Microsoft.KeyVault/vaults', parameters('name')), '/')), coalesce(tryGet(coalesce(parameters('privateEndpoints'), createArray())[copyIndex()], 'service'), 'vault'), copyIndex())), 'properties', createObject('privateLinkServiceId', resourceId('Microsoft.KeyVault/vaults', parameters('name')), 'groupIds', createArray(coalesce(tryGet(coalesce(parameters('privateEndpoints'), createArray())[copyIndex()], 'service'), 'vault')), 'requestMessage', coalesce(tryGet(coalesce(parameters('privateEndpoints'), createArray())[copyIndex()], 'manualConnectionRequestMessage'), 'Manual approval required.'))))), createObject('value', null()))]",
+                  "privateLinkServiceConnections": "[if(not(equals(tryGet(coalesce(parameters('privateEndpoints'), createArray())[copyIndex()], 'isManualConnection'), true())), createObject('value', createArray(createObject('name', coalesce(tryGet(coalesce(parameters('privateEndpoints'), createArray())[copyIndex()], 'privateLinkServiceConnectionName'), format('{0}-{1}-{2}', last(split(resourceId('Microsoft.Search/searchServices', parameters('name')), '/')), coalesce(tryGet(coalesce(parameters('privateEndpoints'), createArray())[copyIndex()], 'service'), 'searchService'), copyIndex())), 'properties', createObject('privateLinkServiceId', resourceId('Microsoft.Search/searchServices', parameters('name')), 'groupIds', createArray(coalesce(tryGet(coalesce(parameters('privateEndpoints'), createArray())[copyIndex()], 'service'), 'searchService')))))), createObject('value', null()))]",
+                  "manualPrivateLinkServiceConnections": "[if(equals(tryGet(coalesce(parameters('privateEndpoints'), createArray())[copyIndex()], 'isManualConnection'), true()), createObject('value', createArray(createObject('name', coalesce(tryGet(coalesce(parameters('privateEndpoints'), createArray())[copyIndex()], 'privateLinkServiceConnectionName'), format('{0}-{1}-{2}', last(split(resourceId('Microsoft.Search/searchServices', parameters('name')), '/')), coalesce(tryGet(coalesce(parameters('privateEndpoints'), createArray())[copyIndex()], 'service'), 'searchService'), copyIndex())), 'properties', createObject('privateLinkServiceId', resourceId('Microsoft.Search/searchServices', parameters('name')), 'groupIds', createArray(coalesce(tryGet(coalesce(parameters('privateEndpoints'), createArray())[copyIndex()], 'service'), 'searchService')), 'requestMessage', coalesce(tryGet(coalesce(parameters('privateEndpoints'), createArray())[copyIndex()], 'manualConnectionRequestMessage'), 'Manual approval required.'))))), createObject('value', null()))]",
                   "subnetResourceId": {
                     "value": "[coalesce(parameters('privateEndpoints'), createArray())[copyIndex()].subnetResourceId]"
                   },
@@ -32543,8 +31282,8 @@
                   "metadata": {
                     "_generator": {
                       "name": "bicep",
-                      "version": "0.33.13.18514",
-                      "templateHash": "15954548978129725136"
+                      "version": "0.34.44.8038",
+                      "templateHash": "12389807800450456797"
                     },
                     "name": "Private Endpoints",
                     "description": "This module deploys a Private Endpoint."
@@ -32953,7 +31692,7 @@
                       "condition": "[parameters('enableTelemetry')]",
                       "type": "Microsoft.Resources/deployments",
                       "apiVersion": "2024-03-01",
-                      "name": "[format('46d3xbcp.res.network-privateendpoint.{0}.{1}', replace('0.10.1', '.', '-'), substring(uniqueString(deployment().name, parameters('location')), 0, 4))]",
+                      "name": "[format('46d3xbcp.res.network-privateendpoint.{0}.{1}', replace('0.11.0', '.', '-'), substring(uniqueString(deployment().name, parameters('location')), 0, 4))]",
                       "properties": {
                         "mode": "Incremental",
                         "template": {
@@ -32971,7 +31710,7 @@
                     },
                     "privateEndpoint": {
                       "type": "Microsoft.Network/privateEndpoints",
-                      "apiVersion": "2023-11-01",
+                      "apiVersion": "2024-05-01",
                       "name": "[parameters('name')]",
                       "location": "[parameters('location')]",
                       "tags": "[parameters('tags')]",
@@ -33059,8 +31798,8 @@
                           "metadata": {
                             "_generator": {
                               "name": "bicep",
-                              "version": "0.33.13.18514",
-                              "templateHash": "5440815542537978381"
+                              "version": "0.34.44.8038",
+                              "templateHash": "13997305779829540948"
                             },
                             "name": "Private Endpoint Private DNS Zone Groups",
                             "description": "This module deploys a Private Endpoint Private DNS Zone Group."
@@ -33132,12 +31871,12 @@
                             "privateEndpoint": {
                               "existing": true,
                               "type": "Microsoft.Network/privateEndpoints",
-                              "apiVersion": "2023-11-01",
+                              "apiVersion": "2024-05-01",
                               "name": "[parameters('privateEndpointName')]"
                             },
                             "privateDnsZoneGroup": {
                               "type": "Microsoft.Network/privateEndpoints/privateDnsZoneGroups",
-                              "apiVersion": "2023-11-01",
+                              "apiVersion": "2024-05-01",
                               "name": "[format('{0}/{1}', parameters('privateEndpointName'), parameters('name'))]",
                               "properties": {
                                 "privateDnsZoneConfigs": "[variables('privateDnsZoneConfigsVar')]"
@@ -33201,7 +31940,7 @@
                       "metadata": {
                         "description": "The location the resource was deployed into."
                       },
-                      "value": "[reference('privateEndpoint', '2023-11-01', 'full').location]"
+                      "value": "[reference('privateEndpoint', '2024-05-01', 'full').location]"
                     },
                     "customDnsConfigs": {
                       "type": "array",
@@ -33235,45 +31974,319 @@
                 }
               },
               "dependsOn": [
-                "keyVault"
+                "searchService"
+              ]
+            },
+            "searchService_sharedPrivateLinkResources": {
+              "copy": {
+                "name": "searchService_sharedPrivateLinkResources",
+                "count": "[length(parameters('sharedPrivateLinkResources'))]",
+                "mode": "serial",
+                "batchSize": 1
+              },
+              "type": "Microsoft.Resources/deployments",
+              "apiVersion": "2022-09-01",
+              "name": "[format('{0}-searchService-SharedPrvLink-{1}', uniqueString(deployment().name, parameters('location')), copyIndex())]",
+              "properties": {
+                "expressionEvaluationOptions": {
+                  "scope": "inner"
+                },
+                "mode": "Incremental",
+                "parameters": {
+                  "name": {
+                    "value": "[coalesce(tryGet(parameters('sharedPrivateLinkResources')[copyIndex()], 'name'), format('spl-{0}-{1}-{2}', last(split(resourceId('Microsoft.Search/searchServices', parameters('name')), '/')), parameters('sharedPrivateLinkResources')[copyIndex()].groupId, copyIndex()))]"
+                  },
+                  "searchServiceName": {
+                    "value": "[parameters('name')]"
+                  },
+                  "privateLinkResourceId": {
+                    "value": "[parameters('sharedPrivateLinkResources')[copyIndex()].privateLinkResourceId]"
+                  },
+                  "groupId": {
+                    "value": "[parameters('sharedPrivateLinkResources')[copyIndex()].groupId]"
+                  },
+                  "requestMessage": {
+                    "value": "[parameters('sharedPrivateLinkResources')[copyIndex()].requestMessage]"
+                  },
+                  "resourceRegion": {
+                    "value": "[tryGet(parameters('sharedPrivateLinkResources')[copyIndex()], 'resourceRegion')]"
+                  }
+                },
+                "template": {
+                  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                  "languageVersion": "2.0",
+                  "contentVersion": "1.0.0.0",
+                  "metadata": {
+                    "_generator": {
+                      "name": "bicep",
+                      "version": "0.37.4.10188",
+                      "templateHash": "557730297583881254"
+                    },
+                    "name": "Search Services Private Link Resources",
+                    "description": "This module deploys a Search Service Private Link Resource."
+                  },
+                  "parameters": {
+                    "searchServiceName": {
+                      "type": "string",
+                      "metadata": {
+                        "description": "Conditional. The name of the parent searchServices. Required if the template is used in a standalone deployment."
+                      }
+                    },
+                    "name": {
+                      "type": "string",
+                      "metadata": {
+                        "description": "Required. The name of the shared private link resource managed by the Azure Cognitive Search service within the specified resource group."
+                      }
+                    },
+                    "privateLinkResourceId": {
+                      "type": "string",
+                      "metadata": {
+                        "description": "Required. The resource ID of the resource the shared private link resource is for."
+                      }
+                    },
+                    "groupId": {
+                      "type": "string",
+                      "metadata": {
+                        "description": "Required. The group ID from the provider of resource the shared private link resource is for."
+                      }
+                    },
+                    "requestMessage": {
+                      "type": "string",
+                      "metadata": {
+                        "description": "Required. The request message for requesting approval of the shared private link resource."
+                      }
+                    },
+                    "resourceRegion": {
+                      "type": "string",
+                      "nullable": true,
+                      "metadata": {
+                        "description": "Optional. Can be used to specify the Azure Resource Manager location of the resource to which a shared private link is to be created. This is only required for those resources whose DNS configuration are regional (such as Azure Kubernetes Service)."
+                      }
+                    }
+                  },
+                  "resources": {
+                    "searchService": {
+                      "existing": true,
+                      "type": "Microsoft.Search/searchServices",
+                      "apiVersion": "2025-02-01-preview",
+                      "name": "[parameters('searchServiceName')]"
+                    },
+                    "sharedPrivateLinkResource": {
+                      "type": "Microsoft.Search/searchServices/sharedPrivateLinkResources",
+                      "apiVersion": "2025-02-01-preview",
+                      "name": "[format('{0}/{1}', parameters('searchServiceName'), parameters('name'))]",
+                      "properties": {
+                        "privateLinkResourceId": "[parameters('privateLinkResourceId')]",
+                        "groupId": "[parameters('groupId')]",
+                        "requestMessage": "[parameters('requestMessage')]",
+                        "resourceRegion": "[parameters('resourceRegion')]"
+                      }
+                    }
+                  },
+                  "outputs": {
+                    "name": {
+                      "type": "string",
+                      "metadata": {
+                        "description": "The name of the shared private link resource."
+                      },
+                      "value": "[parameters('name')]"
+                    },
+                    "resourceId": {
+                      "type": "string",
+                      "metadata": {
+                        "description": "The resource ID of the shared private link resource."
+                      },
+                      "value": "[resourceId('Microsoft.Search/searchServices/sharedPrivateLinkResources', parameters('searchServiceName'), parameters('name'))]"
+                    },
+                    "resourceGroupName": {
+                      "type": "string",
+                      "metadata": {
+                        "description": "The name of the resource group the shared private link resource was created in."
+                      },
+                      "value": "[resourceGroup().name]"
+                    }
+                  }
+                }
+              },
+              "dependsOn": [
+                "searchService"
+              ]
+            },
+            "secretsExport": {
+              "condition": "[not(equals(parameters('secretsExportConfiguration'), null()))]",
+              "type": "Microsoft.Resources/deployments",
+              "apiVersion": "2022-09-01",
+              "name": "[format('{0}-secrets-kv', uniqueString(deployment().name, parameters('location')))]",
+              "subscriptionId": "[split(tryGet(parameters('secretsExportConfiguration'), 'keyVaultResourceId'), '/')[2]]",
+              "resourceGroup": "[split(tryGet(parameters('secretsExportConfiguration'), 'keyVaultResourceId'), '/')[4]]",
+              "properties": {
+                "expressionEvaluationOptions": {
+                  "scope": "inner"
+                },
+                "mode": "Incremental",
+                "parameters": {
+                  "keyVaultName": {
+                    "value": "[last(split(tryGet(parameters('secretsExportConfiguration'), 'keyVaultResourceId'), '/'))]"
+                  },
+                  "secretsToSet": {
+                    "value": "[union(createArray(), if(contains(parameters('secretsExportConfiguration'), 'primaryAdminKeyName'), createArray(createObject('name', tryGet(parameters('secretsExportConfiguration'), 'primaryAdminKeyName'), 'value', listAdminKeys('searchService', '2025-02-01-preview').primaryKey)), createArray()), if(contains(parameters('secretsExportConfiguration'), 'secondaryAdminKeyName'), createArray(createObject('name', tryGet(parameters('secretsExportConfiguration'), 'secondaryAdminKeyName'), 'value', listAdminKeys('searchService', '2025-02-01-preview').secondaryKey)), createArray()))]"
+                  }
+                },
+                "template": {
+                  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                  "languageVersion": "2.0",
+                  "contentVersion": "1.0.0.0",
+                  "metadata": {
+                    "_generator": {
+                      "name": "bicep",
+                      "version": "0.37.4.10188",
+                      "templateHash": "7634110751636246703"
+                    }
+                  },
+                  "definitions": {
+                    "secretSetType": {
+                      "type": "object",
+                      "properties": {
+                        "secretResourceId": {
+                          "type": "string",
+                          "metadata": {
+                            "description": "The resourceId of the exported secret."
+                          }
+                        },
+                        "secretUri": {
+                          "type": "string",
+                          "metadata": {
+                            "description": "The secret URI of the exported secret."
+                          }
+                        }
+                      },
+                      "metadata": {
+                        "__bicep_export!": true
+                      }
+                    },
+                    "secretToSetType": {
+                      "type": "object",
+                      "properties": {
+                        "name": {
+                          "type": "string",
+                          "metadata": {
+                            "description": "Required. The name of the secret to set."
+                          }
+                        },
+                        "value": {
+                          "type": "securestring",
+                          "metadata": {
+                            "description": "Required. The value of the secret to set."
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "parameters": {
+                    "keyVaultName": {
+                      "type": "string",
+                      "metadata": {
+                        "description": "Required. The name of the Key Vault to set the ecrets in."
+                      }
+                    },
+                    "secretsToSet": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/definitions/secretToSetType"
+                      },
+                      "metadata": {
+                        "description": "Required. The secrets to set in the Key Vault."
+                      }
+                    }
+                  },
+                  "resources": {
+                    "keyVault": {
+                      "existing": true,
+                      "type": "Microsoft.KeyVault/vaults",
+                      "apiVersion": "2024-11-01",
+                      "name": "[parameters('keyVaultName')]"
+                    },
+                    "secrets": {
+                      "copy": {
+                        "name": "secrets",
+                        "count": "[length(parameters('secretsToSet'))]"
+                      },
+                      "type": "Microsoft.KeyVault/vaults/secrets",
+                      "apiVersion": "2024-11-01",
+                      "name": "[format('{0}/{1}', parameters('keyVaultName'), parameters('secretsToSet')[copyIndex()].name)]",
+                      "properties": {
+                        "value": "[parameters('secretsToSet')[copyIndex()].value]"
+                      }
+                    }
+                  },
+                  "outputs": {
+                    "secretsSet": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/definitions/secretSetType"
+                      },
+                      "metadata": {
+                        "description": "The references to the secrets exported to the provided Key Vault."
+                      },
+                      "copy": {
+                        "count": "[length(range(0, length(coalesce(parameters('secretsToSet'), createArray()))))]",
+                        "input": {
+                          "secretResourceId": "[resourceId('Microsoft.KeyVault/vaults/secrets', parameters('keyVaultName'), parameters('secretsToSet')[range(0, length(coalesce(parameters('secretsToSet'), createArray())))[copyIndex()]].name)]",
+                          "secretUri": "[reference(format('secrets[{0}]', range(0, length(coalesce(parameters('secretsToSet'), createArray())))[copyIndex()])).secretUri]"
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "dependsOn": [
+                "searchService"
               ]
             }
           },
           "outputs": {
+            "name": {
+              "type": "string",
+              "metadata": {
+                "description": "The name of the search service."
+              },
+              "value": "[parameters('name')]"
+            },
             "resourceId": {
               "type": "string",
               "metadata": {
-                "description": "The resource ID of the key vault."
+                "description": "The resource ID of the search service."
               },
-              "value": "[resourceId('Microsoft.KeyVault/vaults', parameters('name'))]"
+              "value": "[resourceId('Microsoft.Search/searchServices', parameters('name'))]"
             },
             "resourceGroupName": {
               "type": "string",
               "metadata": {
-                "description": "The name of the resource group the key vault was created in."
+                "description": "The name of the resource group the search service was created in."
               },
               "value": "[resourceGroup().name]"
             },
-            "name": {
+            "systemAssignedMIPrincipalId": {
               "type": "string",
+              "nullable": true,
               "metadata": {
-                "description": "The name of the key vault."
+                "description": "The principal ID of the system assigned identity."
               },
-              "value": "[parameters('name')]"
-            },
-            "uri": {
-              "type": "string",
-              "metadata": {
-                "description": "The URI of the key vault."
-              },
-              "value": "[reference('keyVault').vaultUri]"
+              "value": "[tryGet(tryGet(reference('searchService', '2025-02-01-preview', 'full'), 'identity'), 'principalId')]"
             },
             "location": {
               "type": "string",
               "metadata": {
                 "description": "The location the resource was deployed into."
               },
-              "value": "[reference('keyVault', '2022-07-01', 'full').location]"
+              "value": "[reference('searchService', '2025-02-01-preview', 'full').location]"
+            },
+            "endpoint": {
+              "type": "string",
+              "metadata": {
+                "description": "The endpoint of the search service."
+              },
+              "value": "[reference('searchService').endpoint]"
             },
             "privateEndpoints": {
               "type": "array",
@@ -33281,58 +32294,152 @@
                 "$ref": "#/definitions/privateEndpointOutputType"
               },
               "metadata": {
-                "description": "The private endpoints of the key vault."
+                "description": "The private endpoints of the search service."
               },
               "copy": {
                 "count": "[length(coalesce(parameters('privateEndpoints'), createArray()))]",
                 "input": {
-                  "name": "[reference(format('keyVault_privateEndpoints[{0}]', copyIndex())).outputs.name.value]",
-                  "resourceId": "[reference(format('keyVault_privateEndpoints[{0}]', copyIndex())).outputs.resourceId.value]",
-                  "groupId": "[tryGet(tryGet(reference(format('keyVault_privateEndpoints[{0}]', copyIndex())).outputs, 'groupId'), 'value')]",
-                  "customDnsConfigs": "[reference(format('keyVault_privateEndpoints[{0}]', copyIndex())).outputs.customDnsConfigs.value]",
-                  "networkInterfaceResourceIds": "[reference(format('keyVault_privateEndpoints[{0}]', copyIndex())).outputs.networkInterfaceResourceIds.value]"
+                  "name": "[reference(format('searchService_privateEndpoints[{0}]', copyIndex())).outputs.name.value]",
+                  "resourceId": "[reference(format('searchService_privateEndpoints[{0}]', copyIndex())).outputs.resourceId.value]",
+                  "groupId": "[tryGet(tryGet(reference(format('searchService_privateEndpoints[{0}]', copyIndex())).outputs, 'groupId'), 'value')]",
+                  "customDnsConfigs": "[reference(format('searchService_privateEndpoints[{0}]', copyIndex())).outputs.customDnsConfigs.value]",
+                  "networkInterfaceResourceIds": "[reference(format('searchService_privateEndpoints[{0}]', copyIndex())).outputs.networkInterfaceResourceIds.value]"
                 }
               }
             },
-            "secrets": {
-              "type": "array",
-              "items": {
-                "$ref": "#/definitions/credentialOutputType"
-              },
+            "exportedSecrets": {
+              "$ref": "#/definitions/secretsOutputType",
               "metadata": {
-                "description": "The properties of the created secrets."
+                "description": "A hashtable of references to the secrets exported to the provided Key Vault. The key of each reference is each secret's name."
               },
-              "copy": {
-                "count": "[length(range(0, length(coalesce(parameters('secrets'), createArray()))))]",
-                "input": {
-                  "resourceId": "[reference(format('keyVault_secrets[{0}]', range(0, length(coalesce(parameters('secrets'), createArray())))[copyIndex()])).outputs.resourceId.value]",
-                  "uri": "[reference(format('keyVault_secrets[{0}]', range(0, length(coalesce(parameters('secrets'), createArray())))[copyIndex()])).outputs.secretUri.value]",
-                  "uriWithVersion": "[reference(format('keyVault_secrets[{0}]', range(0, length(coalesce(parameters('secrets'), createArray())))[copyIndex()])).outputs.secretUriWithVersion.value]"
-                }
-              }
+              "value": "[if(not(equals(parameters('secretsExportConfiguration'), null())), toObject(reference('secretsExport').outputs.secretsSet.value, lambda('secret', last(split(lambdaVariables('secret').secretResourceId, '/'))), lambda('secret', lambdaVariables('secret'))), createObject())]"
             },
-            "keys": {
-              "type": "array",
-              "items": {
-                "$ref": "#/definitions/credentialOutputType"
-              },
+            "primaryKey": {
+              "type": "securestring",
               "metadata": {
-                "description": "The properties of the created keys."
+                "description": "The primary admin API key of the search service."
               },
-              "copy": {
-                "count": "[length(range(0, length(coalesce(parameters('keys'), createArray()))))]",
-                "input": {
-                  "resourceId": "[reference(format('keyVault_keys[{0}]', range(0, length(coalesce(parameters('keys'), createArray())))[copyIndex()])).outputs.resourceId.value]",
-                  "uri": "[reference(format('keyVault_keys[{0}]', range(0, length(coalesce(parameters('keys'), createArray())))[copyIndex()])).outputs.keyUri.value]",
-                  "uriWithVersion": "[reference(format('keyVault_keys[{0}]', range(0, length(coalesce(parameters('keys'), createArray())))[copyIndex()])).outputs.keyUriWithVersion.value]"
-                }
-              }
+              "value": "[listAdminKeys('searchService', '2025-02-01-preview').primaryKey]"
+            },
+            "secondaryKey": {
+              "type": "securestring",
+              "metadata": {
+                "description": "The secondaryKey admin API key of the search service."
+              },
+              "value": "[listAdminKeys('searchService', '2025-02-01-preview').secondaryKey]"
             }
           }
         }
       },
       "dependsOn": [
-        "aiFoundryAiServicesProject"
+        "[format('avmPrivateDnsZones[{0}]', variables('dnsZoneIndex').searchService)]",
+        "logAnalyticsWorkspace",
+        "network",
+        "userAssignedIdentity"
+      ]
+    },
+    "existing_AIProject_SearchConnectionModule": {
+      "condition": "[variables('useExistingAiFoundryAiProject')]",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2022-09-01",
+      "name": "aiProjectSearchConnectionDeployment",
+      "subscriptionId": "[variables('aiFoundryAiServicesSubscriptionId')]",
+      "resourceGroup": "[variables('aiFoundryAiServicesResourceGroupName')]",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "existingAIProjectName": {
+            "value": "[variables('aiFoundryAiProjectResourceName')]"
+          },
+          "existingAIFoundryName": {
+            "value": "[variables('aiFoundryAiServicesResourceName')]"
+          },
+          "aiSearchName": {
+            "value": "[variables('aiSearchName')]"
+          },
+          "aiSearchResourceId": {
+            "value": "[reference('aiSearch').outputs.resourceId.value]"
+          },
+          "aiSearchLocation": {
+            "value": "[reference('aiSearch').outputs.location.value]"
+          },
+          "aiSearchConnectionName": {
+            "value": "[variables('aiSearchConnectionName')]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.37.4.10188",
+              "templateHash": "6038840175458269917"
+            }
+          },
+          "parameters": {
+            "existingAIProjectName": {
+              "type": "string",
+              "metadata": {
+                "description": "Required. Existing AI Project Name"
+              }
+            },
+            "existingAIFoundryName": {
+              "type": "string",
+              "metadata": {
+                "description": "Required. Existing AI Foundry Name"
+              }
+            },
+            "aiSearchName": {
+              "type": "string",
+              "metadata": {
+                "description": "Required. AI Search Name"
+              }
+            },
+            "aiSearchResourceId": {
+              "type": "string",
+              "metadata": {
+                "description": "Required. AI Search Resource ID"
+              }
+            },
+            "aiSearchLocation": {
+              "type": "string",
+              "metadata": {
+                "description": "Required. AI Search Location"
+              }
+            },
+            "aiSearchConnectionName": {
+              "type": "string",
+              "metadata": {
+                "description": "Required. AI Search Connection Name"
+              }
+            }
+          },
+          "resources": [
+            {
+              "type": "Microsoft.CognitiveServices/accounts/projects/connections",
+              "apiVersion": "2025-04-01-preview",
+              "name": "[format('{0}/{1}/{2}', parameters('existingAIFoundryName'), parameters('existingAIProjectName'), parameters('aiSearchConnectionName'))]",
+              "properties": {
+                "category": "CognitiveSearch",
+                "target": "[format('https://{0}.search.windows.net', parameters('aiSearchName'))]",
+                "authType": "AAD",
+                "isSharedToAll": true,
+                "metadata": {
+                  "ApiType": "Azure",
+                  "ResourceId": "[parameters('aiSearchResourceId')]",
+                  "location": "[parameters('aiSearchLocation')]"
+                }
+              }
+            }
+          ]
+        }
+      },
+      "dependsOn": [
+        "aiSearch"
       ]
     },
     "storageAccount": {
@@ -33353,7 +32460,7 @@
             "value": "[variables('solutionLocation')]"
           },
           "skuName": {
-            "value": "Premium_LRS"
+            "value": "Standard_LRS"
           },
           "managedIdentities": {
             "value": {
@@ -33408,7 +32515,7 @@
           },
           "allowBlobPublicAccess": "[if(parameters('enablePrivateNetworking'), createObject('value', true()), createObject('value', false()))]",
           "publicNetworkAccess": "[if(parameters('enablePrivateNetworking'), createObject('value', 'Disabled'), createObject('value', 'Enabled'))]",
-          "privateEndpoints": "[if(parameters('enablePrivateNetworking'), createObject('value', createArray(createObject('name', format('pep-blob-{0}', variables('solutionSuffix')), 'privateDnsZoneGroup', createObject('privateDnsZoneGroupConfigs', createArray(createObject('name', 'storage-dns-zone-group-blob', 'privateDnsZoneResourceId', reference(format('avmPrivateDnsZones[{0}]', variables('dnsZoneIndex').storageBlob)).outputs.resourceId.value))), 'subnetResourceId', reference('network').outputs.subnetWebResourceId.value, 'service', 'blob'), createObject('name', format('pep-file-{0}', variables('solutionSuffix')), 'privateDnsZoneGroup', createObject('privateDnsZoneGroupConfigs', createArray(createObject('name', 'storage-dns-zone-group-file', 'privateDnsZoneResourceId', reference(format('avmPrivateDnsZones[{0}]', variables('dnsZoneIndex').storageFile)).outputs.resourceId.value))), 'subnetResourceId', reference('network').outputs.subnetWebResourceId.value, 'service', 'file'))), createObject('value', createArray()))]"
+          "privateEndpoints": "[if(parameters('enablePrivateNetworking'), createObject('value', createArray(createObject('name', format('pep-blob-{0}', variables('solutionSuffix')), 'privateDnsZoneGroup', createObject('privateDnsZoneGroupConfigs', createArray(createObject('name', 'storage-dns-zone-group-blob', 'privateDnsZoneResourceId', reference(format('avmPrivateDnsZones[{0}]', variables('dnsZoneIndex').storageBlob)).outputs.resourceId.value))), 'subnetResourceId', reference('network').outputs.subnetPrivateEndpointsResourceId.value, 'service', 'blob'), createObject('name', format('pep-queue-{0}', variables('solutionSuffix')), 'privateDnsZoneGroup', createObject('privateDnsZoneGroupConfigs', createArray(createObject('name', 'storage-dns-zone-group-queue', 'privateDnsZoneResourceId', reference(format('avmPrivateDnsZones[{0}]', variables('dnsZoneIndex').storageQueue)).outputs.resourceId.value))), 'subnetResourceId', reference('network').outputs.subnetPrivateEndpointsResourceId.value, 'service', 'queue'))), createObject('value', createArray()))]"
         },
         "template": {
           "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
@@ -39102,7 +38209,7 @@
         }
       },
       "dependsOn": [
-        "[format('avmPrivateDnsZones[{0}]', variables('dnsZoneIndex').storageFile)]",
+        "[format('avmPrivateDnsZones[{0}]', variables('dnsZoneIndex').storageQueue)]",
         "[format('avmPrivateDnsZones[{0}]', variables('dnsZoneIndex').storageBlob)]",
         "network",
         "userAssignedIdentity"
@@ -39170,7 +38277,7 @@
               "publicNetworkAccess": "[if(parameters('enablePrivateNetworking'), 'Disabled', 'Enabled')]"
             }
           },
-          "privateEndpoints": "[if(parameters('enablePrivateNetworking'), createObject('value', createArray(createObject('name', format('pep-{0}', variables('cosmosDBResourceName')), 'customNetworkInterfaceName', format('nic-{0}', variables('cosmosDBResourceName')), 'privateDnsZoneGroup', createObject('privateDnsZoneGroupConfigs', createArray(createObject('privateDnsZoneResourceId', reference(format('avmPrivateDnsZones[{0}]', variables('dnsZoneIndex').cosmosDB)).outputs.resourceId.value))), 'service', 'Sql', 'subnetResourceId', reference('network').outputs.subnetWebResourceId.value))), createObject('value', createArray()))]",
+          "privateEndpoints": "[if(parameters('enablePrivateNetworking'), createObject('value', createArray(createObject('name', format('pep-{0}', variables('cosmosDBResourceName')), 'customNetworkInterfaceName', format('nic-{0}', variables('cosmosDBResourceName')), 'privateDnsZoneGroup', createObject('privateDnsZoneGroupConfigs', createArray(createObject('privateDnsZoneResourceId', reference(format('avmPrivateDnsZones[{0}]', variables('dnsZoneIndex').cosmosDB)).outputs.resourceId.value))), 'service', 'Sql', 'subnetResourceId', reference('network').outputs.subnetPrivateEndpointsResourceId.value))), createObject('value', createArray()))]",
           "zoneRedundant": "[if(parameters('enableRedundancy'), createObject('value', true()), createObject('value', false()))]",
           "capabilitiesToAdd": "[if(parameters('enableRedundancy'), createObject('value', null()), createObject('value', createArray('EnableServerless')))]",
           "automaticFailover": "[if(parameters('enableRedundancy'), createObject('value', true()), createObject('value', false()))]",
@@ -43011,6 +42118,58 @@
               {
                 "name": "AZURE-COSMOSDB-ENABLE-FEEDBACK",
                 "value": "True"
+              },
+              {
+                "name": "AZURE-LOCATION",
+                "value": "[parameters('aiDeploymentsLocation')]"
+              },
+              {
+                "name": "AZURE-RESOURCE-GROUP",
+                "value": "[resourceGroup().name]"
+              },
+              {
+                "name": "AZURE-SUBSCRIPTION-ID",
+                "value": "[subscription().subscriptionId]"
+              },
+              {
+                "name": "COG-SERVICES-NAME",
+                "value": "[variables('aiFoundryAiServicesResourceName')]"
+              },
+              {
+                "name": "COG-SERVICES-ENDPOINT",
+                "value": "[reference('aiFoundryAiServicesProject').outputs.aoaiEndpoint.value]"
+              },
+              {
+                "name": "AZURE-SEARCH-INDEX",
+                "value": "pdf_index"
+              },
+              {
+                "name": "AZURE-SEARCH-SERVICE",
+                "value": "[take(format('avm.res.cognitive-search-services.{0}', variables('aiSearchName')), 64)]"
+              },
+              {
+                "name": "AZURE-SEARCH-ENDPOINT",
+                "value": "[format('https://{0}.search.windows.net', take(format('avm.res.cognitive-search-services.{0}', variables('aiSearchName')), 64))]"
+              },
+              {
+                "name": "AZURE-OPENAI-EMBEDDING-MODEL",
+                "value": "[parameters('embeddingModel')]"
+              },
+              {
+                "name": "AZURE-OPENAI-ENDPOINT",
+                "value": "[reference('aiFoundryAiServicesProject').outputs.aoaiEndpoint.value]"
+              },
+              {
+                "name": "AZURE-OPENAI-PREVIEW-API-VERSION",
+                "value": "[parameters('azureOpenaiAPIVersion')]"
+              },
+              {
+                "name": "AZURE-OPEN-AI-DEPLOYMENT-MODEL",
+                "value": "[parameters('gptModelName')]"
+              },
+              {
+                "name": "TENANT-ID",
+                "value": "[subscription().tenantId]"
               }
             ]
           }
@@ -46133,6 +45292,8 @@
         }
       },
       "dependsOn": [
+        "aiFoundryAiServicesProject",
+        "aiSearch",
         "cosmosDB",
         "storageAccount"
       ]
@@ -46756,7 +45917,7 @@
                   "SCM_DO_BUILD_DURING_DEPLOYMENT": "true",
                   "DOCKER_REGISTRY_SERVER_URL": "[format('https://{0}.azurecr.io', parameters('acrName'))]",
                   "AUTH_ENABLED": "false",
-                  "AZURE_SEARCH_SERVICE": "[reference('aiFoundryAiServicesProject').outputs.aiSearchServiceName.value]",
+                  "AZURE_SEARCH_SERVICE": "[take(format('avm.res.cognitive-search-services.{0}', variables('aiSearchName')), 64)]",
                   "AZURE_SEARCH_INDEX": "pdf_index",
                   "AZURE_SEARCH_USE_SEMANTIC_SEARCH": "False",
                   "AZURE_SEARCH_SEMANTIC_SEARCH_CONFIG": "my-semantic-config",
@@ -46771,7 +45932,7 @@
                   "AZURE_SEARCH_VECTOR_COLUMNS": "contentVector",
                   "AZURE_SEARCH_PERMITTED_GROUPS_COLUMN": "",
                   "AZURE_SEARCH_STRICTNESS": "3",
-                  "AZURE_SEARCH_CONNECTION_NAME": "[reference('aiFoundryAiServicesProject').outputs.aiSearchConnectionName.value]",
+                  "AZURE_SEARCH_CONNECTION_NAME": "[variables('aiSearchConnectionName')]",
                   "AZURE_OPENAI_API_VERSION": "[parameters('azureOpenaiAPIVersion')]",
                   "AZURE_OPENAI_MODEL": "[parameters('gptModelName')]",
                   "AZURE_OPENAI_ENDPOINT": "[reference('aiFoundryAiServicesProject').outputs.aoaiEndpoint.value]",
@@ -46805,7 +45966,7 @@
           "vnetImagePullEnabled": "[if(parameters('enablePrivateNetworking'), createObject('value', true()), createObject('value', false()))]",
           "virtualNetworkSubnetId": "[if(parameters('enablePrivateNetworking'), createObject('value', reference('network').outputs.subnetWebResourceId.value), createObject('value', null()))]",
           "publicNetworkAccess": "[if(parameters('enablePrivateNetworking'), createObject('value', 'Disabled'), createObject('value', 'Enabled'))]",
-          "privateEndpoints": "[if(parameters('enablePrivateNetworking'), createObject('value', createArray(createObject('name', format('pep-{0}', variables('webSiteResourceName')), 'customNetworkInterfaceName', format('nic-{0}', variables('webSiteResourceName')), 'privateDnsZoneGroup', createObject('privateDnsZoneGroupConfigs', createArray(createObject('privateDnsZoneResourceId', reference(format('avmPrivateDnsZones[{0}]', variables('dnsZoneIndex').appService)).outputs.resourceId.value))), 'service', 'sites', 'subnetResourceId', reference('network').outputs.subnetWebResourceId.value))), createObject('value', null()))]"
+          "privateEndpoints": "[if(parameters('enablePrivateNetworking'), createObject('value', createArray(createObject('name', format('pep-{0}', variables('webSiteResourceName')), 'customNetworkInterfaceName', format('nic-{0}', variables('webSiteResourceName')), 'privateDnsZoneGroup', createObject('privateDnsZoneGroupConfigs', createArray(createObject('privateDnsZoneResourceId', reference(format('avmPrivateDnsZones[{0}]', variables('dnsZoneIndex').appService)).outputs.resourceId.value))), 'service', 'sites', 'subnetResourceId', reference('network').outputs.subnetPrivateEndpointsResourceId.value))), createObject('value', null()))]"
         },
         "template": {
           "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
@@ -48789,6 +47950,7 @@
       "dependsOn": [
         "aiFoundryAiServices",
         "aiFoundryAiServicesProject",
+        "aiSearch",
         "applicationInsights",
         "[format('avmPrivateDnsZones[{0}]', variables('dnsZoneIndex').appService)]",
         "cosmosDB",
@@ -48869,14 +48031,14 @@
       "metadata": {
         "description": "Contains AI Search Service Name"
       },
-      "value": "[reference('aiFoundryAiServicesProject').outputs.aiSearchServiceName.value]"
+      "value": "[take(format('avm.res.cognitive-search-services.{0}', variables('aiSearchName')), 64)]"
     },
     "azureSearchConnectionName": {
       "type": "string",
       "metadata": {
         "description": "Contains Azure Search Connection Name"
       },
-      "value": "[reference('aiFoundryAiServicesProject').outputs.aiSearchConnectionName.value]"
+      "value": "[variables('aiSearchConnectionName')]"
     },
     "azureOpenaiTitlePrompt": {
       "type": "string",
@@ -48996,6 +48158,13 @@
         "description": "Contains AI Agent Model Deployment Name"
       },
       "value": "[parameters('gptModelName')]"
+    },
+    "azureApplicationInsightsConnectionString": {
+      "type": "string",
+      "metadata": {
+        "description": "Contains Application Insights Connection String"
+      },
+      "value": "[if(parameters('enableMonitoring'), reference('applicationInsights').outputs.connectionString.value, '')]"
     },
     "appEnv": {
       "type": "string",
