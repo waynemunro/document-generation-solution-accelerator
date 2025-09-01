@@ -101,16 +101,16 @@ param vmAdminPassword string?
 param tags resourceInput<'Microsoft.Resources/resourceGroups@2025-04-01'>.tags = {}
 
 @description('Optional. Enable monitoring applicable resources, aligned with the Well Architected Framework recommendations. This setting enables Application Insights and Log Analytics and configures all the resources applicable resources to send logs. Defaults to false.')
-param enableMonitoring bool = true
+param enableMonitoring bool = false
 
 @description('Optional. Enable scalability for applicable resources, aligned with the Well Architected Framework recommendations. Defaults to false.')
-param enableScalability bool = true
+param enableScalability bool = false
 
 @description('Optional. Enable redundancy for applicable resources, aligned with the Well Architected Framework recommendations. Defaults to false.')
 param enableRedundancy bool = false
 
 @description('Optional. Enable private networking for applicable resources, aligned with the Well Architected Framework recommendations. Defaults to false.')
-param enablePrivateNetworking bool = true
+param enablePrivateNetworking bool = false
 
 @description('Optional. The Container Registry hostname where the docker images are located.')
 param acrName string = 'testapwaf'
@@ -333,7 +333,7 @@ var privateDnsZones = [
   'privatelink.services.ai.azure.com'
   'privatelink.blob.${environment().suffixes.storage}'
   'privatelink.queue.${environment().suffixes.storage}'
-  'privatelink.mongo.cosmos.azure.com'
+  'privatelink.documents.azure.com'
   'privatelink.vaultcore.azure.net'
   'privatelink.azurewebsites.net'
   'privatelink.search.windows.net'
@@ -1000,11 +1000,11 @@ module saveSecretsInKeyVault 'br/public:avm/res/key-vault/vault:0.12.1' = {
       {name: 'AZURE-SEARCH-INDEX', value: 'pdf_index'}
       {
         name: 'AZURE-SEARCH-SERVICE'
-        value: aiSearch.name
+        value: aiSearch.outputs.name
       }
       {
         name: 'AZURE-SEARCH-ENDPOINT'
-        value: 'https://${aiSearch.name}.search.windows.net'
+        value: 'https://${aiSearch.outputs.name}.search.windows.net'
       }
       {name: 'AZURE-OPENAI-EMBEDDING-MODEL', value: embeddingModel}
       {
@@ -1107,7 +1107,7 @@ module webSite 'modules/web-sites.bicep' = {
           // WEBSITES_PORT: '3000'
           // WEBSITES_CONTAINER_START_TIME_LIMIT: '1800' // 30 minutes, adjust as needed
           AUTH_ENABLED: 'false'
-          AZURE_SEARCH_SERVICE: aiSearch.name
+          AZURE_SEARCH_SERVICE: aiSearch.outputs.name
           AZURE_SEARCH_INDEX: 'pdf_index'
           AZURE_SEARCH_USE_SEMANTIC_SEARCH: 'False'
           AZURE_SEARCH_SEMANTIC_SEARCH_CONFIG: 'my-semantic-config'
@@ -1156,22 +1156,8 @@ module webSite 'modules/web-sites.bicep' = {
     vnetRouteAllEnabled: enablePrivateNetworking ? true : false
     vnetImagePullEnabled: enablePrivateNetworking ? true : false
     virtualNetworkSubnetId: enablePrivateNetworking ? network!.outputs.subnetWebResourceId : null
-    publicNetworkAccess: enablePrivateNetworking ? 'Disabled' : 'Enabled'
-    privateEndpoints: enablePrivateNetworking
-      ? [
-          {
-            name: 'pep-${webSiteResourceName}'
-            customNetworkInterfaceName: 'nic-${webSiteResourceName}'
-            privateDnsZoneGroup: {
-              privateDnsZoneGroupConfigs: [{ privateDnsZoneResourceId: avmPrivateDnsZones[dnsZoneIndex.appService]!.outputs.resourceId }]
-            }
-            service: 'sites'
-            subnetResourceId: network!.outputs.subnetPrivateEndpointsResourceId
-          }
-        ]
-      : null
+    publicNetworkAccess: 'Enabled'
   }
-  scope: resourceGroup(resourceGroup().name)
 }
 
 @description('Contains WebApp URL')
@@ -1202,7 +1188,7 @@ output aiFoundryRgName string = aiFoundryAiServices!.outputs.resourceGroupName
 output aiFoundryResourceId string = aiFoundryAiServices!.outputs.resourceId
 
 @description('Contains AI Search Service Name')
-output aiSearchServiceName string = aiSearch.name
+output aiSearchServiceName string = aiSearch.outputs.name
 
 @description('Contains Azure Search Connection Name')
 output azureSearchConnectionName string = aiSearchConnectionName

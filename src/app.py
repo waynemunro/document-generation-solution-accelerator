@@ -357,7 +357,7 @@ async def send_chat_request(request_body, request_headers) -> AsyncGenerator[Dic
                         tool_choice={"type": "azure_ai_search"}
                     )
                     if run.status == "failed":
-                        raise Exception(f"Run failed: {run.error_message}")
+                        raise Exception(f"Run failed: {run.last_error}")
                     else:
                         await extract_citations_from_run_steps(browse_project_client, thread.id, run.id, answer, streamed_titles)
                         messages = browse_project_client.agents.messages.list(thread_id=thread.id)
@@ -419,7 +419,7 @@ async def send_chat_request(request_body, request_headers) -> AsyncGenerator[Dic
                     tool_choice={"type": "azure_ai_search"}
                 )
                 if run.status == "failed":
-                    raise Exception(f"Run failed: {run.error_message}")
+                    raise Exception(f"Run failed: {run.last_error}")
                 else:
                     await extract_citations_from_run_steps(template_project_client, thread.id, run.id, answer)
                     messages = template_project_client.agents.messages.list(thread_id=thread.id)
