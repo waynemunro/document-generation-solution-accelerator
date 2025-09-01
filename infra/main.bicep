@@ -1263,3 +1263,6 @@ output azureApplicationInsightsConnectionString string = enableMonitoring ? appl
 
 @description('Contains Application Environment.')
 output appEnv string  = 'Prod'
+
+@description('Contains User Assigned Identity Client ID')
+output azureClientId string = userAssignedIdentity.outputs.clientId
