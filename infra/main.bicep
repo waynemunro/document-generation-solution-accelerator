@@ -745,7 +745,7 @@ module aiSearch 'br/public:avm/res/search/search-service:0.11.1' = {
 }
 
 resource aiSearchFoundryConnection 'Microsoft.CognitiveServices/accounts/projects/connections@2025-04-01-preview' = if (!useExistingAiFoundryAiProject) {
-  name: '${aiFoundryAiServicesResourceName}/${aiFoundryAiProjectResourceName}/${aiSearchConnectionName}'
+  name: '${aiFoundryAiServicesResourceName}/${aiFoundryAiProjectResourceName}/${aiSearchName}'
   properties: {
     category: 'CognitiveSearch'
     target: 'https://${aiSearchName}.search.windows.net'
