@@ -101,16 +101,16 @@ param vmAdminPassword string?
 param tags resourceInput<'Microsoft.Resources/resourceGroups@2025-04-01'>.tags = {}
 
 @description('Optional. Enable monitoring applicable resources, aligned with the Well Architected Framework recommendations. This setting enables Application Insights and Log Analytics and configures all the resources applicable resources to send logs. Defaults to false.')
-param enableMonitoring bool = false
+param enableMonitoring bool = true
 
 @description('Optional. Enable scalability for applicable resources, aligned with the Well Architected Framework recommendations. Defaults to false.')
-param enableScalability bool = false
+param enableScalability bool = true
 
 @description('Optional. Enable redundancy for applicable resources, aligned with the Well Architected Framework recommendations. Defaults to false.')
 param enableRedundancy bool = false
 
 @description('Optional. Enable private networking for applicable resources, aligned with the Well Architected Framework recommendations. Defaults to false.')
-param enablePrivateNetworking bool = false
+param enablePrivateNetworking bool = true
 
 @description('Optional. The Container Registry hostname where the docker images are located.')
 param acrName string = 'testapwaf'
@@ -948,7 +948,7 @@ module cosmosDB 'br/public:avm/res/document-db/database-account:0.15.0' = {
           {
             failoverPriority: 0
             isZoneRedundant: true
-            locationName: secondaryLocation
+            locationName: solutionLocation
           }
           {
             failoverPriority: 1
@@ -1173,7 +1173,7 @@ module webSite 'modules/web-sites.bicep' = {
           UWSGI_PROCESSES: '2'
           UWSGI_THREADS: '2'
           APP_ENV: 'Prod'
-          AZURE_CLIENT_ID: userAssignedIdentity.outputs.clientId // NOTE: This is the client ID of the managed identity, not the Entra application, and is needed for the App Service to access the Cosmos DB account.
+          AZURE_CLIENT_ID: userAssignedIdentity.outputs.clientId
         }
         // WAF aligned configuration for Monitoring
         applicationInsightResourceId: enableMonitoring ? applicationInsights!.outputs.resourceId : null
@@ -1186,6 +1186,32 @@ module webSite 'modules/web-sites.bicep' = {
     virtualNetworkSubnetId: enablePrivateNetworking ? network!.outputs.subnetWebResourceId : null
     publicNetworkAccess: 'Enabled'
   }
+}
+
+// ========== App Service Logs Configuration ========== //
+resource webSiteLogs 'Microsoft.Web/sites/config@2024-04-01' = {
+  name: '${webSiteResourceName}/logs'
+  properties: {
+    applicationLogs: {
+      fileSystem: {
+        level: 'Verbose'  // Match the current configuration
+      }
+    }
+    httpLogs: {
+      fileSystem: {
+        enabled: true
+        retentionInDays: 3
+        retentionInMb: 100
+      }
+    }
+    detailedErrorMessages: {
+      enabled: true
+    }
+    failedRequestsTracing: {
+      enabled: true
+    }
+  }
+  dependsOn: [webSite]
 }
 
 @description('Contains WebApp URL')
