@@ -583,7 +583,9 @@ module aiFoundryAiServices 'br:mcr.microsoft.com/bicep/avm/res/cognitive-service
       virtualNetworkRules: []
       ipRules: []
     }
-    managedIdentities: { userAssignedResourceIds: [userAssignedIdentity!.outputs.resourceId] } //To create accounts or projects, you must enable a managed identity on your resource
+    managedIdentities: { 
+      userAssignedResourceIds: [userAssignedIdentity!.outputs.resourceId] 
+    } //To create accounts or projects, you must enable a managed identity on your resource
     roleAssignments: [
       {
         roleDefinitionIdOrName: '53ca6127-db72-4b80-b1b0-d745d6d5456d' // Azure AI User
@@ -654,6 +656,27 @@ var aiFoundryAiProjectEndpoint = useExistingAiFoundryAiProject
   ? existingAiFoundryAiServicesProject!.properties.endpoints['AI Foundry API']
   : aiFoundryAiServicesProject!.outputs.apiEndpoint
 
+// ========== Search Service to AI Services Role Assignment ========== //
+resource searchServiceToAiServicesRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = if (!useExistingAiFoundryAiProject) {
+  name: guid(aiSearchName, '5e0bd9bd-7b93-4f28-af87-19fc36ad61bd', aiFoundryAiServicesResourceName)
+  properties: {
+    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '5e0bd9bd-7b93-4f28-af87-19fc36ad61bd') // Cognitive Services OpenAI User
+    principalId: aiSearch.outputs.systemAssignedMIPrincipalId!
+    principalType: 'ServicePrincipal'
+  }
+}
+
+// Role assignment for existing AI Services scenario
+module searchServiceToExistingAiServicesRoleAssignment 'modules/role-assignment.bicep' = if (useExistingAiFoundryAiProject) {
+  name: 'searchToExistingAiServices-roleAssignment'
+  scope: resourceGroup(aiFoundryAiServicesSubscriptionId, aiFoundryAiServicesResourceGroupName)
+  params: {
+    principalId: aiSearch.outputs.systemAssignedMIPrincipalId!
+    roleDefinitionId: '5e0bd9bd-7b93-4f28-af87-19fc36ad61bd' // Cognitive Services OpenAI User
+    targetResourceName: existingAiFoundryAiServices.name
+  }
+}
+
 // ========== AI Foundry: AI Search ========== //
 var aiSearchName = 'srch-${solutionSuffix}'
 var aiSearchConnectionName = 'foundry-search-connection-${solutionSuffix}'
@@ -671,7 +694,7 @@ module aiSearch 'br/public:avm/res/search/search-service:0.11.1' = {
     disableLocalAuth: false
     hostingMode: 'default'
     sku: 'standard'
-    managedIdentities: { userAssignedResourceIds: [userAssignedIdentity!.outputs.resourceId] }
+    managedIdentities: { systemAssigned: true }
     networkRuleSet: {
       bypass: 'AzureServices'
       ipRules: []
@@ -679,19 +702,24 @@ module aiSearch 'br/public:avm/res/search/search-service:0.11.1' = {
     replicaCount: 1
     partitionCount: 1
     roleAssignments: [
-      // {
-      //   roleDefinitionIdOrName: 'Cognitive Services Contributor' // Cognitive Search Contributor
-      //   principalId: userAssignedIdentity.outputs.principalId
-      //   principalType: 'ServicePrincipal'
-      // }
-      // {
-      //   roleDefinitionIdOrName: 'Cognitive Services OpenAI User'//'5e0bd9bd-7b93-4f28-af87-19fc36ad61bd'// Cognitive Services OpenAI User
-      //   principalId: userAssignedIdentity.outputs.principalId
-      //   principalType: 'ServicePrincipal'
-      // }
       {
-        roleDefinitionIdOrName: 'Search Index Data Contributor' // 1407120a-92aa-4202-b7e9-c0e197c71c8f
+        roleDefinitionIdOrName: '1407120a-92aa-4202-b7e9-c0e197c71c8f' // Search Index Data Reader
         principalId: userAssignedIdentity.outputs.principalId
+        principalType: 'ServicePrincipal'
+      }
+      {
+        roleDefinitionIdOrName: '7ca78c08-252a-4471-8644-bb5ff32d4ba0' // Search Service Contributor
+        principalId: userAssignedIdentity.outputs.principalId
+        principalType: 'ServicePrincipal'
+      }
+      {
+        roleDefinitionIdOrName: '1407120a-92aa-4202-b7e9-c0e197c71c8f' // Search Index Data Reader
+        principalId: aiFoundryAiServicesProject!.outputs.systemAssignedMIPrincipalId
+        principalType: 'ServicePrincipal'
+      }
+      {
+        roleDefinitionIdOrName: '7ca78c08-252a-4471-8644-bb5ff32d4ba0' // Search Service Contributor
+        principalId: aiFoundryAiServicesProject!.outputs.systemAssignedMIPrincipalId
         principalType: 'ServicePrincipal'
       }
     ]

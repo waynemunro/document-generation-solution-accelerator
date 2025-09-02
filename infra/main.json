@@ -6,7 +6,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.37.4.10188",
-      "templateHash": "12183275118675645429"
+      "templateHash": "8879061517486739995"
     },
     "name": "Document Generation Solution Accelerator",
     "description": "CSA CTO Gold Standard Solution Accelerator for Document Generation.\n"
@@ -183,14 +183,14 @@
     },
     "enableMonitoring": {
       "type": "bool",
-      "defaultValue": true,
+      "defaultValue": false,
       "metadata": {
         "description": "Optional. Enable monitoring applicable resources, aligned with the Well Architected Framework recommendations. This setting enables Application Insights and Log Analytics and configures all the resources applicable resources to send logs. Defaults to false."
       }
     },
     "enableScalability": {
       "type": "bool",
-      "defaultValue": true,
+      "defaultValue": false,
       "metadata": {
         "description": "Optional. Enable scalability for applicable resources, aligned with the Well Architected Framework recommendations. Defaults to false."
       }
@@ -204,7 +204,7 @@
     },
     "enablePrivateNetworking": {
       "type": "bool",
-      "defaultValue": true,
+      "defaultValue": false,
       "metadata": {
         "description": "Optional. Enable private networking for applicable resources, aligned with the Well Architected Framework recommendations. Defaults to false."
       }
@@ -277,7 +277,7 @@
       "privatelink.services.ai.azure.com",
       "[format('privatelink.blob.{0}', environment().suffixes.storage)]",
       "[format('privatelink.queue.{0}', environment().suffixes.storage)]",
-      "privatelink.mongo.cosmos.azure.com",
+      "privatelink.documents.azure.com",
       "privatelink.vaultcore.azure.net",
       "privatelink.azurewebsites.net",
       "privatelink.search.windows.net"
@@ -383,6 +383,20 @@
       "subscriptionId": "[variables('aiFoundryAiServicesSubscriptionId')]",
       "resourceGroup": "[variables('aiFoundryAiServicesResourceGroupName')]",
       "name": "[format('{0}/{1}', variables('aiFoundryAiServicesResourceName'), variables('aiFoundryAiProjectResourceName'))]"
+    },
+    "searchServiceToAiServicesRoleAssignment": {
+      "condition": "[not(variables('useExistingAiFoundryAiProject'))]",
+      "type": "Microsoft.Authorization/roleAssignments",
+      "apiVersion": "2022-04-01",
+      "name": "[guid(variables('aiSearchName'), '5e0bd9bd-7b93-4f28-af87-19fc36ad61bd', variables('aiFoundryAiServicesResourceName'))]",
+      "properties": {
+        "roleDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '5e0bd9bd-7b93-4f28-af87-19fc36ad61bd')]",
+        "principalId": "[reference('aiSearch').outputs.systemAssignedMIPrincipalId.value]",
+        "principalType": "ServicePrincipal"
+      },
+      "dependsOn": [
+        "aiSearch"
+      ]
     },
     "aiSearchFoundryConnection": {
       "condition": "[not(variables('useExistingAiFoundryAiProject'))]",
@@ -29864,7 +29878,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.37.4.10188",
-              "templateHash": "16971799313952419347"
+              "templateHash": "16867891653751120909"
             }
           },
           "parameters": {
@@ -29957,12 +29971,96 @@
                 "description": "Contains AI Endpoint."
               },
               "value": "[if(not(empty(variables('existingOpenAIEndpoint'))), variables('existingOpenAIEndpoint'), reference(resourceId('Microsoft.CognitiveServices/accounts', parameters('aiServicesName')), '2025-06-01').endpoints['OpenAI Language Model Instance API'])]"
+            },
+            "systemAssignedMIPrincipalId": {
+              "type": "string",
+              "metadata": {
+                "description": "Required. Principal ID of the AI project system-assigned managed identity."
+              },
+              "value": "[reference(resourceId('Microsoft.CognitiveServices/accounts/projects', parameters('aiServicesName'), parameters('name')), '2025-06-01', 'full').identity.principalId]"
             }
           }
         }
       },
       "dependsOn": [
         "aiFoundryAiServices"
+      ]
+    },
+    "searchServiceToExistingAiServicesRoleAssignment": {
+      "condition": "[variables('useExistingAiFoundryAiProject')]",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2022-09-01",
+      "name": "searchToExistingAiServices-roleAssignment",
+      "subscriptionId": "[variables('aiFoundryAiServicesSubscriptionId')]",
+      "resourceGroup": "[variables('aiFoundryAiServicesResourceGroupName')]",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "principalId": {
+            "value": "[reference('aiSearch').outputs.systemAssignedMIPrincipalId.value]"
+          },
+          "roleDefinitionId": {
+            "value": "5e0bd9bd-7b93-4f28-af87-19fc36ad61bd"
+          },
+          "targetResourceName": {
+            "value": "[variables('aiFoundryAiServicesResourceName')]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.37.4.10188",
+              "templateHash": "3644919950024112374"
+            }
+          },
+          "parameters": {
+            "principalId": {
+              "type": "string",
+              "metadata": {
+                "description": "The principal ID to assign the role to"
+              }
+            },
+            "roleDefinitionId": {
+              "type": "string",
+              "metadata": {
+                "description": "The role definition ID to assign"
+              }
+            },
+            "targetResourceName": {
+              "type": "string",
+              "metadata": {
+                "description": "The name of the target resource"
+              }
+            }
+          },
+          "resources": [
+            {
+              "type": "Microsoft.Authorization/roleAssignments",
+              "apiVersion": "2022-04-01",
+              "name": "[guid(parameters('principalId'), parameters('roleDefinitionId'), parameters('targetResourceName'))]",
+              "properties": {
+                "roleDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', parameters('roleDefinitionId'))]",
+                "principalId": "[parameters('principalId')]",
+                "principalType": "ServicePrincipal"
+              }
+            }
+          ],
+          "outputs": {
+            "roleAssignmentId": {
+              "type": "string",
+              "value": "[resourceId('Microsoft.Authorization/roleAssignments', guid(parameters('principalId'), parameters('roleDefinitionId'), parameters('targetResourceName')))]"
+            }
+          }
+        }
+      },
+      "dependsOn": [
+        "aiSearch"
       ]
     },
     "aiSearch": {
@@ -30000,9 +30098,7 @@
           },
           "managedIdentities": {
             "value": {
-              "userAssignedResourceIds": [
-                "[reference('userAssignedIdentity').outputs.resourceId.value]"
-              ]
+              "systemAssigned": true
             }
           },
           "networkRuleSet": {
@@ -30020,8 +30116,23 @@
           "roleAssignments": {
             "value": [
               {
-                "roleDefinitionIdOrName": "Search Index Data Contributor",
+                "roleDefinitionIdOrName": "1407120a-92aa-4202-b7e9-c0e197c71c8f",
                 "principalId": "[reference('userAssignedIdentity').outputs.principalId.value]",
+                "principalType": "ServicePrincipal"
+              },
+              {
+                "roleDefinitionIdOrName": "7ca78c08-252a-4471-8644-bb5ff32d4ba0",
+                "principalId": "[reference('userAssignedIdentity').outputs.principalId.value]",
+                "principalType": "ServicePrincipal"
+              },
+              {
+                "roleDefinitionIdOrName": "1407120a-92aa-4202-b7e9-c0e197c71c8f",
+                "principalId": "[reference('aiFoundryAiServicesProject').outputs.systemAssignedMIPrincipalId.value]",
+                "principalType": "ServicePrincipal"
+              },
+              {
+                "roleDefinitionIdOrName": "7ca78c08-252a-4471-8644-bb5ff32d4ba0",
+                "principalId": "[reference('aiFoundryAiServicesProject').outputs.systemAssignedMIPrincipalId.value]",
                 "principalType": "ServicePrincipal"
               }
             ]
@@ -32321,6 +32432,7 @@
         }
       },
       "dependsOn": [
+        "aiFoundryAiServicesProject",
         "[format('avmPrivateDnsZones[{0}]', variables('dnsZoneIndex').searchService)]",
         "logAnalyticsWorkspace",
         "network",
@@ -42134,11 +42246,11 @@
               },
               {
                 "name": "AZURE-SEARCH-SERVICE",
-                "value": "[take(format('avm.res.cognitive-search-services.{0}', variables('aiSearchName')), 64)]"
+                "value": "[reference('aiSearch').outputs.name.value]"
               },
               {
                 "name": "AZURE-SEARCH-ENDPOINT",
-                "value": "[format('https://{0}.search.windows.net', take(format('avm.res.cognitive-search-services.{0}', variables('aiSearchName')), 64))]"
+                "value": "[format('https://{0}.search.windows.net', reference('aiSearch').outputs.name.value)]"
               },
               {
                 "name": "AZURE-OPENAI-EMBEDDING-MODEL",
@@ -45863,7 +45975,6 @@
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "2022-09-01",
       "name": "[take(format('module.web-sites.{0}', variables('webSiteResourceName')), 64)]",
-      "resourceGroup": "[resourceGroup().name]",
       "properties": {
         "expressionEvaluationOptions": {
           "scope": "inner"
@@ -45906,7 +46017,7 @@
                   "SCM_DO_BUILD_DURING_DEPLOYMENT": "true",
                   "DOCKER_REGISTRY_SERVER_URL": "[format('https://{0}.azurecr.io', parameters('acrName'))]",
                   "AUTH_ENABLED": "false",
-                  "AZURE_SEARCH_SERVICE": "[take(format('avm.res.cognitive-search-services.{0}', variables('aiSearchName')), 64)]",
+                  "AZURE_SEARCH_SERVICE": "[reference('aiSearch').outputs.name.value]",
                   "AZURE_SEARCH_INDEX": "pdf_index",
                   "AZURE_SEARCH_USE_SEMANTIC_SEARCH": "False",
                   "AZURE_SEARCH_SEMANTIC_SEARCH_CONFIG": "my-semantic-config",
@@ -45954,8 +46065,9 @@
           "vnetRouteAllEnabled": "[if(parameters('enablePrivateNetworking'), createObject('value', true()), createObject('value', false()))]",
           "vnetImagePullEnabled": "[if(parameters('enablePrivateNetworking'), createObject('value', true()), createObject('value', false()))]",
           "virtualNetworkSubnetId": "[if(parameters('enablePrivateNetworking'), createObject('value', reference('network').outputs.subnetWebResourceId.value), createObject('value', null()))]",
-          "publicNetworkAccess": "[if(parameters('enablePrivateNetworking'), createObject('value', 'Disabled'), createObject('value', 'Enabled'))]",
-          "privateEndpoints": "[if(parameters('enablePrivateNetworking'), createObject('value', createArray(createObject('name', format('pep-{0}', variables('webSiteResourceName')), 'customNetworkInterfaceName', format('nic-{0}', variables('webSiteResourceName')), 'privateDnsZoneGroup', createObject('privateDnsZoneGroupConfigs', createArray(createObject('privateDnsZoneResourceId', reference(format('avmPrivateDnsZones[{0}]', variables('dnsZoneIndex').appService)).outputs.resourceId.value))), 'service', 'sites', 'subnetResourceId', reference('network').outputs.subnetPrivateEndpointsResourceId.value))), createObject('value', null()))]"
+          "publicNetworkAccess": {
+            "value": "Enabled"
+          }
         },
         "template": {
           "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
@@ -47941,7 +48053,6 @@
         "aiFoundryAiServicesProject",
         "aiSearch",
         "applicationInsights",
-        "[format('avmPrivateDnsZones[{0}]', variables('dnsZoneIndex').appService)]",
         "cosmosDB",
         "existingAiFoundryAiServicesProject",
         "logAnalyticsWorkspace",
@@ -48020,7 +48131,7 @@
       "metadata": {
         "description": "Contains AI Search Service Name"
       },
-      "value": "[take(format('avm.res.cognitive-search-services.{0}', variables('aiSearchName')), 64)]"
+      "value": "[reference('aiSearch').outputs.name.value]"
     },
     "azureSearchConnectionName": {
       "type": "string",
@@ -48161,6 +48272,13 @@
         "description": "Contains Application Environment."
       },
       "value": "Prod"
+    },
+    "azureClientId": {
+      "type": "string",
+      "metadata": {
+        "description": "Contains User Assigned Identity Client ID"
+      },
+      "value": "[reference('userAssignedIdentity').outputs.clientId.value]"
     }
   }
 }

@@ -52,3 +52,6 @@ output apiEndpoint string = aiProject!.properties.endpoints['AI Foundry API']
 output aoaiEndpoint string = !empty(existingOpenAIEndpoint)
   ? existingOpenAIEndpoint
   : cogServiceReference.properties.endpoints['OpenAI Language Model Instance API']
+
+@description('Required. Principal ID of the AI project system-assigned managed identity.')
+output systemAssignedMIPrincipalId string = aiProject.identity.principalId
