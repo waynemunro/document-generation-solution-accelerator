@@ -220,7 +220,7 @@ module appserviceModule 'deploy_app_service.bicep' = {
 }
 
 @description('Contains WebApp URL')
-output webAppUrl string = appserviceModule.outputs.webAppUrl
+output WEB_APP_URL string = appserviceModule.outputs.webAppUrl
 
 // ========== Cosmos DB module ========== //
 module cosmosDBModule 'deploy_cosmos_db.bicep' = {
