@@ -26,14 +26,21 @@ class TemplateAgentFactory(BaseAgentFactory):
             )
             
             # Test the connection early to provide better error messages
+            # Use a safer approach that doesn't fail if no agents exist
             agents_list = project_client.agents.list_agents()
-            await agents_list.__anext__()  # Try to get first agent to test connectivity
+            try:
+                await agents_list.__anext__()  # Try to get first agent
+            except StopAsyncIteration:
+                # This is expected if no agents exist - connection is working
+                pass
             
         except Exception as e:
-            error_msg = f"Failed to connect to Azure AI Project endpoint '{app_settings.azure_ai.agent_endpoint}'. "
-            error_msg += f"Original error: {str(e)}"
-            
-            raise Exception(error_msg)
+            # Skip the "End of paging" error as it means connection is working but no agents exist
+            if "End of paging" not in str(e):
+                error_msg = f"Failed to connect to Azure AI Project endpoint '{app_settings.azure_ai.agent_endpoint}'. "
+                error_msg += f"Original error: {str(e)}"
+                
+                raise Exception(error_msg)
 
         agent_name = f"DG-TemplateAgent-{app_settings.base_settings.solution_name}"
         # 1. Check if the agent already exists
