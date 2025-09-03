@@ -18,29 +18,11 @@ class TemplateAgentFactory(BaseAgentFactory):
         Returns:
             object: The created agent instance.
         """
-        try:
-            project_client = AIProjectClient(
-                endpoint=app_settings.azure_ai.agent_endpoint,
-                credential=await get_azure_credential_async(client_id=app_settings.base_settings.azure_client_id),
-                api_version=app_settings.azure_ai.agent_api_version
-            )
-            
-            # Test the connection early to provide better error messages
-            # Use a safer approach that doesn't fail if no agents exist
-            agents_list = project_client.agents.list_agents()
-            try:
-                await agents_list.__anext__()  # Try to get first agent
-            except StopAsyncIteration:
-                # This is expected if no agents exist - connection is working
-                pass
-            
-        except Exception as e:
-            # Skip the "End of paging" error as it means connection is working but no agents exist
-            if "End of paging" not in str(e):
-                error_msg = f"Failed to connect to Azure AI Project endpoint '{app_settings.azure_ai.agent_endpoint}'. "
-                error_msg += f"Original error: {str(e)}"
-                
-                raise Exception(error_msg)
+        project_client = AIProjectClient(
+            endpoint=app_settings.azure_ai.agent_endpoint,
+            credential=await get_azure_credential_async(),
+            api_version=app_settings.azure_ai.agent_api_version
+        )
 
         agent_name = f"DG-TemplateAgent-{app_settings.base_settings.solution_name}"
         # 1. Check if the agent already exists
@@ -62,25 +44,17 @@ class TemplateAgentFactory(BaseAgentFactory):
             "titleField": "sourceurl",
         }
 
-        try:
-            project_index = await project_client.indexes.create_or_update(
-                name=index_name,
-                version=index_version,
-                body={
-                    "connectionName": app_settings.datasource.connection_name,
-                    "indexName": app_settings.datasource.index,
-                    "type": "AzureSearch",
-                    "fieldMapping": field_mapping
-                }
-            )
-        except Exception as e:
-            error_msg = f"Failed to create or update project index '{index_name}'. "
-            error_msg += f"Connection name: {app_settings.datasource.connection_name}, "
-            error_msg += f"Index: {app_settings.datasource.index}, "
-            error_msg += f"Original error: {str(e)}"
-            
-            raise Exception(error_msg)
-
+        project_index = await project_client.indexes.create_or_update(
+            name=index_name,
+            version=index_version,
+            body={
+                "connectionName": app_settings.datasource.connection_name,
+                "indexName": app_settings.datasource.index,
+                "type": "AzureSearch",
+                "fieldMapping": field_mapping
+            }
+        )
+        print("Project index created or updated.")
         ai_search = AzureAISearchTool(
             index_asset_id=f"{project_index.name}/versions/{project_index.version}",
             index_connection_id=None,
