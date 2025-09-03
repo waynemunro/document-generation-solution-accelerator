@@ -31,20 +31,7 @@ class TemplateAgentFactory(BaseAgentFactory):
             
         except Exception as e:
             error_msg = f"Failed to connect to Azure AI Project endpoint '{app_settings.azure_ai.agent_endpoint}'. "
-            
-            if "Cannot connect to host" in str(e):
-                error_msg += "This is likely a private endpoint DNS resolution issue. Please ensure:\n"
-                error_msg += "1. The private endpoint has a DNS zone group configured\n"
-                error_msg += "2. The private DNS zone 'privatelink.cognitiveservices.azure.com' is linked to your VNet\n"
-                error_msg += "3. Your App Service has VNet integration enabled\n"
-            
             error_msg += f"Original error: {str(e)}"
-            
-            track_event_if_configured("TemplateAgentConnectionError", {
-                "error": str(e),
-                "endpoint": app_settings.azure_ai.agent_endpoint,
-                "error_type": "connection_failed"
-            })
             
             raise Exception(error_msg)
 
@@ -81,25 +68,9 @@ class TemplateAgentFactory(BaseAgentFactory):
             )
         except Exception as e:
             error_msg = f"Failed to create or update project index '{index_name}'. "
-            
-            if "Cannot connect to host" in str(e) and "search.windows.net" in str(e):
-                error_msg += "This is likely a private endpoint DNS resolution issue for Azure AI Search. Please ensure:\n"
-                error_msg += "1. The Azure AI Search private endpoint has a DNS zone group configured\n"
-                error_msg += "2. The private DNS zone 'privatelink.search.windows.net' exists and is linked to your VNet\n"
-                error_msg += "3. Your App Service has VNet integration to the same VNet as the private endpoints\n"
-                error_msg += f"4. The search service endpoint resolves correctly from within the VNet\n"
-                
             error_msg += f"Connection name: {app_settings.datasource.connection_name}, "
             error_msg += f"Index: {app_settings.datasource.index}, "
             error_msg += f"Original error: {str(e)}"
-            
-            track_event_if_configured("TemplateAgentIndexCreationError", {
-                "error": str(e),
-                "index_name": index_name,
-                "connection_name": app_settings.datasource.connection_name,
-                "index": app_settings.datasource.index,
-                "error_type": "search_connection_failed"
-            })
             
             raise Exception(error_msg)
 
