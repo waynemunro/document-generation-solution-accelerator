@@ -104,13 +104,13 @@ param tags resourceInput<'Microsoft.Resources/resourceGroups@2025-04-01'>.tags =
 param enableMonitoring bool = true
 
 @description('Optional. Enable scalability for applicable resources, aligned with the Well Architected Framework recommendations. Defaults to false.')
-param enableScalability bool = true
+param enableScalability bool = false
 
 @description('Optional. Enable redundancy for applicable resources, aligned with the Well Architected Framework recommendations. Defaults to false.')
 param enableRedundancy bool = false
 
 @description('Optional. Enable private networking for applicable resources, aligned with the Well Architected Framework recommendations. Defaults to false.')
-param enablePrivateNetworking bool = true
+param enablePrivateNetworking bool = false
 
 @description('Optional. The Container Registry hostname where the docker images are located.')
 param acrName string = 'testapwaf'
@@ -200,6 +200,7 @@ resource resourceGroupTags 'Microsoft.Resources/tags@2021-04-01' = {
     tags: {
       ... tags
       TemplateName: 'Docgen'
+      SecurityControl: 'Ignore'
     }
   }
 }
@@ -680,6 +681,7 @@ module searchServiceToExistingAiServicesRoleAssignment 'modules/role-assignment.
 // ========== AI Foundry: AI Search ========== //
 var aiSearchName = 'srch-${solutionSuffix}'
 var aiSearchConnectionName = 'foundry-search-connection-${solutionSuffix}'
+var nenablePrivateNetworking = false
 module aiSearch 'br/public:avm/res/search/search-service:0.11.1' = {
   name: take('avm.res.cognitive-search-services.${aiSearchName}', 64)
   params: {
@@ -693,7 +695,7 @@ module aiSearch 'br/public:avm/res/search/search-service:0.11.1' = {
     diagnosticSettings: enableMonitoring ? [{ workspaceResourceId: logAnalyticsWorkspaceResourceId }] : null
     disableLocalAuth: false
     hostingMode: 'default'
-    sku: 'standard'
+    sku: enableScalability ? 'standard' : 'basic'
     managedIdentities: { systemAssigned: true }
     networkRuleSet: {
       bypass: 'AzureServices'
@@ -725,8 +727,8 @@ module aiSearch 'br/public:avm/res/search/search-service:0.11.1' = {
     ]
     semanticSearch: 'free'
     // WAF aligned configuration for Private Networking
-    publicNetworkAccess: enablePrivateNetworking ? 'Disabled' : 'Enabled'
-    privateEndpoints: enablePrivateNetworking
+    publicNetworkAccess: nenablePrivateNetworking ? 'Disabled' : 'Enabled'
+    privateEndpoints: nenablePrivateNetworking
     ? [
         {
           name: 'pep-${aiSearchName}'
@@ -736,8 +738,8 @@ module aiSearch 'br/public:avm/res/search/search-service:0.11.1' = {
               { privateDnsZoneResourceId: avmPrivateDnsZones[dnsZoneIndex.searchService]!.outputs.resourceId }
             ]
           }
-          service: 'searchService'
           subnetResourceId: network!.outputs.subnetPrivateEndpointsResourceId
+          service: 'searchService'
         }
       ]
     : []
@@ -1189,7 +1191,7 @@ module webSite 'modules/web-sites.bicep' = {
 }
 
 // ========== App Service Logs Configuration ========== //
-resource webSiteLogs 'Microsoft.Web/sites/config@2024-04-01' = {
+resource webSiteLogs 'Microsoft.Web/sites/config@2024-04-01' = if (enableMonitoring) {
   name: '${webSiteResourceName}/logs'
   properties: {
     applicationLogs: {

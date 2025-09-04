@@ -6,7 +6,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.37.4.10188",
-      "templateHash": "14511270786246958386"
+      "templateHash": "9632700957939419530"
     },
     "name": "Document Generation Solution Accelerator",
     "description": "CSA CTO Gold Standard Solution Accelerator for Document Generation.\n"
@@ -190,7 +190,7 @@
     },
     "enableScalability": {
       "type": "bool",
-      "defaultValue": true,
+      "defaultValue": false,
       "metadata": {
         "description": "Optional. Enable scalability for applicable resources, aligned with the Well Architected Framework recommendations. Defaults to false."
       }
@@ -204,7 +204,7 @@
     },
     "enablePrivateNetworking": {
       "type": "bool",
-      "defaultValue": true,
+      "defaultValue": false,
       "metadata": {
         "description": "Optional. Enable private networking for applicable resources, aligned with the Well Architected Framework recommendations. Defaults to false."
       }
@@ -326,6 +326,7 @@
     "aiFoundryAiProjectDescription": "AI Foundry Project",
     "aiSearchName": "[format('srch-{0}', variables('solutionSuffix'))]",
     "aiSearchConnectionName": "[format('foundry-search-connection-{0}', variables('solutionSuffix'))]",
+    "nenablePrivateNetworking": false,
     "storageAccountName": "[format('st{0}', variables('solutionSuffix'))]",
     "cosmosDBResourceName": "[format('cosmos-{0}', variables('solutionSuffix'))]",
     "cosmosDBDatabaseName": "db_conversation_history",
@@ -363,7 +364,7 @@
       "apiVersion": "2021-04-01",
       "name": "default",
       "properties": {
-        "tags": "[shallowMerge(createArray(parameters('tags'), createObject('TemplateName', 'Docgen')))]"
+        "tags": "[shallowMerge(createArray(parameters('tags'), createObject('TemplateName', 'Docgen', 'SecurityControl', 'Ignore')))]"
       }
     },
     "existingAiFoundryAiServices": {
@@ -419,6 +420,7 @@
       ]
     },
     "webSiteLogs": {
+      "condition": "[parameters('enableMonitoring')]",
       "type": "Microsoft.Web/sites/config",
       "apiVersion": "2024-04-01",
       "name": "[format('{0}/logs', variables('webSiteResourceName'))]",
@@ -4806,7 +4808,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.37.4.10188",
-              "templateHash": "3782899527809411245"
+              "templateHash": "11140120105546145557"
             }
           },
           "parameters": {
@@ -4866,7 +4868,7 @@
             {
               "type": "Microsoft.Resources/deployments",
               "apiVersion": "2022-09-01",
-              "name": "[take(format('module.network-main.{0}', parameters('resourcesName')), 64)]",
+              "name": "[take(format('network-{0}-create', parameters('resourcesName')), 64)]",
               "properties": {
                 "expressionEvaluationOptions": {
                   "scope": "inner"
@@ -20460,42 +20462,42 @@
               "metadata": {
                 "description": "Name of the Virtual Network resource."
               },
-              "value": "[reference(resourceId('Microsoft.Resources/deployments', take(format('module.network-main.{0}', parameters('resourcesName')), 64)), '2022-09-01').outputs.vnetName.value]"
+              "value": "[reference(resourceId('Microsoft.Resources/deployments', take(format('network-{0}-create', parameters('resourcesName')), 64)), '2022-09-01').outputs.vnetName.value]"
             },
             "vnetResourceId": {
               "type": "string",
               "metadata": {
                 "description": "Resource ID of the Virtual Network."
               },
-              "value": "[reference(resourceId('Microsoft.Resources/deployments', take(format('module.network-main.{0}', parameters('resourcesName')), 64)), '2022-09-01').outputs.vnetResourceId.value]"
+              "value": "[reference(resourceId('Microsoft.Resources/deployments', take(format('network-{0}-create', parameters('resourcesName')), 64)), '2022-09-01').outputs.vnetResourceId.value]"
             },
             "subnetWebResourceId": {
               "type": "string",
               "metadata": {
                 "description": "Resource ID of the \"web\" subnet."
               },
-              "value": "[coalesce(tryGet(first(filter(reference(resourceId('Microsoft.Resources/deployments', take(format('module.network-main.{0}', parameters('resourcesName')), 64)), '2022-09-01').outputs.subnets.value, lambda('s', equals(lambdaVariables('s').name, 'web')))), 'resourceId'), '')]"
+              "value": "[coalesce(tryGet(first(filter(reference(resourceId('Microsoft.Resources/deployments', take(format('network-{0}-create', parameters('resourcesName')), 64)), '2022-09-01').outputs.subnets.value, lambda('s', equals(lambdaVariables('s').name, 'web')))), 'resourceId'), '')]"
             },
             "subnetPrivateEndpointsResourceId": {
               "type": "string",
               "metadata": {
                 "description": "Resource ID of the \"peps\" subnet for Private Endpoints."
               },
-              "value": "[coalesce(tryGet(first(filter(reference(resourceId('Microsoft.Resources/deployments', take(format('module.network-main.{0}', parameters('resourcesName')), 64)), '2022-09-01').outputs.subnets.value, lambda('s', equals(lambdaVariables('s').name, 'peps')))), 'resourceId'), '')]"
+              "value": "[coalesce(tryGet(first(filter(reference(resourceId('Microsoft.Resources/deployments', take(format('network-{0}-create', parameters('resourcesName')), 64)), '2022-09-01').outputs.subnets.value, lambda('s', equals(lambdaVariables('s').name, 'peps')))), 'resourceId'), '')]"
             },
             "bastionResourceId": {
               "type": "string",
               "metadata": {
                 "description": "Resource ID of the Bastion Host."
               },
-              "value": "[reference(resourceId('Microsoft.Resources/deployments', take(format('module.network-main.{0}', parameters('resourcesName')), 64)), '2022-09-01').outputs.bastionHostId.value]"
+              "value": "[reference(resourceId('Microsoft.Resources/deployments', take(format('network-{0}-create', parameters('resourcesName')), 64)), '2022-09-01').outputs.bastionHostId.value]"
             },
             "jumpboxResourceId": {
               "type": "string",
               "metadata": {
                 "description": "Resource ID of the Jumpbox VM."
               },
-              "value": "[reference(resourceId('Microsoft.Resources/deployments', take(format('module.network-main.{0}', parameters('resourcesName')), 64)), '2022-09-01').outputs.jumpboxResourceId.value]"
+              "value": "[reference(resourceId('Microsoft.Resources/deployments', take(format('network-{0}-create', parameters('resourcesName')), 64)), '2022-09-01').outputs.jumpboxResourceId.value]"
             }
           }
         }
@@ -29861,9 +29863,9 @@
         }
       },
       "dependsOn": [
+        "[format('avmPrivateDnsZones[{0}]', variables('dnsZoneIndex').cognitiveServices)]",
         "[format('avmPrivateDnsZones[{0}]', variables('dnsZoneIndex').openAI)]",
         "[format('avmPrivateDnsZones[{0}]', variables('dnsZoneIndex').aiServices)]",
-        "[format('avmPrivateDnsZones[{0}]', variables('dnsZoneIndex').cognitiveServices)]",
         "logAnalyticsWorkspace",
         "network",
         "userAssignedIdentity"
@@ -30121,9 +30123,7 @@
           "hostingMode": {
             "value": "default"
           },
-          "sku": {
-            "value": "standard"
-          },
+          "sku": "[if(parameters('enableScalability'), createObject('value', 'standard'), createObject('value', 'basic'))]",
           "managedIdentities": {
             "value": {
               "systemAssigned": true
@@ -30168,8 +30168,8 @@
           "semanticSearch": {
             "value": "free"
           },
-          "publicNetworkAccess": "[if(parameters('enablePrivateNetworking'), createObject('value', 'Disabled'), createObject('value', 'Enabled'))]",
-          "privateEndpoints": "[if(parameters('enablePrivateNetworking'), createObject('value', createArray(createObject('name', format('pep-{0}', variables('aiSearchName')), 'customNetworkInterfaceName', format('nic-{0}', variables('aiSearchName')), 'privateDnsZoneGroup', createObject('privateDnsZoneGroupConfigs', createArray(createObject('privateDnsZoneResourceId', reference(format('avmPrivateDnsZones[{0}]', variables('dnsZoneIndex').searchService)).outputs.resourceId.value))), 'service', 'searchService', 'subnetResourceId', reference('network').outputs.subnetPrivateEndpointsResourceId.value))), createObject('value', createArray()))]"
+          "publicNetworkAccess": "[if(variables('nenablePrivateNetworking'), createObject('value', 'Disabled'), createObject('value', 'Enabled'))]",
+          "privateEndpoints": "[if(variables('nenablePrivateNetworking'), createObject('value', createArray(createObject('name', format('pep-{0}', variables('aiSearchName')), 'customNetworkInterfaceName', format('nic-{0}', variables('aiSearchName')), 'privateDnsZoneGroup', createObject('privateDnsZoneGroupConfigs', createArray(createObject('privateDnsZoneResourceId', reference(format('avmPrivateDnsZones[{0}]', variables('dnsZoneIndex').searchService)).outputs.resourceId.value))), 'subnetResourceId', reference('network').outputs.subnetPrivateEndpointsResourceId.value, 'service', 'searchService'))), createObject('value', createArray()))]"
         },
         "template": {
           "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
@@ -38338,8 +38338,8 @@
         }
       },
       "dependsOn": [
-        "[format('avmPrivateDnsZones[{0}]', variables('dnsZoneIndex').storageBlob)]",
         "[format('avmPrivateDnsZones[{0}]', variables('dnsZoneIndex').storageQueue)]",
+        "[format('avmPrivateDnsZones[{0}]', variables('dnsZoneIndex').storageBlob)]",
         "network",
         "userAssignedIdentity"
       ]
