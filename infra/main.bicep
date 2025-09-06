@@ -104,13 +104,13 @@ param tags resourceInput<'Microsoft.Resources/resourceGroups@2025-04-01'>.tags =
 param enableMonitoring bool = true
 
 @description('Optional. Enable scalability for applicable resources, aligned with the Well Architected Framework recommendations. Defaults to false.')
-param enableScalability bool = false
+param enableScalability bool = true
 
 @description('Optional. Enable redundancy for applicable resources, aligned with the Well Architected Framework recommendations. Defaults to false.')
 param enableRedundancy bool = false
 
 @description('Optional. Enable private networking for applicable resources, aligned with the Well Architected Framework recommendations. Defaults to false.')
-param enablePrivateNetworking bool = false
+param enablePrivateNetworking bool = true
 
 @description('Optional. The Container Registry hostname where the docker images are located.')
 param acrName string = 'testapwaf'
@@ -207,7 +207,6 @@ resource resourceGroupTags 'Microsoft.Resources/tags@2021-04-01' = {
 
 // Extracts subscription, resource group, and workspace name from the resource ID when using an existing Log Analytics workspace
 var useExistingLogAnalytics = !empty(existingLogAnalyticsWorkspaceId)
-var logAnalyticsWorkspaceResourceId = useExistingLogAnalytics ? existingLogAnalyticsWorkspaceId : logAnalyticsWorkspace!.outputs.resourceId
 
 // ========== Log Analytics Workspace ========== //
 var logAnalyticsWorkspaceResourceName = 'log-${solutionSuffix}'
@@ -269,10 +268,10 @@ module logAnalyticsWorkspace 'br/public:avm/res/operational-insights/workspace:0
       : null
   }
 }
-
+var logAnalyticsWorkspaceResourceId = useExistingLogAnalytics ? existingLogAnalyticsWorkspaceId : logAnalyticsWorkspace!.outputs.resourceId
 // ========== Application Insights ========== //
 var applicationInsightsResourceName = 'appi-${solutionSuffix}'
-module applicationInsights 'br/public:avm/res/insights/component:0.6.0' = if (enableMonitoring) {
+module applicationInsights 'br/public:avm/res/insights/component:0.6.0' = if (enableMonitoring && !useExistingLogAnalytics) {
   name: take('avm.res.insights.component.${applicationInsightsResourceName}', 64)
   params: {
     name: applicationInsightsResourceName
@@ -284,8 +283,8 @@ module applicationInsights 'br/public:avm/res/insights/component:0.6.0' = if (en
     disableIpMasking: false
     flowType: 'Bluefield'
     // WAF aligned configuration for Monitoring
-    workspaceResourceId: enableMonitoring ? logAnalyticsWorkspace!.outputs.resourceId : ''
-    diagnosticSettings: enableMonitoring ? [{ workspaceResourceId: logAnalyticsWorkspace!.outputs.resourceId }] : null
+    workspaceResourceId: enableMonitoring ? logAnalyticsWorkspaceResourceId : ''
+    diagnosticSettings: enableMonitoring ? [{ workspaceResourceId: logAnalyticsWorkspaceResourceId }] : null
   }
 }
 
@@ -410,7 +409,7 @@ module keyvault 'br/public:avm/res/key-vault/vault:0.12.1' = {
     enablePurgeProtection: enablePurgeProtection
     softDeleteRetentionInDays: 7
     diagnosticSettings: enableMonitoring 
-      ? [{ workspaceResourceId: logAnalyticsWorkspace!.outputs.resourceId }] 
+      ? [{ workspaceResourceId: logAnalyticsWorkspaceResourceId }] 
       : []
     // WAF aligned configuration for Private Networking
     privateEndpoints: enablePrivateNetworking
@@ -648,9 +647,12 @@ module aiFoundryAiServicesProject 'modules/ai-project.bicep' = if (!useExistingA
     tags: tags
     desc: aiFoundryAiProjectDescription
     //Implicit dependencies below
-    aiServicesName: aiFoundryAiServices!.outputs.name
+    aiServicesName: aiFoundryAiServicesResourceName
     azureExistingAIProjectResourceId: azureExistingAIProjectResourceId
   }
+  dependsOn: [
+    aiFoundryAiServices
+  ]
 }
 
 var aiFoundryAiProjectEndpoint = useExistingAiFoundryAiProject
@@ -716,12 +718,12 @@ module aiSearch 'br/public:avm/res/search/search-service:0.11.1' = {
       }
       {
         roleDefinitionIdOrName: '1407120a-92aa-4202-b7e9-c0e197c71c8f' // Search Index Data Reader
-        principalId: aiFoundryAiServicesProject!.outputs.systemAssignedMIPrincipalId
+        principalId: !useExistingAiFoundryAiProject ? aiFoundryAiServicesProject!.outputs.systemAssignedMIPrincipalId : existingAiFoundryAiServicesProject!.identity.principalId
         principalType: 'ServicePrincipal'
       }
       {
         roleDefinitionIdOrName: '7ca78c08-252a-4471-8644-bb5ff32d4ba0' // Search Service Contributor
-        principalId: aiFoundryAiServicesProject!.outputs.systemAssignedMIPrincipalId
+        principalId: !useExistingAiFoundryAiProject ? aiFoundryAiServicesProject!.outputs.systemAssignedMIPrincipalId : existingAiFoundryAiServicesProject!.identity.principalId
         principalType: 'ServicePrincipal'
       }
     ]
@@ -920,7 +922,7 @@ module cosmosDB 'br/public:avm/res/document-db/database-account:0.15.0' = {
       }
     ]
     // WAF aligned configuration for Monitoring
-    diagnosticSettings: enableMonitoring ? [{ workspaceResourceId: logAnalyticsWorkspace!.outputs.resourceId }] : null
+    diagnosticSettings: enableMonitoring ? [{ workspaceResourceId: logAnalyticsWorkspaceResourceId }] : null
     // WAF aligned configuration for Private Networking
     networkRestrictions: {
       networkAclBypass: 'None'
@@ -1025,7 +1027,7 @@ module saveSecretsInKeyVault 'br/public:avm/res/key-vault/vault:0.12.1' = {
       // }
       {
         name: 'COG-SERVICES-ENDPOINT'
-        value: aiFoundryAiServicesProject!.outputs.aoaiEndpoint
+        value: 'https://${aiFoundryAiServicesResourceName}.openai.azure.com/'
       }
       {name: 'AZURE-SEARCH-INDEX', value: 'pdf_index'}
       {
@@ -1039,7 +1041,7 @@ module saveSecretsInKeyVault 'br/public:avm/res/key-vault/vault:0.12.1' = {
       {name: 'AZURE-OPENAI-EMBEDDING-MODEL', value: embeddingModel}
       {
         name: 'AZURE-OPENAI-ENDPOINT'
-        value: aiFoundryAiServicesProject!.outputs.aoaiEndpoint
+        value: 'https://${aiFoundryAiServicesResourceName}.openai.azure.com/'
       }
       {name: 'AZURE-OPENAI-PREVIEW-API-VERSION', value: azureOpenaiAPIVersion}
       {name: 'AZURE-OPEN-AI-DEPLOYMENT-MODEL', value: gptModelName}
@@ -1155,8 +1157,8 @@ module webSite 'modules/web-sites.bicep' = {
           AZURE_SEARCH_CONNECTION_NAME: aiSearchConnectionName
           AZURE_OPENAI_API_VERSION: azureOpenaiAPIVersion
           AZURE_OPENAI_MODEL: gptModelName
-          AZURE_OPENAI_ENDPOINT: aiFoundryAiServicesProject!.outputs.aoaiEndpoint
-          AZURE_OPENAI_RESOURCE: aiFoundryAiServices!.outputs.name
+          AZURE_OPENAI_ENDPOINT: 'https://${aiFoundryAiServicesResourceName}.openai.azure.com/'
+          AZURE_OPENAI_RESOURCE: aiFoundryAiServicesResourceName
           AZURE_OPENAI_PREVIEW_API_VERSION: azureOpenaiAPIVersion
           AZURE_OPENAI_GENERATE_SECTION_CONTENT_PROMPT: azureOpenAiGenerateSectionContentPrompt
           AZURE_OPENAI_TEMPLATE_SYSTEM_MESSAGE: azureOpenAiTemplateSystemMessage
@@ -1178,7 +1180,7 @@ module webSite 'modules/web-sites.bicep' = {
           AZURE_CLIENT_ID: userAssignedIdentity.outputs.clientId
         }
         // WAF aligned configuration for Monitoring
-        applicationInsightResourceId: enableMonitoring ? applicationInsights!.outputs.resourceId : null
+        applicationInsightResourceId: (enableMonitoring && !useExistingLogAnalytics) ? applicationInsights!.outputs.resourceId : null
       }
     ]
     diagnosticSettings: enableMonitoring ? [{ workspaceResourceId: logAnalyticsWorkspaceResourceId }] : null
@@ -1235,13 +1237,13 @@ output cosmosDbAccountName string = cosmosDB.outputs.name
 output resourceGroupName string = resourceGroup().name
 
 @description('Contains AI Foundry Name')
-output aiFoundryName string = aiFoundryAiServices!.outputs.name
+output aiFoundryName string = aiFoundryAiServicesResourceName
 
 @description('Contains AI Foundry RG Name')
-output aiFoundryRgName string = aiFoundryAiServices!.outputs.resourceGroupName
+output aiFoundryRgName string = aiFoundryAiServicesResourceGroupName
 
 @description('Contains AI Foundry Resource ID')
-output aiFoundryResourceId string = aiFoundryAiServices!.outputs.resourceId
+output aiFoundryResourceId string = useExistingAiFoundryAiProject ? azureExistingAIProjectResourceId : aiFoundryAiServices!.outputs.resourceId
 
 @description('Contains AI Search Service Name')
 output aiSearchServiceName string = aiSearch.outputs.name
@@ -1265,10 +1267,10 @@ output azureOpenaiSystemMessage string = azureOpenAISystemMessage
 output azureOpenaiModel string = gptModelName
 
 @description('Contains OpenAI Resource')
-output azureOpenaiResource string = aiFoundryAiServices!.outputs.name
+output azureOpenaiResource string = aiFoundryAiServicesResourceName
 
 @description('Contains Azure Search Service')
-output azureSearchService string = aiFoundryAiServices!.outputs.name
+output azureSearchService string = aiFoundryAiServicesResourceName
 
 @description('Contains Azure Search Index')
 output azureSearchIndex string = 'pdf_index'
@@ -1292,7 +1294,7 @@ output azureSearchQueryType string = 'simple'
 output azureSearchVectorColumns string = 'contentVector'
 
 @description('Contains AI Agent Endpoint')
-output azureAiAgentEndpoint string = aiFoundryAiServicesProject!.outputs.apiEndpoint
+output azureAiAgentEndpoint string = aiFoundryAiProjectEndpoint
 
 @description('Contains AI Agent API Version')
 output azureAiAgentApiVersion string = azureAiAgentApiVersion
@@ -1301,7 +1303,7 @@ output azureAiAgentApiVersion string = azureAiAgentApiVersion
 output azureAiAgentModelDeploymentName string = gptModelName
 
 @description('Contains Application Insights Connection String')
-output azureApplicationInsightsConnectionString string = enableMonitoring ? applicationInsights!.outputs.connectionString : ''
+output azureApplicationInsightsConnectionString string = (enableMonitoring && !useExistingLogAnalytics) ? applicationInsights!.outputs.connectionString : ''
 
 @description('Contains Application Environment.')
 output appEnv string  = 'Prod'

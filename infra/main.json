@@ -6,7 +6,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.37.4.10188",
-      "templateHash": "9632700957939419530"
+      "templateHash": "12437393349059250623"
     },
     "name": "Document Generation Solution Accelerator",
     "description": "CSA CTO Gold Standard Solution Accelerator for Document Generation.\n"
@@ -190,7 +190,7 @@
     },
     "enableScalability": {
       "type": "bool",
-      "defaultValue": false,
+      "defaultValue": true,
       "metadata": {
         "description": "Optional. Enable scalability for applicable resources, aligned with the Well Architected Framework recommendations. Defaults to false."
       }
@@ -204,7 +204,7 @@
     },
     "enablePrivateNetworking": {
       "type": "bool",
-      "defaultValue": false,
+      "defaultValue": true,
       "metadata": {
         "description": "Optional. Enable private networking for applicable resources, aligned with the Well Architected Framework recommendations. Defaults to false."
       }
@@ -3555,7 +3555,7 @@
       }
     },
     "applicationInsights": {
-      "condition": "[parameters('enableMonitoring')]",
+      "condition": "[and(parameters('enableMonitoring'), not(variables('useExistingLogAnalytics')))]",
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "2022-09-01",
       "name": "[take(format('avm.res.insights.component.{0}', variables('applicationInsightsResourceName')), 64)]",
@@ -3589,8 +3589,8 @@
           "flowType": {
             "value": "Bluefield"
           },
-          "workspaceResourceId": "[if(parameters('enableMonitoring'), createObject('value', reference('logAnalyticsWorkspace').outputs.resourceId.value), createObject('value', ''))]",
-          "diagnosticSettings": "[if(parameters('enableMonitoring'), createObject('value', createArray(createObject('workspaceResourceId', reference('logAnalyticsWorkspace').outputs.resourceId.value))), createObject('value', null()))]"
+          "workspaceResourceId": "[if(parameters('enableMonitoring'), if(variables('useExistingLogAnalytics'), createObject('value', parameters('existingLogAnalyticsWorkspaceId')), createObject('value', reference('logAnalyticsWorkspace').outputs.resourceId.value)), createObject('value', ''))]",
+          "diagnosticSettings": "[if(parameters('enableMonitoring'), createObject('value', createArray(createObject('workspaceResourceId', if(variables('useExistingLogAnalytics'), parameters('existingLogAnalyticsWorkspaceId'), reference('logAnalyticsWorkspace').outputs.resourceId.value)))), createObject('value', null()))]"
         },
         "template": {
           "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
@@ -23729,7 +23729,7 @@
           "softDeleteRetentionInDays": {
             "value": 7
           },
-          "diagnosticSettings": "[if(parameters('enableMonitoring'), createObject('value', createArray(createObject('workspaceResourceId', reference('logAnalyticsWorkspace').outputs.resourceId.value))), createObject('value', createArray()))]",
+          "diagnosticSettings": "[if(parameters('enableMonitoring'), createObject('value', createArray(createObject('workspaceResourceId', if(variables('useExistingLogAnalytics'), parameters('existingLogAnalyticsWorkspaceId'), reference('logAnalyticsWorkspace').outputs.resourceId.value)))), createObject('value', createArray()))]",
           "privateEndpoints": "[if(parameters('enablePrivateNetworking'), createObject('value', createArray(createObject('name', format('pep-{0}', variables('keyVaultName')), 'customNetworkInterfaceName', format('nic-{0}', variables('keyVaultName')), 'privateDnsZoneGroup', createObject('privateDnsZoneGroupConfigs', createArray(createObject('privateDnsZoneResourceId', reference(format('avmPrivateDnsZones[{0}]', variables('dnsZoneIndex').keyVault)).outputs.resourceId.value))), 'service', 'vault', 'subnetResourceId', reference('network').outputs.subnetPrivateEndpointsResourceId.value))), createObject('value', createArray()))]",
           "roleAssignments": {
             "value": [
@@ -29895,7 +29895,7 @@
             "value": "[variables('aiFoundryAiProjectDescription')]"
           },
           "aiServicesName": {
-            "value": "[reference('aiFoundryAiServices').outputs.name.value]"
+            "value": "[variables('aiFoundryAiServicesResourceName')]"
           },
           "azureExistingAIProjectResourceId": {
             "value": "[parameters('azureExistingAIProjectResourceId')]"
@@ -30155,12 +30155,12 @@
               },
               {
                 "roleDefinitionIdOrName": "1407120a-92aa-4202-b7e9-c0e197c71c8f",
-                "principalId": "[reference('aiFoundryAiServicesProject').outputs.systemAssignedMIPrincipalId.value]",
+                "principalId": "[if(not(variables('useExistingAiFoundryAiProject')), reference('aiFoundryAiServicesProject').outputs.systemAssignedMIPrincipalId.value, reference('existingAiFoundryAiServicesProject', '2025-04-01-preview', 'full').identity.principalId)]",
                 "principalType": "ServicePrincipal"
               },
               {
                 "roleDefinitionIdOrName": "7ca78c08-252a-4471-8644-bb5ff32d4ba0",
-                "principalId": "[reference('aiFoundryAiServicesProject').outputs.systemAssignedMIPrincipalId.value]",
+                "principalId": "[if(not(variables('useExistingAiFoundryAiProject')), reference('aiFoundryAiServicesProject').outputs.systemAssignedMIPrincipalId.value, reference('existingAiFoundryAiServicesProject', '2025-04-01-preview', 'full').identity.principalId)]",
                 "principalType": "ServicePrincipal"
               }
             ]
@@ -32462,6 +32462,7 @@
       "dependsOn": [
         "aiFoundryAiServicesProject",
         "[format('avmPrivateDnsZones[{0}]', variables('dnsZoneIndex').searchService)]",
+        "existingAiFoundryAiServicesProject",
         "logAnalyticsWorkspace",
         "network",
         "userAssignedIdentity"
@@ -38338,8 +38339,8 @@
         }
       },
       "dependsOn": [
-        "[format('avmPrivateDnsZones[{0}]', variables('dnsZoneIndex').storageQueue)]",
         "[format('avmPrivateDnsZones[{0}]', variables('dnsZoneIndex').storageBlob)]",
+        "[format('avmPrivateDnsZones[{0}]', variables('dnsZoneIndex').storageQueue)]",
         "network",
         "userAssignedIdentity"
       ]
@@ -38399,7 +38400,7 @@
               }
             ]
           },
-          "diagnosticSettings": "[if(parameters('enableMonitoring'), createObject('value', createArray(createObject('workspaceResourceId', reference('logAnalyticsWorkspace').outputs.resourceId.value))), createObject('value', null()))]",
+          "diagnosticSettings": "[if(parameters('enableMonitoring'), createObject('value', createArray(createObject('workspaceResourceId', if(variables('useExistingLogAnalytics'), parameters('existingLogAnalyticsWorkspaceId'), reference('logAnalyticsWorkspace').outputs.resourceId.value)))), createObject('value', null()))]",
           "networkRestrictions": {
             "value": {
               "networkAclBypass": "None",
@@ -42266,7 +42267,7 @@
               },
               {
                 "name": "COG-SERVICES-ENDPOINT",
-                "value": "[reference('aiFoundryAiServicesProject').outputs.aoaiEndpoint.value]"
+                "value": "[format('https://{0}.openai.azure.com/', variables('aiFoundryAiServicesResourceName'))]"
               },
               {
                 "name": "AZURE-SEARCH-INDEX",
@@ -42286,7 +42287,7 @@
               },
               {
                 "name": "AZURE-OPENAI-ENDPOINT",
-                "value": "[reference('aiFoundryAiServicesProject').outputs.aoaiEndpoint.value]"
+                "value": "[format('https://{0}.openai.azure.com/', variables('aiFoundryAiServicesResourceName'))]"
               },
               {
                 "name": "AZURE-OPENAI-PREVIEW-API-VERSION",
@@ -45421,7 +45422,6 @@
         }
       },
       "dependsOn": [
-        "aiFoundryAiServicesProject",
         "aiSearch",
         "cosmosDB",
         "storageAccount"
@@ -46063,8 +46063,8 @@
                   "AZURE_SEARCH_CONNECTION_NAME": "[variables('aiSearchConnectionName')]",
                   "AZURE_OPENAI_API_VERSION": "[parameters('azureOpenaiAPIVersion')]",
                   "AZURE_OPENAI_MODEL": "[parameters('gptModelName')]",
-                  "AZURE_OPENAI_ENDPOINT": "[reference('aiFoundryAiServicesProject').outputs.aoaiEndpoint.value]",
-                  "AZURE_OPENAI_RESOURCE": "[reference('aiFoundryAiServices').outputs.name.value]",
+                  "AZURE_OPENAI_ENDPOINT": "[format('https://{0}.openai.azure.com/', variables('aiFoundryAiServicesResourceName'))]",
+                  "AZURE_OPENAI_RESOURCE": "[variables('aiFoundryAiServicesResourceName')]",
                   "AZURE_OPENAI_PREVIEW_API_VERSION": "[parameters('azureOpenaiAPIVersion')]",
                   "AZURE_OPENAI_GENERATE_SECTION_CONTENT_PROMPT": "[variables('azureOpenAiGenerateSectionContentPrompt')]",
                   "AZURE_OPENAI_TEMPLATE_SYSTEM_MESSAGE": "[variables('azureOpenAiTemplateSystemMessage')]",
@@ -46085,7 +46085,7 @@
                   "APP_ENV": "Prod",
                   "AZURE_CLIENT_ID": "[reference('userAssignedIdentity').outputs.clientId.value]"
                 },
-                "applicationInsightResourceId": "[if(parameters('enableMonitoring'), reference('applicationInsights').outputs.resourceId.value, null())]"
+                "applicationInsightResourceId": "[if(and(parameters('enableMonitoring'), not(variables('useExistingLogAnalytics'))), reference('applicationInsights').outputs.resourceId.value, null())]"
               }
             ]
           },
@@ -48077,7 +48077,6 @@
         }
       },
       "dependsOn": [
-        "aiFoundryAiServices",
         "aiFoundryAiServicesProject",
         "aiSearch",
         "applicationInsights",
@@ -48138,21 +48137,21 @@
       "metadata": {
         "description": "Contains AI Foundry Name"
       },
-      "value": "[reference('aiFoundryAiServices').outputs.name.value]"
+      "value": "[variables('aiFoundryAiServicesResourceName')]"
     },
     "aiFoundryRgName": {
       "type": "string",
       "metadata": {
         "description": "Contains AI Foundry RG Name"
       },
-      "value": "[reference('aiFoundryAiServices').outputs.resourceGroupName.value]"
+      "value": "[variables('aiFoundryAiServicesResourceGroupName')]"
     },
     "aiFoundryResourceId": {
       "type": "string",
       "metadata": {
         "description": "Contains AI Foundry Resource ID"
       },
-      "value": "[reference('aiFoundryAiServices').outputs.resourceId.value]"
+      "value": "[if(variables('useExistingAiFoundryAiProject'), parameters('azureExistingAIProjectResourceId'), reference('aiFoundryAiServices').outputs.resourceId.value)]"
     },
     "aiSearchServiceName": {
       "type": "string",
@@ -48208,14 +48207,14 @@
       "metadata": {
         "description": "Contains OpenAI Resource"
       },
-      "value": "[reference('aiFoundryAiServices').outputs.name.value]"
+      "value": "[variables('aiFoundryAiServicesResourceName')]"
     },
     "azureSearchService": {
       "type": "string",
       "metadata": {
         "description": "Contains Azure Search Service"
       },
-      "value": "[reference('aiFoundryAiServices').outputs.name.value]"
+      "value": "[variables('aiFoundryAiServicesResourceName')]"
     },
     "azureSearchIndex": {
       "type": "string",
@@ -48271,7 +48270,7 @@
       "metadata": {
         "description": "Contains AI Agent Endpoint"
       },
-      "value": "[reference('aiFoundryAiServicesProject').outputs.apiEndpoint.value]"
+      "value": "[if(variables('useExistingAiFoundryAiProject'), reference('existingAiFoundryAiServicesProject').endpoints['AI Foundry API'], reference('aiFoundryAiServicesProject').outputs.apiEndpoint.value)]"
     },
     "azureAiAgentApiVersion": {
       "type": "string",
@@ -48292,7 +48291,7 @@
       "metadata": {
         "description": "Contains Application Insights Connection String"
       },
-      "value": "[if(parameters('enableMonitoring'), reference('applicationInsights').outputs.connectionString.value, '')]"
+      "value": "[if(and(parameters('enableMonitoring'), not(variables('useExistingLogAnalytics'))), reference('applicationInsights').outputs.connectionString.value, '')]"
     },
     "appEnv": {
       "type": "string",
