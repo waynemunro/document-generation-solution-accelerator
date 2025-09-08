@@ -15,6 +15,8 @@ original_storage_public_access=""
 original_storage_default_action=""
 original_search_public_access=""
 original_foundry_public_access=""
+aif_resource_group=""
+aif_account_resource_id=""
 
 # Function to enable public network access temporarily
 enable_public_access() {
@@ -67,15 +69,27 @@ enable_public_access() {
     fi
     
     # Enable public access for AI Foundry
-    aif_resource_name=$(basename "$aif_resource_id")
-    echo "Enabling public access for AI Foundry resource: $aif_resource_name"
-    original_foundry_public_access=$(az cognitiveservices account show --name "$aif_resource_name" --resource-group "$resourceGroupName" --query "properties.publicNetworkAccess" --output tsv)
+    # Extract the account resource ID (remove /projects/... part if present)
+    aif_account_resource_id=$(echo "$aif_resource_id" | sed 's|/projects/.*||')
+    aif_resource_name=$(basename "$aif_account_resource_id")
+    # Extract resource group from the AI Foundry account resource ID
+    aif_resource_group=$(echo "$aif_account_resource_id" | sed -n 's|.*/resourceGroups/\([^/]*\)/.*|\1|p')
+    
+    # # Validate that we extracted a resource group name
+    # if [ -z "$aif_resource_group" ]; then
+    #     echo "⚠ Warning: Could not extract resource group from AI Foundry resource ID: $aif_resource_id"
+    #     echo "  Falling back to using the main resource group: $resourceGroupName"
+    #     aif_resource_group="$resourceGroupName"
+    # fi
+    
+    echo "Enabling public access for AI Foundry resource: $aif_resource_name (Resource Group: $aif_resource_group)"
+    original_foundry_public_access=$(az cognitiveservices account show --name "$aif_resource_name" --resource-group "$aif_resource_group" --query "properties.publicNetworkAccess" --output tsv)
     if [ -z "$original_foundry_public_access" ] || [ "$original_foundry_public_access" = "null" ]; then
         echo "⚠ Info: Could not retrieve AI Foundry network access status."
         echo "  AI Foundry network access might be managed differently."
     elif [ "$original_foundry_public_access" != "Enabled" ]; then
         echo "Current AI Foundry public access: $original_foundry_public_access"
-        if MSYS_NO_PATHCONV=1 az resource update --ids "$aif_resource_id" --api-version 2024-10-01 --set properties.publicNetworkAccess=Enabled properties.apiProperties="{}" --output none; then
+        if MSYS_NO_PATHCONV=1 az resource update --ids "$aif_account_resource_id" --api-version 2024-10-01 --set properties.publicNetworkAccess=Enabled properties.apiProperties="{}" --output none; then
             echo "✓ AI Foundry public access enabled"
         else
             echo "⚠ Warning: Failed to enable AI Foundry public access automatically."
@@ -150,7 +164,7 @@ restore_network_access() {
     if [ -n "$original_foundry_public_access" ] && [ "$original_foundry_public_access" != "Enabled" ]; then
         echo "Restoring AI Foundry public access to: $original_foundry_public_access"
         # Try using the working approach to restore the original setting
-        if MSYS_NO_PATHCONV=1 az resource update --ids "$aif_resource_id" --api-version 2024-10-01 --set properties.publicNetworkAccess="$original_foundry_public_access" properties.apiProperties="{}" --output none 2>/dev/null; then
+        if MSYS_NO_PATHCONV=1 az resource update --ids "$aif_account_resource_id" --api-version 2024-10-01 --set properties.publicNetworkAccess="$original_foundry_public_access" properties.apiProperties="{}" --output none 2>/dev/null; then
             echo "✓ AI Foundry access restored"
         else
             echo "⚠ Warning: Failed to restore AI Foundry access automatically."
