@@ -24,11 +24,23 @@ enable_public_access() {
     
     # Enable public access for Storage Account
     echo "Enabling public access for Storage Account: $storageAccount"
-    original_storage_public_access=$(az storage account show --name "$storageAccount" --resource-group "$resourceGroupName" --query "publicNetworkAccess" -o tsv)
-    original_storage_default_action=$(az storage account show --name "$storageAccount" --resource-group "$resourceGroupName" --query "networkRuleSet.defaultAction" -o tsv)
+    original_storage_public_access=$(az storage account show \
+        --name "$storageAccount" \
+        --resource-group "$resourceGroupName" \
+        --query "publicNetworkAccess" \
+        -o tsv)
+    original_storage_default_action=$(az storage account show \
+        --name "$storageAccount" \
+        --resource-group "$resourceGroupName" \
+        --query "networkRuleSet.defaultAction" \
+        -o tsv)
     
     if [ "$original_storage_public_access" != "Enabled" ]; then
-        az storage account update --name "$storageAccount" --resource-group "$resourceGroupName" --public-network-access Enabled --output none
+        az storage account update \
+            --name "$storageAccount" \
+            --resource-group "$resourceGroupName" \
+            --public-network-access Enabled \
+            --output none
         if [ $? -eq 0 ]; then
             echo "✓ Storage Account public access enabled"
         else
@@ -42,7 +54,11 @@ enable_public_access() {
     # Also ensure the default network action allows access
     if [ "$original_storage_default_action" != "Allow" ]; then
         echo "Setting Storage Account network default action to Allow"
-        az storage account update --name "$storageAccount" --resource-group "$resourceGroupName" --default-action Allow --output none
+        az storage account update \
+            --name "$storageAccount" \
+            --resource-group "$resourceGroupName" \
+            --default-action Allow \
+            --output none
         if [ $? -eq 0 ]; then
             echo "✓ Storage Account network default action set to Allow"
         else
@@ -55,9 +71,17 @@ enable_public_access() {
     
     # Enable public access for AI Search Service
     echo "Enabling public access for AI Search Service: $aiSearchName"
-    original_search_public_access=$(az search service show --name "$aiSearchName" --resource-group "$resourceGroupName" --query "publicNetworkAccess" -o tsv)
+    original_search_public_access=$(az search service show \
+        --name "$aiSearchName" \
+        --resource-group "$resourceGroupName" \
+        --query "publicNetworkAccess" \
+        -o tsv)
     if [ "$original_search_public_access" != "Enabled" ]; then
-        az search service update --name "$aiSearchName" --resource-group "$resourceGroupName" --public-access enabled --output none
+        az search service update \
+            --name "$aiSearchName" \
+            --resource-group "$resourceGroupName" \
+            --public-access enabled \
+            --output none
         if [ $? -eq 0 ]; then
             echo "✓ AI Search Service public access enabled"
         else
@@ -75,21 +99,22 @@ enable_public_access() {
     # Extract resource group from the AI Foundry account resource ID
     aif_resource_group=$(echo "$aif_account_resource_id" | sed -n 's|.*/resourceGroups/\([^/]*\)/.*|\1|p')
     
-    # # Validate that we extracted a resource group name
-    # if [ -z "$aif_resource_group" ]; then
-    #     echo "⚠ Warning: Could not extract resource group from AI Foundry resource ID: $aif_resource_id"
-    #     echo "  Falling back to using the main resource group: $resourceGroupName"
-    #     aif_resource_group="$resourceGroupName"
-    # fi
-    
     echo "Enabling public access for AI Foundry resource: $aif_resource_name (Resource Group: $aif_resource_group)"
-    original_foundry_public_access=$(az cognitiveservices account show --name "$aif_resource_name" --resource-group "$aif_resource_group" --query "properties.publicNetworkAccess" --output tsv)
+    original_foundry_public_access=$(az cognitiveservices account show \
+        --name "$aif_resource_name" \
+        --resource-group "$aif_resource_group" \
+        --query "properties.publicNetworkAccess" \
+        --output tsv)
     if [ -z "$original_foundry_public_access" ] || [ "$original_foundry_public_access" = "null" ]; then
         echo "⚠ Info: Could not retrieve AI Foundry network access status."
         echo "  AI Foundry network access might be managed differently."
     elif [ "$original_foundry_public_access" != "Enabled" ]; then
         echo "Current AI Foundry public access: $original_foundry_public_access"
-        if MSYS_NO_PATHCONV=1 az resource update --ids "$aif_account_resource_id" --api-version 2024-10-01 --set properties.publicNetworkAccess=Enabled properties.apiProperties="{}" --output none; then
+        if MSYS_NO_PATHCONV=1 az resource update \
+            --ids "$aif_account_resource_id" \
+            --api-version 2024-10-01 \
+            --set properties.publicNetworkAccess=Enabled properties.apiProperties="{}" \
+            --output none; then
             echo "✓ AI Foundry public access enabled"
         else
             echo "⚠ Warning: Failed to enable AI Foundry public access automatically."
@@ -118,7 +143,11 @@ restore_network_access() {
             "disabled"|"Disabled") restore_value="Disabled" ;;
             *) restore_value="$original_storage_public_access" ;;
         esac
-        az storage account update --name "$storageAccount" --resource-group "$resourceGroupName" --public-network-access "$restore_value" --output none
+        az storage account update \
+            --name "$storageAccount" \
+            --resource-group "$resourceGroupName" \
+            --public-network-access "$restore_value" \
+            --output none
         if [ $? -eq 0 ]; then
             echo "✓ Storage Account access restored"
         else
@@ -131,7 +160,11 @@ restore_network_access() {
     # Restore Storage Account network default action
     if [ -n "$original_storage_default_action" ] && [ "$original_storage_default_action" != "Allow" ]; then
         echo "Restoring Storage Account network default action to: $original_storage_default_action"
-        az storage account update --name "$storageAccount" --resource-group "$resourceGroupName" --default-action "$original_storage_default_action" --output none
+        az storage account update \
+            --name "$storageAccount" \
+            --resource-group "$resourceGroupName" \
+            --default-action "$original_storage_default_action" \
+            --output none
         if [ $? -eq 0 ]; then
             echo "✓ Storage Account network default action restored"
         else
@@ -150,7 +183,11 @@ restore_network_access() {
             "Disabled"|"DISABLED") restore_value="Disabled" ;;
             *) restore_value="$original_search_public_access" ;;
         esac
-        az search service update --name "$aiSearchName" --resource-group "$resourceGroupName" --public-access "$restore_value" --output none
+        az search service update \
+            --name "$aiSearchName" \
+            --resource-group "$resourceGroupName" \
+            --public-access "$restore_value" \
+            --output none
         if [ $? -eq 0 ]; then
             echo "✓ AI Search Service access restored"
         else
@@ -164,7 +201,11 @@ restore_network_access() {
     if [ -n "$original_foundry_public_access" ] && [ "$original_foundry_public_access" != "Enabled" ]; then
         echo "Restoring AI Foundry public access to: $original_foundry_public_access"
         # Try using the working approach to restore the original setting
-        if MSYS_NO_PATHCONV=1 az resource update --ids "$aif_account_resource_id" --api-version 2024-10-01 --set properties.publicNetworkAccess="$original_foundry_public_access" properties.apiProperties="{}" --output none 2>/dev/null; then
+        if MSYS_NO_PATHCONV=1 az resource update \
+            --ids "$aif_account_resource_id" \
+            --api-version 2024-10-01 \
+            --set properties.publicNetworkAccess="$original_foundry_public_access" properties.apiProperties="{}" \
+            --output none 2>/dev/null; then
             echo "✓ AI Foundry access restored"
         else
             echo "⚠ Warning: Failed to restore AI Foundry access automatically."
