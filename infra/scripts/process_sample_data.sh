@@ -14,6 +14,7 @@ aif_resource_id="${8}"
 original_storage_public_access=""
 original_storage_default_action=""
 original_search_public_access=""
+original_search_bypass=""
 original_foundry_public_access=""
 aif_resource_group=""
 aif_account_resource_id=""
@@ -76,6 +77,14 @@ enable_public_access() {
         --resource-group "$resourceGroupName" \
         --query "publicNetworkAccess" \
         -o tsv)
+    
+    # Get current bypass setting for trusted services
+    original_search_bypass=$(az search service show \
+        --name "$aiSearchName" \
+        --resource-group "$resourceGroupName" \
+        --query "networkRuleSet.bypass" \
+        -o tsv)
+    
     if [ "$original_search_public_access" != "Enabled" ]; then
         az search service update \
             --name "$aiSearchName" \
@@ -92,6 +101,24 @@ enable_public_access() {
         echo "✓ AI Search Service public access already enabled"
     fi
     
+    # Enable trusted services bypass
+    if [ "$original_search_bypass" != "AzureServices" ]; then
+        echo "Enabling trusted services bypass for AI Search Service"
+        MSYS_NO_PATHCONV=1 az resource update \
+            --ids "/subscriptions/$(az account show --query id -o tsv)/resourceGroups/$resourceGroupName/providers/Microsoft.Search/searchServices/$aiSearchName" \
+            --api-version 2024-06-01-preview \
+            --set "properties.networkRuleSet.bypass=AzureServices" \
+            --output none
+        if [ $? -eq 0 ]; then
+            echo "✓ AI Search Service trusted services bypass enabled"
+        else
+            echo "✗ Failed to enable AI Search Service trusted services bypass"
+            return 1
+        fi
+    else
+        echo "✓ AI Search Service trusted services bypass already enabled"
+    fi
+    
     # Enable public access for AI Foundry
     # Extract the account resource ID (remove /projects/... part if present)
     aif_account_resource_id=$(echo "$aif_resource_id" | sed 's|/projects/.*||')
@@ -99,7 +126,6 @@ enable_public_access() {
     # Extract resource group from the AI Foundry account resource ID
     aif_resource_group=$(echo "$aif_account_resource_id" | sed -n 's|.*/resourceGroups/\([^/]*\)/.*|\1|p')
     
-    echo "Enabling public access for AI Foundry resource: $aif_resource_name (Resource Group: $aif_resource_group)"
     original_foundry_public_access=$(az cognitiveservices account show \
         --name "$aif_resource_name" \
         --resource-group "$aif_resource_group" \
@@ -110,6 +136,7 @@ enable_public_access() {
         echo "  AI Foundry network access might be managed differently."
     elif [ "$original_foundry_public_access" != "Enabled" ]; then
         echo "Current AI Foundry public access: $original_foundry_public_access"
+        echo "Enabling public access for AI Foundry resource: $aif_resource_name (Resource Group: $aif_resource_group)"
         if MSYS_NO_PATHCONV=1 az resource update \
             --ids "$aif_account_resource_id" \
             --api-version 2024-10-01 \
@@ -197,6 +224,29 @@ restore_network_access() {
         echo "AI Search Service access unchanged (already at desired state)"
     fi
     
+    # Restore AI Search Service trusted services bypass
+    if [ -n "$original_search_bypass" ] && [ "$original_search_bypass" != "AzureServices" ]; then
+        echo "Restoring AI Search Service trusted services bypass to: $original_search_bypass"
+        # Handle null/empty values
+        if [ "$original_search_bypass" = "null" ] || [ -z "$original_search_bypass" ]; then
+            restore_bypass_value="None"
+        else
+            restore_bypass_value="$original_search_bypass"
+        fi
+        MSYS_NO_PATHCONV=1 az resource update \
+            --ids "/subscriptions/$(az account show --query id -o tsv)/resourceGroups/$resourceGroupName/providers/Microsoft.Search/searchServices/$aiSearchName" \
+            --api-version 2024-06-01-preview \
+            --set "properties.networkRuleSet.bypass=$restore_bypass_value" \
+            --output none
+        if [ $? -eq 0 ]; then
+            echo "✓ AI Search Service trusted services bypass restored"
+        else
+            echo "✗ Failed to restore AI Search Service trusted services bypass"
+        fi
+    else
+        echo "AI Search Service trusted services bypass unchanged (already at desired state)"
+    fi
+    
     # Restore AI Foundry access
     if [ -n "$original_foundry_public_access" ] && [ "$original_foundry_public_access" != "Enabled" ]; then
         echo "Restoring AI Foundry public access to: $original_foundry_public_access"
@@ -235,31 +285,31 @@ trap cleanup_on_exit EXIT INT TERM
 
 # get parameters from azd env, if not provided
 if [ -z "$resourceGroupName" ]; then
-    resourceGroupName=$(azd env get-value resourceGroupName)
+    resourceGroupName=$(azd env get-value RESOURCE_GROUP_NAME)
 fi
 
 if [ -z "$cosmosDbAccountName" ]; then
-    cosmosDbAccountName=$(azd env get-value cosmosDbAccountName)
+    cosmosDbAccountName=$(azd env get-value COSMOSDB_ACCOUNT_NAME)
 fi
 
 if [ -z "$storageAccount" ]; then
-    storageAccount=$(azd env get-value storageAccountName)
+    storageAccount=$(azd env get-value STORAGE_ACCOUNT_NAME)
 fi
 
 if [ -z "$fileSystem" ]; then
-    fileSystem=$(azd env get-value storageContainerName)
+    fileSystem=$(azd env get-value STORAGE_CONTAINER_NAME)
 fi
 
 if [ -z "$keyvaultName" ]; then
-    keyvaultName=$(azd env get-value keyVaultName)
+    keyvaultName=$(azd env get-value KEY_VAULT_NAME)
 fi
 
 if [ -z "$aiSearchName" ]; then
-    aiSearchName=$(azd env get-value aiSearchServiceName)
+    aiSearchName=$(azd env get-value AI_SEARCH_SERVICE_NAME)
 fi
 
 if [ -z "$aif_resource_id" ]; then
-    aif_resource_id=$(azd env get-value aiFoundryResourceId)
+    aif_resource_id=$(azd env get-value AI_FOUNDRY_RESOURCE_ID)
 fi
 
 azSubscriptionId=$(azd env get-value AZURE_SUBSCRIPTION_ID)
