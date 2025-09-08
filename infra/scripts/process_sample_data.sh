@@ -73,15 +73,12 @@ enable_public_access() {
     if [ -z "$original_foundry_public_access" ] || [ "$original_foundry_public_access" = "null" ]; then
         echo "⚠ Info: Could not retrieve AI Foundry network access status."
         echo "  AI Foundry network access might be managed differently."
-        original_foundry_public_access=""  # Clear this so we don't try to restore
     elif [ "$original_foundry_public_access" != "Enabled" ]; then
         echo "Current AI Foundry public access: $original_foundry_public_access"
         if MSYS_NO_PATHCONV=1 az resource update --ids "$aif_resource_id" --api-version 2024-10-01 --set properties.publicNetworkAccess=Enabled properties.apiProperties="{}" --output none; then
             echo "✓ AI Foundry public access enabled"
-            original_foundry_public_access="Enabled"
         else
             echo "⚠ Warning: Failed to enable AI Foundry public access automatically."
-            original_foundry_public_access=""  # Clear this so we don't try to restore
         fi
     else
         echo "✓ AI Foundry public access already enabled"
@@ -150,7 +147,7 @@ restore_network_access() {
     fi
     
     # Restore AI Foundry access
-    if [ -n "$aif_resource_id" ] && [ -n "$original_foundry_public_access" ] && [ "$original_foundry_public_access" != "Enabled" ]; then
+    if [ -n "$original_foundry_public_access" ] && [ "$original_foundry_public_access" != "Enabled" ]; then
         echo "Restoring AI Foundry public access to: $original_foundry_public_access"
         # Try using the working approach to restore the original setting
         if MSYS_NO_PATHCONV=1 az resource update --ids "$aif_resource_id" --api-version 2024-10-01 --set properties.publicNetworkAccess="$original_foundry_public_access" properties.apiProperties="{}" --output none 2>/dev/null; then
