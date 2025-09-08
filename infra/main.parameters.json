@@ -14,7 +14,7 @@
     "gptModelVersion": {
       "value": "${AZURE_ENV_MODEL_VERSION}"
     },
-    "deploymentType": {
+    "gptModelDeploymentType": {
       "value": "${AZURE_ENV_MODEL_DEPLOYMENT_TYPE}"
     },
     "gptModelName": {
@@ -23,7 +23,7 @@
     "azureOpenaiAPIVersion": {
       "value": "${AZURE_ENV_OPENAI_API_VERSION}"
     },
-    "gptDeploymentCapacity": {
+    "gptModelCapacity": {
       "value": "${AZURE_ENV_MODEL_CAPACITY}"
     },
     "embeddingModel": {

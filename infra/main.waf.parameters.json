@@ -5,14 +5,14 @@
     "solutionName": {
       "value": "${AZURE_ENV_NAME}"
     },
-    "AZURE_LOCATION": {
+    "location": {
       "value": "${AZURE_LOCATION}"
     },
     "secondaryLocation": {
       "value": "${AZURE_ENV_SECONDARY_LOCATION}"
     },
-    "aiDeploymentsLocation": {
-      "value": "${AZURE_ENV_OPENAI_LOCATION}"
+    "gptModelVersion": {
+      "value": "${AZURE_ENV_MODEL_VERSION}"
     },
     "gptModelDeploymentType": {
       "value": "${AZURE_ENV_MODEL_DEPLOYMENT_TYPE}"
@@ -20,50 +20,44 @@
     "gptModelName": {
       "value": "${AZURE_ENV_MODEL_NAME}"
     },
-    "gptModelVersion": {
-      "value": "${AZURE_ENV_MODEL_VERSION}"
+    "azureOpenaiAPIVersion": {
+      "value": "${AZURE_ENV_OPENAI_API_VERSION}"
     },
     "gptModelCapacity": {
       "value": "${AZURE_ENV_MODEL_CAPACITY}"
     },
     "embeddingModel": {
-      "value": "${AZURE_ENV_EMBEDDING_MODEL}"
+      "value": "${AZURE_ENV_EMBEDDING_MODEL_NAME}"
     },
     "embeddingDeploymentCapacity": {
-      "value": "${AZURE_ENV_EMBEDDING_DEPLOYMENT_CAPACITY}"
+      "value": "${AZURE_ENV_EMBEDDING_MODEL_CAPACITY}"
     },
-    "existingLogAnalyticsWorkspaceId": {
-      "value": "${AZURE_ENV_EXISTING_LOG_ANALYTICS_WORKSPACE_ID}"
+    "imageTag": {
+      "value": "${AZURE_ENV_IMAGETAG}"
     },
-    "azureExistingAIProjectResourceId": {
-      "value": "${AZURE_ENV_EXISTING_AI_PROJECT_RESOURCE_ID}"
-    },
-    "vmSize": {
-      "value": "${AZURE_ENV_JUMPBOX_SIZE}"
-    },
-    "vmAdminUsername": {
-      "value": "${AZURE_ENV_JUMPBOX_ADMIN_USERNAME}"
-    },
-    "vmAdminPassword": {
-      "value": "${AZURE_ENV_JUMPBOX_ADMIN_PASSWORD}"
+    "enableTelemetry": {
+      "value": "${AZURE_ENV_ENABLE_TELEMETRY}"
     },
     "enableMonitoring": {
-      "value": true
-    },
-    "enableScalability": {
-      "value": true
-    },
-    "enableRedundancy": {
       "value": true
     },
     "enablePrivateNetworking": {
       "value": true
     },
-    "enableTelemetry": {
-      "value": "${AZURE_ENV_ENABLE_TELEMETRY}"
+    "enableScalability": {
+      "value": true
     },
-    "enablePurgeProtection": {
-      "value": "${AZURE_ENV_ENABLE_PURGE_PROTECTION}"
+    "vmAdminUsername": {
+      "value": "${AZURE_ENV_VM_ADMIN_USERNAME}"
+    },
+    "vmAdminPassword": {
+      "value": "${AZURE_ENV_VM_ADMIN_PASSWORD}"
+    },
+    "existingLogAnalyticsWorkspaceId": {
+      "value": "${AZURE_ENV_LOG_ANALYTICS_WORKSPACE_ID}"
+    },
+    "azureExistingAIProjectResourceId":{
+      "value": "${AZURE_EXISTING_AI_PROJECT_RESOURCE_ID}"
     }
   }
 }

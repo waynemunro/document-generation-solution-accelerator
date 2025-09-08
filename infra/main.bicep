@@ -15,7 +15,7 @@ param solutionName string = 'docgen'
 param solutionUniqueText string = substring(uniqueString(subscription().id, resourceGroup().name, solutionName), 0, 5)
 
 @description('Optional. Azure location for the solution. If not provided, it defaults to the resource group location.')
-param AZURE_LOCATION string = ''
+param location string = ''
 
 @minLength(3)
 @description('Optional. Secondary location for databases creation(example:eastus2):')
@@ -101,19 +101,19 @@ param vmAdminPassword string?
 param tags resourceInput<'Microsoft.Resources/resourceGroups@2025-04-01'>.tags = {}
 
 @description('Optional. Enable monitoring applicable resources, aligned with the Well Architected Framework recommendations. This setting enables Application Insights and Log Analytics and configures all the resources applicable resources to send logs. Defaults to false.')
-param enableMonitoring bool = true
+param enableMonitoring bool = false
 
 @description('Optional. Enable scalability for applicable resources, aligned with the Well Architected Framework recommendations. Defaults to false.')
-param enableScalability bool = true
+param enableScalability bool = false
 
 @description('Optional. Enable redundancy for applicable resources, aligned with the Well Architected Framework recommendations. Defaults to false.')
 param enableRedundancy bool = false
 
 @description('Optional. Enable private networking for applicable resources, aligned with the Well Architected Framework recommendations. Defaults to false.')
-param enablePrivateNetworking bool = true
+param enablePrivateNetworking bool = false
 
 @description('Optional. The Container Registry hostname where the docker images are located.')
-param acrName string = 'testapwaf'
+param acrName string = 'testapwaf'  // byocgacontainerreg
 
 @description('Optional. Image Tag.')
 param imageTag string = 'waf'
@@ -128,7 +128,7 @@ param enablePurgeProtection bool = false
 // Variables      //
 // ============== //
 
-var solutionLocation = empty(AZURE_LOCATION) ? resourceGroup().location : AZURE_LOCATION
+var solutionLocation = empty(location) ? resourceGroup().location : location
 var solutionSuffix = toLower(trim(replace(
   replace(
     replace(replace(replace(replace('${solutionName}${solutionUniqueText}', '-', ''), '_', ''), '.', ''), '/', ''),
