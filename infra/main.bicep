@@ -18,8 +18,8 @@ param solutionUniqueText string = substring(uniqueString(subscription().id, reso
 param location string = ''
 
 @minLength(3)
-@description('Optional. Secondary location for databases creation(example:eastus2):')
-param secondaryLocation string = 'eastus2'
+@description('Optional. Secondary location for databases creation(example:uksouth):')
+param secondaryLocation string = 'uksouth'
 
 @allowed([
   'australiaeast'
@@ -887,7 +887,7 @@ module cosmosDB 'br/public:avm/res/document-db/database-account:0.15.0' = {
           {
             failoverPriority: 0
             isZoneRedundant: true
-            locationName: solutionLocation
+            locationName: secondaryLocation
           }
           {
             failoverPriority: 1
@@ -897,8 +897,9 @@ module cosmosDB 'br/public:avm/res/document-db/database-account:0.15.0' = {
         ]
       : [
           {
-            locationName: solutionLocation
+            locationName: secondaryLocation
             failoverPriority: 0
+            isZoneRedundant: enableRedundancy
           }
         ]
   }

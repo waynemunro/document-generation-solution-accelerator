@@ -6,7 +6,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.37.4.10188",
-      "templateHash": "10809335239895766797"
+      "templateHash": "9170477337595245201"
     },
     "name": "Document Generation Solution Accelerator",
     "description": "CSA CTO Gold Standard Solution Accelerator for Document Generation.\n"
@@ -38,10 +38,10 @@
     },
     "secondaryLocation": {
       "type": "string",
-      "defaultValue": "eastus2",
+      "defaultValue": "uksouth",
       "minLength": 3,
       "metadata": {
-        "description": "Optional. Secondary location for databases creation(example:eastus2):"
+        "description": "Optional. Secondary location for databases creation(example:uksouth):"
       }
     },
     "aiDeploymentsLocation": {
@@ -29874,9 +29874,9 @@
         }
       },
       "dependsOn": [
+        "[format('avmPrivateDnsZones[{0}]', variables('dnsZoneIndex').openAI)]",
         "[format('avmPrivateDnsZones[{0}]', variables('dnsZoneIndex').aiServices)]",
         "[format('avmPrivateDnsZones[{0}]', variables('dnsZoneIndex').cognitiveServices)]",
-        "[format('avmPrivateDnsZones[{0}]', variables('dnsZoneIndex').openAI)]",
         "logAnalyticsWorkspace",
         "network",
         "userAssignedIdentity"
@@ -38422,7 +38422,7 @@
           "zoneRedundant": "[if(parameters('enableRedundancy'), createObject('value', true()), createObject('value', false()))]",
           "capabilitiesToAdd": "[if(parameters('enableRedundancy'), createObject('value', null()), createObject('value', createArray('EnableServerless')))]",
           "automaticFailover": "[if(parameters('enableRedundancy'), createObject('value', true()), createObject('value', false()))]",
-          "failoverLocations": "[if(parameters('enableRedundancy'), createObject('value', createArray(createObject('failoverPriority', 0, 'isZoneRedundant', true(), 'locationName', variables('solutionLocation')), createObject('failoverPriority', 1, 'isZoneRedundant', true(), 'locationName', variables('cosmosDbHaLocation')))), createObject('value', createArray(createObject('locationName', variables('solutionLocation'), 'failoverPriority', 0))))]"
+          "failoverLocations": "[if(parameters('enableRedundancy'), createObject('value', createArray(createObject('failoverPriority', 0, 'isZoneRedundant', true(), 'locationName', parameters('secondaryLocation')), createObject('failoverPriority', 1, 'isZoneRedundant', true(), 'locationName', variables('cosmosDbHaLocation')))), createObject('value', createArray(createObject('locationName', parameters('secondaryLocation'), 'failoverPriority', 0, 'isZoneRedundant', parameters('enableRedundancy')))))]"
         },
         "template": {
           "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
