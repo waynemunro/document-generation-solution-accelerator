@@ -13,8 +13,8 @@ aif_resource_id="${8}"
 # Global variables to track original network access states
 original_storage_public_access=""
 original_storage_default_action=""
-original_search_public_access=""
-original_search_bypass=""
+# original_search_public_access=""
+# original_search_bypass=""
 original_foundry_public_access=""
 aif_resource_group=""
 aif_account_resource_id=""
@@ -71,53 +71,53 @@ enable_public_access() {
     fi
     
     # Enable public access for AI Search Service
-    echo "Enabling public access for AI Search Service: $aiSearchName"
-    original_search_public_access=$(az search service show \
-        --name "$aiSearchName" \
-        --resource-group "$resourceGroupName" \
-        --query "publicNetworkAccess" \
-        -o tsv)
+    # echo "Enabling public access for AI Search Service: $aiSearchName"
+    # original_search_public_access=$(az search service show \
+    #     --name "$aiSearchName" \
+    #     --resource-group "$resourceGroupName" \
+    #     --query "publicNetworkAccess" \
+    #     -o tsv)
     
-    # Get current bypass setting for trusted services
-    original_search_bypass=$(az search service show \
-        --name "$aiSearchName" \
-        --resource-group "$resourceGroupName" \
-        --query "networkRuleSet.bypass" \
-        -o tsv)
+    # # Get current bypass setting for trusted services
+    # original_search_bypass=$(az search service show \
+    #     --name "$aiSearchName" \
+    #     --resource-group "$resourceGroupName" \
+    #     --query "networkRuleSet.bypass" \
+    #     -o tsv)
     
-    if [ "$original_search_public_access" != "Enabled" ]; then
-        az search service update \
-            --name "$aiSearchName" \
-            --resource-group "$resourceGroupName" \
-            --public-access enabled \
-            --output none
-        if [ $? -eq 0 ]; then
-            echo "✓ AI Search Service public access enabled"
-        else
-            echo "✗ Failed to enable AI Search Service public access"
-            return 1
-        fi
-    else
-        echo "✓ AI Search Service public access already enabled"
-    fi
+    # if [ "$original_search_public_access" != "Enabled" ]; then
+    #     az search service update \
+    #         --name "$aiSearchName" \
+    #         --resource-group "$resourceGroupName" \
+    #         --public-access enabled \
+    #         --output none
+    #     if [ $? -eq 0 ]; then
+    #         echo "✓ AI Search Service public access enabled"
+    #     else
+    #         echo "✗ Failed to enable AI Search Service public access"
+    #         return 1
+    #     fi
+    # else
+    #     echo "✓ AI Search Service public access already enabled"
+    # fi
     
-    # Enable trusted services bypass
-    if [ "$original_search_bypass" != "AzureServices" ]; then
-        echo "Enabling trusted services bypass for AI Search Service"
-        MSYS_NO_PATHCONV=1 az resource update \
-            --ids "/subscriptions/$(az account show --query id -o tsv)/resourceGroups/$resourceGroupName/providers/Microsoft.Search/searchServices/$aiSearchName" \
-            --api-version 2024-06-01-preview \
-            --set "properties.networkRuleSet.bypass=AzureServices" \
-            --output none
-        if [ $? -eq 0 ]; then
-            echo "✓ AI Search Service trusted services bypass enabled"
-        else
-            echo "✗ Failed to enable AI Search Service trusted services bypass"
-            return 1
-        fi
-    else
-        echo "✓ AI Search Service trusted services bypass already enabled"
-    fi
+    # # Enable trusted services bypass
+    # if [ "$original_search_bypass" != "AzureServices" ]; then
+    #     echo "Enabling trusted services bypass for AI Search Service"
+    #     MSYS_NO_PATHCONV=1 az resource update \
+    #         --ids "/subscriptions/$(az account show --query id -o tsv)/resourceGroups/$resourceGroupName/providers/Microsoft.Search/searchServices/$aiSearchName" \
+    #         --api-version 2024-06-01-preview \
+    #         --set "properties.networkRuleSet.bypass=AzureServices" \
+    #         --output none
+    #     if [ $? -eq 0 ]; then
+    #         echo "✓ AI Search Service trusted services bypass enabled"
+    #     else
+    #         echo "✗ Failed to enable AI Search Service trusted services bypass"
+    #         return 1
+    #     fi
+    # else
+    #     echo "✓ AI Search Service trusted services bypass already enabled"
+    # fi
     
     # Enable public access for AI Foundry
     # Extract the account resource ID (remove /projects/... part if present)
@@ -201,51 +201,51 @@ restore_network_access() {
         echo "Storage Account network default action unchanged (already at desired state)"
     fi
     
-    # Restore AI Search Service access
-    if [ -n "$original_search_public_access" ] && [ "$original_search_public_access" != "Enabled" ]; then
-        echo "Restoring AI Search Service public access to: $original_search_public_access"
-        # Handle case sensitivity - convert to proper case
-        case "$original_search_public_access" in
-            "Enabled"|"ENABLED") restore_value="Enabled" ;;
-            "Disabled"|"DISABLED") restore_value="Disabled" ;;
-            *) restore_value="$original_search_public_access" ;;
-        esac
-        az search service update \
-            --name "$aiSearchName" \
-            --resource-group "$resourceGroupName" \
-            --public-access "$restore_value" \
-            --output none
-        if [ $? -eq 0 ]; then
-            echo "✓ AI Search Service access restored"
-        else
-            echo "✗ Failed to restore AI Search Service access"
-        fi
-    else
-        echo "AI Search Service access unchanged (already at desired state)"
-    fi
+    # # Restore AI Search Service access
+    # if [ -n "$original_search_public_access" ] && [ "$original_search_public_access" != "Enabled" ]; then
+    #     echo "Restoring AI Search Service public access to: $original_search_public_access"
+    #     # Handle case sensitivity - convert to proper case
+    #     case "$original_search_public_access" in
+    #         "Enabled"|"ENABLED") restore_value="Enabled" ;;
+    #         "Disabled"|"DISABLED") restore_value="Disabled" ;;
+    #         *) restore_value="$original_search_public_access" ;;
+    #     esac
+    #     az search service update \
+    #         --name "$aiSearchName" \
+    #         --resource-group "$resourceGroupName" \
+    #         --public-access "$restore_value" \
+    #         --output none
+    #     if [ $? -eq 0 ]; then
+    #         echo "✓ AI Search Service access restored"
+    #     else
+    #         echo "✗ Failed to restore AI Search Service access"
+    #     fi
+    # else
+    #     echo "AI Search Service access unchanged (already at desired state)"
+    # fi
     
-    # Restore AI Search Service trusted services bypass
-    if [ -n "$original_search_bypass" ] && [ "$original_search_bypass" != "AzureServices" ]; then
-        echo "Restoring AI Search Service trusted services bypass to: $original_search_bypass"
-        # Handle null/empty values
-        if [ "$original_search_bypass" = "null" ] || [ -z "$original_search_bypass" ]; then
-            restore_bypass_value="None"
-        else
-            restore_bypass_value="$original_search_bypass"
-        fi
-        MSYS_NO_PATHCONV=1 az resource update \
-            --ids "/subscriptions/$(az account show --query id -o tsv)/resourceGroups/$resourceGroupName/providers/Microsoft.Search/searchServices/$aiSearchName" \
-            --api-version 2024-06-01-preview \
-            --set "properties.networkRuleSet.bypass=$restore_bypass_value" \
-            --output none
-        if [ $? -eq 0 ]; then
-            echo "✓ AI Search Service trusted services bypass restored"
-        else
-            echo "✗ Failed to restore AI Search Service trusted services bypass"
-        fi
-    else
-        echo "AI Search Service trusted services bypass unchanged (already at desired state)"
-    fi
+    # # Restore AI Search Service trusted services bypass
+    # if [ -n "$original_search_bypass" ] && [ "$original_search_bypass" != "AzureServices" ]; then
+    #     echo "Restoring AI Search Service trusted services bypass to: $original_search_bypass"
+    #     # Handle null/empty values
+    #     if [ "$original_search_bypass" = "null" ] || [ -z "$original_search_bypass" ]; then
+    #         restore_bypass_value="None"
+    #     else
+    #         restore_bypass_value="$original_search_bypass"
+    #     fi
+    #     MSYS_NO_PATHCONV=1 az resource update \
+    #         --ids "/subscriptions/$(az account show --query id -o tsv)/resourceGroups/$resourceGroupName/providers/Microsoft.Search/searchServices/$aiSearchName" \
+    #         --api-version 2024-06-01-preview \
+    #         --set "properties.networkRuleSet.bypass=$restore_bypass_value" \
+    #         --output none
+    #     if [ $? -eq 0 ]; then
+    #         echo "✓ AI Search Service trusted services bypass restored"
+    #     else
+    #         echo "✗ Failed to restore AI Search Service trusted services bypass"
+    #     fi
+    # else
+    #     echo "AI Search Service trusted services bypass unchanged (already at desired state)"
+    # fi
     
     # Restore AI Foundry access
     if [ -n "$original_foundry_public_access" ] && [ "$original_foundry_public_access" != "Enabled" ]; then
