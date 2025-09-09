@@ -10,278 +10,278 @@ aiSearchName="$6"
 managedIdentityClientId="$7"
 aif_resource_id="${8}"
 
-# Global variables to track original network access states
-original_storage_public_access=""
-original_storage_default_action=""
-# original_search_public_access=""
-# original_search_bypass=""
-original_foundry_public_access=""
-aif_resource_group=""
-aif_account_resource_id=""
+# # Global variables to track original network access states
+# original_storage_public_access=""
+# original_storage_default_action=""
+# # original_search_public_access=""
+# # original_search_bypass=""
+# original_foundry_public_access=""
+# aif_resource_group=""
+# aif_account_resource_id=""
 
-# Function to enable public network access temporarily
-enable_public_access() {
-    echo "=== Temporarily enabling public network access for services ==="
+# # Function to enable public network access temporarily
+# enable_public_access() {
+#     echo "=== Temporarily enabling public network access for services ==="
     
-    # Enable public access for Storage Account
-    echo "Enabling public access for Storage Account: $storageAccount"
-    original_storage_public_access=$(az storage account show \
-        --name "$storageAccount" \
-        --resource-group "$resourceGroupName" \
-        --query "publicNetworkAccess" \
-        -o tsv)
-    original_storage_default_action=$(az storage account show \
-        --name "$storageAccount" \
-        --resource-group "$resourceGroupName" \
-        --query "networkRuleSet.defaultAction" \
-        -o tsv)
+#     # Enable public access for Storage Account
+#     echo "Enabling public access for Storage Account: $storageAccount"
+#     original_storage_public_access=$(az storage account show \
+#         --name "$storageAccount" \
+#         --resource-group "$resourceGroupName" \
+#         --query "publicNetworkAccess" \
+#         -o tsv)
+#     original_storage_default_action=$(az storage account show \
+#         --name "$storageAccount" \
+#         --resource-group "$resourceGroupName" \
+#         --query "networkRuleSet.defaultAction" \
+#         -o tsv)
     
-    if [ "$original_storage_public_access" != "Enabled" ]; then
-        az storage account update \
-            --name "$storageAccount" \
-            --resource-group "$resourceGroupName" \
-            --public-network-access Enabled \
-            --output none
-        if [ $? -eq 0 ]; then
-            echo "✓ Storage Account public access enabled"
-        else
-            echo "✗ Failed to enable Storage Account public access"
-            return 1
-        fi
-    else
-        echo "✓ Storage Account public access already enabled"
-    fi
+#     if [ "$original_storage_public_access" != "Enabled" ]; then
+#         az storage account update \
+#             --name "$storageAccount" \
+#             --resource-group "$resourceGroupName" \
+#             --public-network-access Enabled \
+#             --output none
+#         if [ $? -eq 0 ]; then
+#             echo "✓ Storage Account public access enabled"
+#         else
+#             echo "✗ Failed to enable Storage Account public access"
+#             return 1
+#         fi
+#     else
+#         echo "✓ Storage Account public access already enabled"
+#     fi
     
-    # Also ensure the default network action allows access
-    if [ "$original_storage_default_action" != "Allow" ]; then
-        echo "Setting Storage Account network default action to Allow"
-        az storage account update \
-            --name "$storageAccount" \
-            --resource-group "$resourceGroupName" \
-            --default-action Allow \
-            --output none
-        if [ $? -eq 0 ]; then
-            echo "✓ Storage Account network default action set to Allow"
-        else
-            echo "✗ Failed to set Storage Account network default action"
-            return 1
-        fi
-    else
-        echo "✓ Storage Account network default action already set to Allow"
-    fi
+#     # Also ensure the default network action allows access
+#     if [ "$original_storage_default_action" != "Allow" ]; then
+#         echo "Setting Storage Account network default action to Allow"
+#         az storage account update \
+#             --name "$storageAccount" \
+#             --resource-group "$resourceGroupName" \
+#             --default-action Allow \
+#             --output none
+#         if [ $? -eq 0 ]; then
+#             echo "✓ Storage Account network default action set to Allow"
+#         else
+#             echo "✗ Failed to set Storage Account network default action"
+#             return 1
+#         fi
+#     else
+#         echo "✓ Storage Account network default action already set to Allow"
+#     fi
     
-    # Enable public access for AI Search Service
-    # echo "Enabling public access for AI Search Service: $aiSearchName"
-    # original_search_public_access=$(az search service show \
-    #     --name "$aiSearchName" \
-    #     --resource-group "$resourceGroupName" \
-    #     --query "publicNetworkAccess" \
-    #     -o tsv)
+#     # Enable public access for AI Search Service
+#     # echo "Enabling public access for AI Search Service: $aiSearchName"
+#     # original_search_public_access=$(az search service show \
+#     #     --name "$aiSearchName" \
+#     #     --resource-group "$resourceGroupName" \
+#     #     --query "publicNetworkAccess" \
+#     #     -o tsv)
     
-    # # Get current bypass setting for trusted services
-    # original_search_bypass=$(az search service show \
-    #     --name "$aiSearchName" \
-    #     --resource-group "$resourceGroupName" \
-    #     --query "networkRuleSet.bypass" \
-    #     -o tsv)
+#     # # Get current bypass setting for trusted services
+#     # original_search_bypass=$(az search service show \
+#     #     --name "$aiSearchName" \
+#     #     --resource-group "$resourceGroupName" \
+#     #     --query "networkRuleSet.bypass" \
+#     #     -o tsv)
     
-    # if [ "$original_search_public_access" != "Enabled" ]; then
-    #     az search service update \
-    #         --name "$aiSearchName" \
-    #         --resource-group "$resourceGroupName" \
-    #         --public-access enabled \
-    #         --output none
-    #     if [ $? -eq 0 ]; then
-    #         echo "✓ AI Search Service public access enabled"
-    #     else
-    #         echo "✗ Failed to enable AI Search Service public access"
-    #         return 1
-    #     fi
-    # else
-    #     echo "✓ AI Search Service public access already enabled"
-    # fi
+#     # if [ "$original_search_public_access" != "Enabled" ]; then
+#     #     az search service update \
+#     #         --name "$aiSearchName" \
+#     #         --resource-group "$resourceGroupName" \
+#     #         --public-access enabled \
+#     #         --output none
+#     #     if [ $? -eq 0 ]; then
+#     #         echo "✓ AI Search Service public access enabled"
+#     #     else
+#     #         echo "✗ Failed to enable AI Search Service public access"
+#     #         return 1
+#     #     fi
+#     # else
+#     #     echo "✓ AI Search Service public access already enabled"
+#     # fi
     
-    # # Enable trusted services bypass
-    # if [ "$original_search_bypass" != "AzureServices" ]; then
-    #     echo "Enabling trusted services bypass for AI Search Service"
-    #     MSYS_NO_PATHCONV=1 az resource update \
-    #         --ids "/subscriptions/$(az account show --query id -o tsv)/resourceGroups/$resourceGroupName/providers/Microsoft.Search/searchServices/$aiSearchName" \
-    #         --api-version 2024-06-01-preview \
-    #         --set "properties.networkRuleSet.bypass=AzureServices" \
-    #         --output none
-    #     if [ $? -eq 0 ]; then
-    #         echo "✓ AI Search Service trusted services bypass enabled"
-    #     else
-    #         echo "✗ Failed to enable AI Search Service trusted services bypass"
-    #         return 1
-    #     fi
-    # else
-    #     echo "✓ AI Search Service trusted services bypass already enabled"
-    # fi
+#     # # Enable trusted services bypass
+#     # if [ "$original_search_bypass" != "AzureServices" ]; then
+#     #     echo "Enabling trusted services bypass for AI Search Service"
+#     #     MSYS_NO_PATHCONV=1 az resource update \
+#     #         --ids "/subscriptions/$(az account show --query id -o tsv)/resourceGroups/$resourceGroupName/providers/Microsoft.Search/searchServices/$aiSearchName" \
+#     #         --api-version 2024-06-01-preview \
+#     #         --set "properties.networkRuleSet.bypass=AzureServices" \
+#     #         --output none
+#     #     if [ $? -eq 0 ]; then
+#     #         echo "✓ AI Search Service trusted services bypass enabled"
+#     #     else
+#     #         echo "✗ Failed to enable AI Search Service trusted services bypass"
+#     #         return 1
+#     #     fi
+#     # else
+#     #     echo "✓ AI Search Service trusted services bypass already enabled"
+#     # fi
     
-    # Enable public access for AI Foundry
-    # Extract the account resource ID (remove /projects/... part if present)
-    aif_account_resource_id=$(echo "$aif_resource_id" | sed 's|/projects/.*||')
-    aif_resource_name=$(basename "$aif_account_resource_id")
-    # Extract resource group from the AI Foundry account resource ID
-    aif_resource_group=$(echo "$aif_account_resource_id" | sed -n 's|.*/resourceGroups/\([^/]*\)/.*|\1|p')
+#     # Enable public access for AI Foundry
+#     # Extract the account resource ID (remove /projects/... part if present)
+#     aif_account_resource_id=$(echo "$aif_resource_id" | sed 's|/projects/.*||')
+#     aif_resource_name=$(basename "$aif_account_resource_id")
+#     # Extract resource group from the AI Foundry account resource ID
+#     aif_resource_group=$(echo "$aif_account_resource_id" | sed -n 's|.*/resourceGroups/\([^/]*\)/.*|\1|p')
     
-    original_foundry_public_access=$(az cognitiveservices account show \
-        --name "$aif_resource_name" \
-        --resource-group "$aif_resource_group" \
-        --query "properties.publicNetworkAccess" \
-        --output tsv)
-    if [ -z "$original_foundry_public_access" ] || [ "$original_foundry_public_access" = "null" ]; then
-        echo "⚠ Info: Could not retrieve AI Foundry network access status."
-        echo "  AI Foundry network access might be managed differently."
-    elif [ "$original_foundry_public_access" != "Enabled" ]; then
-        echo "Current AI Foundry public access: $original_foundry_public_access"
-        echo "Enabling public access for AI Foundry resource: $aif_resource_name (Resource Group: $aif_resource_group)"
-        if MSYS_NO_PATHCONV=1 az resource update \
-            --ids "$aif_account_resource_id" \
-            --api-version 2024-10-01 \
-            --set properties.publicNetworkAccess=Enabled properties.apiProperties="{}" \
-            --output none; then
-            echo "✓ AI Foundry public access enabled"
-        else
-            echo "⚠ Warning: Failed to enable AI Foundry public access automatically."
-        fi
-    else
-        echo "✓ AI Foundry public access already enabled"
-    fi
+#     original_foundry_public_access=$(az cognitiveservices account show \
+#         --name "$aif_resource_name" \
+#         --resource-group "$aif_resource_group" \
+#         --query "properties.publicNetworkAccess" \
+#         --output tsv)
+#     if [ -z "$original_foundry_public_access" ] || [ "$original_foundry_public_access" = "null" ]; then
+#         echo "⚠ Info: Could not retrieve AI Foundry network access status."
+#         echo "  AI Foundry network access might be managed differently."
+#     elif [ "$original_foundry_public_access" != "Enabled" ]; then
+#         echo "Current AI Foundry public access: $original_foundry_public_access"
+#         echo "Enabling public access for AI Foundry resource: $aif_resource_name (Resource Group: $aif_resource_group)"
+#         if MSYS_NO_PATHCONV=1 az resource update \
+#             --ids "$aif_account_resource_id" \
+#             --api-version 2024-10-01 \
+#             --set properties.publicNetworkAccess=Enabled \
+#             --output none; then
+#             echo "✓ AI Foundry public access enabled"
+#         else
+#             echo "⚠ Warning: Failed to enable AI Foundry public access automatically."
+#         fi
+#     else
+#         echo "✓ AI Foundry public access already enabled"
+#     fi
     
-    # Wait a bit for changes to take effect
-    echo "Waiting for network access changes to propagate..."
-    sleep 10
-    echo "=== Public network access enabled successfully ==="
-    return 0
-}
+#     # Wait a bit for changes to take effect
+#     echo "Waiting for network access changes to propagate..."
+#     sleep 10
+#     echo "=== Public network access enabled successfully ==="
+#     return 0
+# }
 
-# Function to restore original network access settings
-restore_network_access() {
-    echo "=== Restoring original network access settings ==="
+# # Function to restore original network access settings
+# restore_network_access() {
+#     echo "=== Restoring original network access settings ==="
     
-    # Restore Storage Account access
-    if [ -n "$original_storage_public_access" ] && [ "$original_storage_public_access" != "Enabled" ]; then
-        echo "Restoring Storage Account public access to: $original_storage_public_access"
-        # Handle case sensitivity - convert to proper case
-        case "$original_storage_public_access" in
-            "enabled"|"Enabled") restore_value="Enabled" ;;
-            "disabled"|"Disabled") restore_value="Disabled" ;;
-            *) restore_value="$original_storage_public_access" ;;
-        esac
-        az storage account update \
-            --name "$storageAccount" \
-            --resource-group "$resourceGroupName" \
-            --public-network-access "$restore_value" \
-            --output none
-        if [ $? -eq 0 ]; then
-            echo "✓ Storage Account access restored"
-        else
-            echo "✗ Failed to restore Storage Account access"
-        fi
-    else
-        echo "Storage Account access unchanged (already at desired state)"
-    fi
+#     # Restore Storage Account access
+#     if [ -n "$original_storage_public_access" ] && [ "$original_storage_public_access" != "Enabled" ]; then
+#         echo "Restoring Storage Account public access to: $original_storage_public_access"
+#         # Handle case sensitivity - convert to proper case
+#         case "$original_storage_public_access" in
+#             "enabled"|"Enabled") restore_value="Enabled" ;;
+#             "disabled"|"Disabled") restore_value="Disabled" ;;
+#             *) restore_value="$original_storage_public_access" ;;
+#         esac
+#         az storage account update \
+#             --name "$storageAccount" \
+#             --resource-group "$resourceGroupName" \
+#             --public-network-access "$restore_value" \
+#             --output none
+#         if [ $? -eq 0 ]; then
+#             echo "✓ Storage Account access restored"
+#         else
+#             echo "✗ Failed to restore Storage Account access"
+#         fi
+#     else
+#         echo "Storage Account access unchanged (already at desired state)"
+#     fi
     
-    # Restore Storage Account network default action
-    if [ -n "$original_storage_default_action" ] && [ "$original_storage_default_action" != "Allow" ]; then
-        echo "Restoring Storage Account network default action to: $original_storage_default_action"
-        az storage account update \
-            --name "$storageAccount" \
-            --resource-group "$resourceGroupName" \
-            --default-action "$original_storage_default_action" \
-            --output none
-        if [ $? -eq 0 ]; then
-            echo "✓ Storage Account network default action restored"
-        else
-            echo "✗ Failed to restore Storage Account network default action"
-        fi
-    else
-        echo "Storage Account network default action unchanged (already at desired state)"
-    fi
+#     # Restore Storage Account network default action
+#     if [ -n "$original_storage_default_action" ] && [ "$original_storage_default_action" != "Allow" ]; then
+#         echo "Restoring Storage Account network default action to: $original_storage_default_action"
+#         az storage account update \
+#             --name "$storageAccount" \
+#             --resource-group "$resourceGroupName" \
+#             --default-action "$original_storage_default_action" \
+#             --output none
+#         if [ $? -eq 0 ]; then
+#             echo "✓ Storage Account network default action restored"
+#         else
+#             echo "✗ Failed to restore Storage Account network default action"
+#         fi
+#     else
+#         echo "Storage Account network default action unchanged (already at desired state)"
+#     fi
     
-    # # Restore AI Search Service access
-    # if [ -n "$original_search_public_access" ] && [ "$original_search_public_access" != "Enabled" ]; then
-    #     echo "Restoring AI Search Service public access to: $original_search_public_access"
-    #     # Handle case sensitivity - convert to proper case
-    #     case "$original_search_public_access" in
-    #         "Enabled"|"ENABLED") restore_value="Enabled" ;;
-    #         "Disabled"|"DISABLED") restore_value="Disabled" ;;
-    #         *) restore_value="$original_search_public_access" ;;
-    #     esac
-    #     az search service update \
-    #         --name "$aiSearchName" \
-    #         --resource-group "$resourceGroupName" \
-    #         --public-access "$restore_value" \
-    #         --output none
-    #     if [ $? -eq 0 ]; then
-    #         echo "✓ AI Search Service access restored"
-    #     else
-    #         echo "✗ Failed to restore AI Search Service access"
-    #     fi
-    # else
-    #     echo "AI Search Service access unchanged (already at desired state)"
-    # fi
+#     # # Restore AI Search Service access
+#     # if [ -n "$original_search_public_access" ] && [ "$original_search_public_access" != "Enabled" ]; then
+#     #     echo "Restoring AI Search Service public access to: $original_search_public_access"
+#     #     # Handle case sensitivity - convert to proper case
+#     #     case "$original_search_public_access" in
+#     #         "Enabled"|"ENABLED") restore_value="Enabled" ;;
+#     #         "Disabled"|"DISABLED") restore_value="Disabled" ;;
+#     #         *) restore_value="$original_search_public_access" ;;
+#     #     esac
+#     #     az search service update \
+#     #         --name "$aiSearchName" \
+#     #         --resource-group "$resourceGroupName" \
+#     #         --public-access "$restore_value" \
+#     #         --output none
+#     #     if [ $? -eq 0 ]; then
+#     #         echo "✓ AI Search Service access restored"
+#     #     else
+#     #         echo "✗ Failed to restore AI Search Service access"
+#     #     fi
+#     # else
+#     #     echo "AI Search Service access unchanged (already at desired state)"
+#     # fi
     
-    # # Restore AI Search Service trusted services bypass
-    # if [ -n "$original_search_bypass" ] && [ "$original_search_bypass" != "AzureServices" ]; then
-    #     echo "Restoring AI Search Service trusted services bypass to: $original_search_bypass"
-    #     # Handle null/empty values
-    #     if [ "$original_search_bypass" = "null" ] || [ -z "$original_search_bypass" ]; then
-    #         restore_bypass_value="None"
-    #     else
-    #         restore_bypass_value="$original_search_bypass"
-    #     fi
-    #     MSYS_NO_PATHCONV=1 az resource update \
-    #         --ids "/subscriptions/$(az account show --query id -o tsv)/resourceGroups/$resourceGroupName/providers/Microsoft.Search/searchServices/$aiSearchName" \
-    #         --api-version 2024-06-01-preview \
-    #         --set "properties.networkRuleSet.bypass=$restore_bypass_value" \
-    #         --output none
-    #     if [ $? -eq 0 ]; then
-    #         echo "✓ AI Search Service trusted services bypass restored"
-    #     else
-    #         echo "✗ Failed to restore AI Search Service trusted services bypass"
-    #     fi
-    # else
-    #     echo "AI Search Service trusted services bypass unchanged (already at desired state)"
-    # fi
+#     # # Restore AI Search Service trusted services bypass
+#     # if [ -n "$original_search_bypass" ] && [ "$original_search_bypass" != "AzureServices" ]; then
+#     #     echo "Restoring AI Search Service trusted services bypass to: $original_search_bypass"
+#     #     # Handle null/empty values
+#     #     if [ "$original_search_bypass" = "null" ] || [ -z "$original_search_bypass" ]; then
+#     #         restore_bypass_value="None"
+#     #     else
+#     #         restore_bypass_value="$original_search_bypass"
+#     #     fi
+#     #     MSYS_NO_PATHCONV=1 az resource update \
+#     #         --ids "/subscriptions/$(az account show --query id -o tsv)/resourceGroups/$resourceGroupName/providers/Microsoft.Search/searchServices/$aiSearchName" \
+#     #         --api-version 2024-06-01-preview \
+#     #         --set "properties.networkRuleSet.bypass=$restore_bypass_value" \
+#     #         --output none
+#     #     if [ $? -eq 0 ]; then
+#     #         echo "✓ AI Search Service trusted services bypass restored"
+#     #     else
+#     #         echo "✗ Failed to restore AI Search Service trusted services bypass"
+#     #     fi
+#     # else
+#     #     echo "AI Search Service trusted services bypass unchanged (already at desired state)"
+#     # fi
     
-    # Restore AI Foundry access
-    if [ -n "$original_foundry_public_access" ] && [ "$original_foundry_public_access" != "Enabled" ]; then
-        echo "Restoring AI Foundry public access to: $original_foundry_public_access"
-        # Try using the working approach to restore the original setting
-        if MSYS_NO_PATHCONV=1 az resource update \
-            --ids "$aif_account_resource_id" \
-            --api-version 2024-10-01 \
-            --set properties.publicNetworkAccess="$original_foundry_public_access" properties.apiProperties="{}" \
-            --output none 2>/dev/null; then
-            echo "✓ AI Foundry access restored"
-        else
-            echo "⚠ Warning: Failed to restore AI Foundry access automatically."
-            echo "  Please manually restore network access in the Azure portal if needed."
-        fi
-    else
-        echo "AI Foundry access unchanged (already at desired state)"
-    fi
+#     # Restore AI Foundry access
+#     if [ -n "$original_foundry_public_access" ] && [ "$original_foundry_public_access" != "Enabled" ]; then
+#         echo "Restoring AI Foundry public access to: $original_foundry_public_access"
+#         # Try using the working approach to restore the original setting
+#         if MSYS_NO_PATHCONV=1 az resource update \
+#             --ids "$aif_account_resource_id" \
+#             --api-version 2024-10-01 \
+#             --set properties.publicNetworkAccess="$original_foundry_public_access" \
+#             --output none 2>/dev/null; then
+#             echo "✓ AI Foundry access restored"
+#         else
+#             echo "⚠ Warning: Failed to restore AI Foundry access automatically."
+#             echo "  Please manually restore network access in the Azure portal if needed."
+#         fi
+#     else
+#         echo "AI Foundry access unchanged (already at desired state)"
+#     fi
     
-    echo "=== Network access restoration completed ==="
-}
+#     echo "=== Network access restoration completed ==="
+# }
 
-# Function to handle script cleanup on exit
-cleanup_on_exit() {
-    exit_code=$?
-    echo ""
-    if [ $exit_code -ne 0 ]; then
-        echo "Script failed with exit code: $exit_code"
-    fi
-    echo "Performing cleanup..."
-    restore_network_access
-    exit $exit_code
-}
+# # Function to handle script cleanup on exit
+# cleanup_on_exit() {
+#     exit_code=$?
+#     echo ""
+#     if [ $exit_code -ne 0 ]; then
+#         echo "Script failed with exit code: $exit_code"
+#     fi
+#     echo "Performing cleanup..."
+#     restore_network_access
+#     exit $exit_code
+# }
 
-# Set up trap to ensure cleanup happens on exit
-trap cleanup_on_exit EXIT INT TERM
+# # Set up trap to ensure cleanup happens on exit
+# trap cleanup_on_exit EXIT INT TERM
 
 # get parameters from azd env, if not provided
 if [ -z "$resourceGroupName" ]; then
@@ -378,12 +378,12 @@ else
     az account set --subscription "$currentSubscriptionId"
 fi
 
-# Enable public network access for required services
-enable_public_access
-if [ $? -ne 0 ]; then
-    echo "Error: Failed to enable public network access for services."
-    exit 1
-fi
+# # Enable public network access for required services
+# enable_public_access
+# if [ $? -ne 0 ]; then
+#     echo "Error: Failed to enable public network access for services."
+#     exit 1
+# fi
 
 # Call add_cosmosdb_access.sh
 echo "Running add_cosmosdb_access.sh"
