@@ -45,7 +45,7 @@ param secondaryLocation string = 'uksouth'
     ]
   }
 })
-param aiDeploymentsLocation string
+param azureAiServiceLocation string
 
 @minLength(1)
 @allowed([
@@ -402,7 +402,7 @@ var dnsZoneIndex = {
 @batchSize(5)
 module avmPrivateDnsZones 'br/public:avm/res/network/private-dns-zone:0.7.1' = [
   for (zone, i) in privateDnsZones: if (enablePrivateNetworking) {
-    name: 'avm.res.network.private-dns-zone.${contains(zone, 'azurecontainerapps.io') ? 'containerappenv' : split(zone, '.')[1]}'
+    name: 'avm.res.network.private-dns-zone.${split(zone, '.')[1]}'
     params: {
       name: zone
       tags: tags
@@ -416,60 +416,6 @@ module avmPrivateDnsZones 'br/public:avm/res/network/private-dns-zone:0.7.1' = [
     }
   }
 ]
-
-// ==========Key Vault Module ========== //
-var keyVaultName = 'kv-${solutionSuffix}'
-module keyvault 'br/public:avm/res/key-vault/vault:0.12.1' = {
-  name: take('avm.res.key-vault.vault.${keyVaultName}', 64)
-  params: {
-    name: keyVaultName
-    location: solutionLocation
-    tags: tags
-    sku: 'standard'
-    publicNetworkAccess: enablePrivateNetworking ? 'Disabled' : 'Enabled'
-    networkAcls: {
-      defaultAction: 'Allow'
-    }
-    enableVaultForDeployment: true
-    enableVaultForDiskEncryption: true
-    enableVaultForTemplateDeployment: true
-    enableRbacAuthorization: true
-    enableSoftDelete: true
-    enablePurgeProtection: enablePurgeProtection
-    softDeleteRetentionInDays: 7
-    diagnosticSettings: enableMonitoring 
-      ? [{ workspaceResourceId: logAnalyticsWorkspaceResourceId }] 
-      : []
-    // WAF aligned configuration for Private Networking
-    privateEndpoints: enablePrivateNetworking
-      ? [
-          {
-            name: 'pep-${keyVaultName}'
-            customNetworkInterfaceName: 'nic-${keyVaultName}'
-            privateDnsZoneGroup: {
-              privateDnsZoneGroupConfigs: [
-                { privateDnsZoneResourceId: avmPrivateDnsZones[dnsZoneIndex.keyVault]!.outputs.resourceId }
-              ]
-            }
-            service: 'vault'
-            subnetResourceId: network!.outputs.subnetPrivateEndpointsResourceId
-          }
-        ]
-      : []
-    // WAF aligned configuration for Role-based Access Control
-    roleAssignments: [
-      {
-         principalId: userAssignedIdentity.outputs.principalId
-         principalType: 'ServicePrincipal'
-         roleDefinitionIdOrName: 'Key Vault Administrator'
-      }
-    ]
-    enableTelemetry: enableTelemetry
-  }
-  dependsOn:[
-    avmPrivateDnsZones
-  ]
-}
 
 // ========== AI Foundry: AI Services ========== //
 resource existingAiFoundryAiServices 'Microsoft.CognitiveServices/accounts@2025-04-01-preview' existing = if (useExistingAiFoundryAiProject) {
@@ -521,7 +467,7 @@ module aiFoundryAiServices 'br:mcr.microsoft.com/bicep/avm/res/cognitive-service
   name: take('avm.res.cognitive-services.account.${aiFoundryAiServicesResourceName}', 64)
   params: {
     name: aiFoundryAiServicesResourceName
-    location: aiDeploymentsLocation
+    location: azureAiServiceLocation 
     tags: tags
     sku: 'S0'
     kind: 'AIServices'
@@ -611,7 +557,7 @@ module aiFoundryAiServicesProject 'modules/ai-project.bicep' = if (!useExistingA
   name: take('module.ai-project.${aiFoundryAiProjectResourceName}', 64)
   params: {
     name: aiFoundryAiProjectResourceName
-    location: aiDeploymentsLocation
+    location: azureAiServiceLocation 
     tags: tags
     desc: aiFoundryAiProjectDescription
     //Implicit dependencies below
@@ -651,7 +597,7 @@ module searchServiceToExistingAiServicesRoleAssignment 'modules/role-assignment.
 // ========== AI Foundry: AI Search ========== //
 var nenablePrivateNetworking = false
 module aiSearch 'br/public:avm/res/search/search-service:0.11.1' = {
-  name: take('avm.res.cognitive-search-services.${aiSearchName}', 64)
+  name: take('avm.res.search.search-service.${aiSearchName}', 64)
   params: {
     name: aiSearchName
     authOptions: {
@@ -815,7 +761,6 @@ module storageAccount 'br/public:avm/res/storage/storage-account:0.20.0' = {
         ]
       : []
   }
-  scope: resourceGroup(resourceGroup().name)
 }
 
 // ========== Cosmos DB module ========== //
@@ -903,20 +848,56 @@ module cosmosDB 'br/public:avm/res/document-db/database-account:0.15.0' = {
           }
         ]
   }
-  scope: resourceGroup(resourceGroup().name)
 }
 
-// working version of saving storage account secrets in key vault using AVM module
-module saveSecretsInKeyVault 'br/public:avm/res/key-vault/vault:0.12.1' = {
-  name: take('saveSecretsInKeyVault.${keyVaultName}', 64)
+// ==========Key Vault Module ========== //
+var keyVaultName = 'kv-${solutionSuffix}'
+module keyvault 'br/public:avm/res/key-vault/vault:0.12.1' = {
+  name: take('avm.res.key-vault.vault.${keyVaultName}', 64)
   params: {
     name: keyVaultName
+    location: solutionLocation
+    tags: tags
+    sku: 'standard'
+    publicNetworkAccess: enablePrivateNetworking ? 'Disabled' : 'Enabled'
+    networkAcls: {
+      defaultAction: 'Allow'
+    }
     enableVaultForDeployment: true
     enableVaultForDiskEncryption: true
     enableVaultForTemplateDeployment: true
     enableRbacAuthorization: true
     enableSoftDelete: true
+    enablePurgeProtection: enablePurgeProtection
     softDeleteRetentionInDays: 7
+    diagnosticSettings: enableMonitoring 
+      ? [{ workspaceResourceId: logAnalyticsWorkspaceResourceId }] 
+      : []
+    // WAF aligned configuration for Private Networking
+    privateEndpoints: enablePrivateNetworking
+      ? [
+          {
+            name: 'pep-${keyVaultName}'
+            customNetworkInterfaceName: 'nic-${keyVaultName}'
+            privateDnsZoneGroup: {
+              privateDnsZoneGroupConfigs: [
+                { privateDnsZoneResourceId: avmPrivateDnsZones[dnsZoneIndex.keyVault]!.outputs.resourceId }
+              ]
+            }
+            service: 'vault'
+            subnetResourceId: network!.outputs.subnetPrivateEndpointsResourceId
+          }
+        ]
+      : []
+    // WAF aligned configuration for Role-based Access Control
+    roleAssignments: [
+      {
+         principalId: userAssignedIdentity.outputs.principalId
+         principalType: 'ServicePrincipal'
+         roleDefinitionIdOrName: 'Key Vault Administrator'
+      }
+    ]
+    enableTelemetry: enableTelemetry
     secrets: [
       {
         name: 'ADLS-ACCOUNT-NAME'
@@ -950,17 +931,13 @@ module saveSecretsInKeyVault 'br/public:avm/res/key-vault/vault:0.12.1' = {
         name: 'AZURE-COSMOSDB-ENABLE-FEEDBACK'
         value: 'True'
       }
-      {name: 'AZURE-LOCATION', value: aiDeploymentsLocation}
+      {name: 'AZURE-LOCATION', value: azureAiServiceLocation }
       {name: 'AZURE-RESOURCE-GROUP', value: resourceGroup().name}
       {name: 'AZURE-SUBSCRIPTION-ID', value: subscription().subscriptionId}
       {
         name: 'COG-SERVICES-NAME'
         value: aiFoundryAiServicesResourceName
       }
-      // {
-      //   name: 'COG-SERVICES-KEY'
-      //   value: !useExistingAiFoundryAiProject ? existingAiFoundryAiServices!.listKeys().key1 : aiFoundryAiServices!.listKeys().key1
-      // }
       {
         name: 'COG-SERVICES-ENDPOINT'
         value: 'https://${aiFoundryAiServicesResourceName}.openai.azure.com/'
@@ -984,6 +961,9 @@ module saveSecretsInKeyVault 'br/public:avm/res/key-vault/vault:0.12.1' = {
       {name: 'TENANT-ID', value: subscription().tenantId}
     ]
   }
+  dependsOn:[
+    avmPrivateDnsZones
+  ]
 }
 
 // ========== Frontend server farm ========== //
@@ -1079,7 +1059,7 @@ module webSite 'modules/web-sites.bicep' = {
           AZURE_CLIENT_ID: userAssignedIdentity.outputs.clientId
         }
         // WAF aligned configuration for Monitoring
-        applicationInsightResourceId: (enableMonitoring && !useExistingLogAnalytics) ? applicationInsights!.outputs.resourceId : null
+        applicationInsightResourceId: enableMonitoring ? applicationInsights!.outputs.resourceId : null
       }
     ]
     diagnosticSettings: enableMonitoring ? [{ workspaceResourceId: logAnalyticsWorkspaceResourceId }] : null
