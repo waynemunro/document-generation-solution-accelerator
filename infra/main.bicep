@@ -474,9 +474,7 @@ module aiFoundryAiServices 'br:mcr.microsoft.com/bicep/avm/res/cognitive-service
     disableLocalAuth: true
     allowProjectManagement: true
     customSubDomainName: aiFoundryAiServicesResourceName
-    apiProperties: {
-      //staticsEnabled: false
-    }
+    restrictOutboundNetworkAccess: false
     deployments: [
       for deployment in aiFoundryAiServicesModelDeployment: {
         name: deployment.name
