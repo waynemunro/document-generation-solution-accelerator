@@ -1,7 +1,7 @@
-// @minLength(3)
-// @maxLength(15)
-// @description('Required. Contains Solution Name')
-// param solutionName string
+@minLength(3)
+@maxLength(15)
+@description('Required. Contains Solution Name')
+param solutionName string
 
 @minLength(3)
 @maxLength(20)

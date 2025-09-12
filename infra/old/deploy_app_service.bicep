@@ -158,7 +158,7 @@ resource HostingPlan 'Microsoft.Web/serverfarms@2020-06-01' = {
     name: hostingPlanSku
   }
   properties: {
-    // name: hostingPlanName
+    name: hostingPlanName
     reserved: true
   }
   kind: 'linux'
@@ -412,11 +412,11 @@ resource aiUserRoleDefinitionFoundry 'Microsoft.Authorization/roleDefinitions@20
 //   }
 // }
 
-// @description('This is the built-in Azure AI User role.')
-// resource aiUserRoleDefinitionFoundryProject 'Microsoft.Authorization/roleDefinitions@2022-04-01' existing = {
-//   scope: aiFoundryProject
-//   name: '53ca6127-db72-4b80-b1b0-d745d6d5456d'
-// }
+@description('This is the built-in Azure AI User role.')
+resource aiUserRoleDefinitionFoundryProject 'Microsoft.Authorization/roleDefinitions@2022-04-01' existing = {
+  scope: aiFoundryProject
+  name: '53ca6127-db72-4b80-b1b0-d745d6d5456d'
+}
 
 // resource aiUserRoleAssignmentFoundryProject 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
 //   name: guid(Website.id, aiFoundryProject.id, aiUserRoleDefinitionFoundryProject.id)

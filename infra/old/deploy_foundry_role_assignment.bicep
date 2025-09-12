@@ -60,4 +60,4 @@ resource roleAssignmentToFoundry 'Microsoft.Authorization/roleAssignments@2022-0
 output aiServicesPrincipalId string = aiServices.identity.principalId
 
 @description('AI Project Principle ID')
-output aiProjectPrincipalId string = empty(aiProjectName) ? '' : aiProject!.identity.principalId
+output aiProjectPrincipalId string = !empty(aiProjectName) ? aiProject.identity.principalId : ''
