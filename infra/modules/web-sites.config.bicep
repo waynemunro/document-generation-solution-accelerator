@@ -39,6 +39,9 @@ param currentAppSettings {
   *: string
 } = {}
 
+@description('Optional. Enable monitoring and logging configuration.')
+param enableMonitoring bool = false
+
 var azureWebJobsValues = !empty(storageAccountResourceId) && !storageAccountUseIdentityAuthentication
   ? {
       AzureWebJobsStorage: 'DefaultEndpointsProtocol=https;AccountName=${storageAccount.name};AccountKey=${storageAccount!.listKeys().keys[0].value};EndpointSuffix=${environment().suffixes.storage}'
@@ -58,7 +61,39 @@ var appInsightsValues = !empty(applicationInsightResourceId)
     }
   : {}
 
-var expandedProperties = union(currentAppSettings, properties, azureWebJobsValues, appInsightsValues)
+var loggingProperties = enableMonitoring && name == 'logs'
+  ? {
+      applicationLogs: {
+        fileSystem: {
+          level: 'Verbose'
+        }
+      }
+      httpLogs: {
+        fileSystem: {
+          enabled: true
+          retentionInDays: 3
+          retentionInMb: 100
+        }
+      }
+      detailedErrorMessages: {
+        enabled: true
+      }
+      failedRequestsTracing: {
+        enabled: true
+      }
+    }
+  : {}
+
+// Properties parameter should always be included regardless of configuration type
+// Always include logging properties when name is 'logs'
+// For appsettings configuration, also include current app settings and connection strings
+var expandedProperties = union(
+  properties,
+  currentAppSettings,
+  azureWebJobsValues,
+  appInsightsValues,
+  loggingProperties
+)
 
 resource applicationInsights 'Microsoft.Insights/components@2020-02-02' existing = if (!empty(applicationInsightResourceId)) {
   name: last(split(applicationInsightResourceId!, '/'))

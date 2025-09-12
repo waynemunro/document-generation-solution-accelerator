@@ -46,6 +46,9 @@ param keyVaultAccessIdentityResourceId string?
 @description('Optional. Checks if Customer provided storage account is required.')
 param storageAccountRequired bool = false
 
+@description('Optional. Enable monitoring and logging configuration.')
+param enableMonitoring bool = false
+
 @description('Optional. Azure Resource Manager ID of the Virtual network and subnet to be joined by Regional VNET Integration. This must be of the form /subscriptions/{subscriptionName}/resourceGroups/{resourceGroupName}/providers/Microsoft.Network/virtualNetworks/{vnetName}/subnets/{subnetName}.')
 param virtualNetworkSubnetId string?
 
@@ -226,6 +229,7 @@ module app_config 'web-sites.config.bicep' = [
       currentAppSettings: config.?retainCurrentAppSettings ?? true && config.name == 'appsettings'
         ? list('${app.id}/config/appsettings', '2023-12-01').properties
         : {}
+      enableMonitoring: enableMonitoring
     }
   }
 ]
@@ -346,7 +350,7 @@ output outboundIpAddresses string = app.properties.outboundIpAddresses
 @description('The type of an app settings configuration.')
 type appSettingsConfigType = {
   @description('Required. The type of config.')
-  name: 'appsettings'
+  name: 'appsettings' | 'logs'
 
   @description('Optional. If the provided storage account requires Identity based authentication (\'allowSharedKeyAccess\' is set to false). When set to true, the minimum role assignment required for the App Service Managed Identity to the storage account is \'Storage Blob Data Owner\'.')
   storageAccountUseIdentityAuthentication: bool?

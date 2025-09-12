@@ -113,10 +113,10 @@ param enableRedundancy bool = false
 param enablePrivateNetworking bool = false
 
 @description('Optional. The Container Registry hostname where the docker images are located.')
-param acrName string = 'testapwaf'  // byocgacontainerreg
+param acrName string = 'byocgacontainerreg'  // testapwaf
 
 @description('Optional. Image Tag.')
-param imageTag string = 'waf'
+param imageTag string = 'latest'  // waf
 
 @description('Optional. Enable/Disable usage telemetry for module.')
 param enableTelemetry bool = true
@@ -324,7 +324,7 @@ module logAnalyticsWorkspace 'br/public:avm/res/operational-insights/workspace:0
 var logAnalyticsWorkspaceResourceId = useExistingLogAnalytics ? existingLogAnalyticsWorkspaceId : logAnalyticsWorkspace!.outputs.resourceId
 // ========== Application Insights ========== //
 var applicationInsightsResourceName = 'appi-${solutionSuffix}'
-module applicationInsights 'br/public:avm/res/insights/component:0.6.0' = if (enableMonitoring && !useExistingLogAnalytics) {
+module applicationInsights 'br/public:avm/res/insights/component:0.6.0' = if (enableMonitoring) {
   name: take('avm.res.insights.component.${applicationInsightsResourceName}', 64)
   params: {
     name: applicationInsightsResourceName
@@ -336,8 +336,8 @@ module applicationInsights 'br/public:avm/res/insights/component:0.6.0' = if (en
     disableIpMasking: false
     flowType: 'Bluefield'
     // WAF aligned configuration for Monitoring
-    workspaceResourceId: enableMonitoring ? logAnalyticsWorkspaceResourceId : ''
-    diagnosticSettings: enableMonitoring ? [{ workspaceResourceId: logAnalyticsWorkspaceResourceId }] : null
+    workspaceResourceId: logAnalyticsWorkspaceResourceId
+    diagnosticSettings: [{ workspaceResourceId: logAnalyticsWorkspaceResourceId }]
   }
 }
 
@@ -1009,7 +1009,7 @@ module webSite 'modules/web-sites.bicep' = {
       linuxFxVersion: 'DOCKER|${acrName}.azurecr.io/webapp:${imageTag}'
       minTlsVersion: '1.2'
     }
-    configs: [
+    configs: concat([
       {
         name: 'appsettings'
         properties: {
@@ -1059,7 +1059,13 @@ module webSite 'modules/web-sites.bicep' = {
         // WAF aligned configuration for Monitoring
         applicationInsightResourceId: enableMonitoring ? applicationInsights!.outputs.resourceId : null
       }
-    ]
+    ], enableMonitoring ? [
+      {
+        name: 'logs'
+        properties: {}
+      }
+    ] : [])
+    enableMonitoring: enableMonitoring
     diagnosticSettings: enableMonitoring ? [{ workspaceResourceId: logAnalyticsWorkspaceResourceId }] : null
     // WAF aligned configuration for Private Networking
     vnetRouteAllEnabled: enablePrivateNetworking ? true : false
@@ -1067,32 +1073,6 @@ module webSite 'modules/web-sites.bicep' = {
     virtualNetworkSubnetId: enablePrivateNetworking ? network!.outputs.subnetWebResourceId : null
     publicNetworkAccess: 'Enabled'
   }
-}
-
-// ========== App Service Logs Configuration ========== //
-resource webSiteLogs 'Microsoft.Web/sites/config@2024-04-01' = if (enableMonitoring) {
-  name: '${webSiteResourceName}/logs'
-  properties: {
-    applicationLogs: {
-      fileSystem: {
-        level: 'Verbose'  // Match the current configuration
-      }
-    }
-    httpLogs: {
-      fileSystem: {
-        enabled: true
-        retentionInDays: 3
-        retentionInMb: 100
-      }
-    }
-    detailedErrorMessages: {
-      enabled: true
-    }
-    failedRequestsTracing: {
-      enabled: true
-    }
-  }
-  dependsOn: [webSite]
 }
 
 // ========== Outputs ========== //
