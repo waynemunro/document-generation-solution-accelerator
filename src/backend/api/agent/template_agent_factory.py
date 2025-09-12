@@ -54,7 +54,7 @@ class TemplateAgentFactory(BaseAgentFactory):
                 "fieldMapping": field_mapping
             }
         )
-
+        print("Project index created or updated.")
         ai_search = AzureAISearchTool(
             index_asset_id=f"{project_index.name}/versions/{project_index.version}",
             index_connection_id=None,

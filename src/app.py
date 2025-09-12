@@ -170,7 +170,7 @@ async def init_ai_foundry_client():
 
         ai_project_client = AIProjectClient(
             endpoint=app_settings.azure_ai.agent_endpoint,
-            credential=await get_azure_credential_async()
+            credential=await get_azure_credential_async(client_id=app_settings.base_settings.azure_client_id)
         )
         track_event_if_configured("AIFoundryAgentEndpointUsed", {
             "endpoint": app_settings.azure_ai.agent_endpoint
@@ -194,7 +194,7 @@ def init_cosmosdb_client():
             )
 
             if not app_settings.chat_history.account_key:
-                credential = get_azure_credential()
+                credential = get_azure_credential(client_id=app_settings.base_settings.azure_client_id)
             else:
                 credential = app_settings.chat_history.account_key
 
@@ -357,7 +357,7 @@ async def send_chat_request(request_body, request_headers) -> AsyncGenerator[Dic
                         tool_choice={"type": "azure_ai_search"}
                     )
                     if run.status == "failed":
-                        raise Exception(f"Run failed: {run.error_message}")
+                        raise Exception(f"Run failed: {run.last_error}")
                     else:
                         await extract_citations_from_run_steps(browse_project_client, thread.id, run.id, answer, streamed_titles)
                         messages = browse_project_client.agents.messages.list(thread_id=thread.id)
@@ -419,7 +419,7 @@ async def send_chat_request(request_body, request_headers) -> AsyncGenerator[Dic
                     tool_choice={"type": "azure_ai_search"}
                 )
                 if run.status == "failed":
-                    raise Exception(f"Run failed: {run.error_message}")
+                    raise Exception(f"Run failed: {run.last_error}")
                 else:
                     await extract_citations_from_run_steps(template_project_client, thread.id, run.id, answer)
                     messages = template_project_client.agents.messages.list(thread_id=thread.id)
@@ -1164,7 +1164,7 @@ async def fetch_azure_search_content():
             return jsonify({"error": "URL and title are required"}), 400
 
         # Get Azure AD token
-        credential = get_azure_credential()
+        credential = get_azure_credential(client_id=app_settings.base_settings.azure_client_id)
         token = credential.get_token("https://search.azure.com/.default")
         access_token = token.token
 
