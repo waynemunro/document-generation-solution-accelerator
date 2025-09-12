@@ -124,6 +124,9 @@ param enableTelemetry bool = true
 @description('Optional. Enable purge protection for the Key Vault')
 param enablePurgeProtection bool = false
 
+@description('Optional created by user name')
+param createdBy string = empty(deployer().userPrincipalName) ? '' : split(deployer().userPrincipalName, '@')[0]
+
 // ============== //
 // Variables      //
 // ============== //
@@ -256,7 +259,7 @@ resource resourceGroupTags 'Microsoft.Resources/tags@2021-04-01' = {
     tags: {
       ... tags
       TemplateName: 'Docgen'
-      SecurityControl: 'Ignore'
+      CreatedBy: createdBy
     }
   }
 }

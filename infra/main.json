@@ -6,7 +6,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.37.4.10188",
-      "templateHash": "6532750000123932110"
+      "templateHash": "17149382688370834876"
     },
     "name": "Document Generation Solution Accelerator",
     "description": "CSA CTO Gold Standard Solution Accelerator for Document Generation.\n"
@@ -236,6 +236,13 @@
       "metadata": {
         "description": "Optional. Enable purge protection for the Key Vault"
       }
+    },
+    "createdBy": {
+      "type": "string",
+      "defaultValue": "[if(empty(deployer().userPrincipalName), '', split(deployer().userPrincipalName, '@')[0])]",
+      "metadata": {
+        "description": "Optional created by user name"
+      }
     }
   },
   "variables": {
@@ -375,7 +382,7 @@
       "apiVersion": "2021-04-01",
       "name": "default",
       "properties": {
-        "tags": "[shallowMerge(createArray(parameters('tags'), createObject('TemplateName', 'Docgen', 'SecurityControl', 'Ignore')))]"
+        "tags": "[shallowMerge(createArray(parameters('tags'), createObject('TemplateName', 'Docgen', 'CreatedBy', parameters('createdBy'))))]"
       }
     },
     "existingAiFoundryAiServices": {
@@ -26663,9 +26670,9 @@
         }
       },
       "dependsOn": [
+        "[format('avmPrivateDnsZones[{0}]', variables('dnsZoneIndex').cognitiveServices)]",
         "[format('avmPrivateDnsZones[{0}]', variables('dnsZoneIndex').aiServices)]",
         "[format('avmPrivateDnsZones[{0}]', variables('dnsZoneIndex').openAI)]",
-        "[format('avmPrivateDnsZones[{0}]', variables('dnsZoneIndex').cognitiveServices)]",
         "logAnalyticsWorkspace",
         "network",
         "userAssignedIdentity"
@@ -35138,8 +35145,8 @@
         }
       },
       "dependsOn": [
-        "[format('avmPrivateDnsZones[{0}]', variables('dnsZoneIndex').storageBlob)]",
         "[format('avmPrivateDnsZones[{0}]', variables('dnsZoneIndex').storageQueue)]",
+        "[format('avmPrivateDnsZones[{0}]', variables('dnsZoneIndex').storageBlob)]",
         "network",
         "userAssignedIdentity"
       ]
