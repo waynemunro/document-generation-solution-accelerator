@@ -6,7 +6,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.37.4.10188",
-      "templateHash": "17149382688370834876"
+      "templateHash": "3241607047247621550"
     },
     "name": "Document Generation Solution Accelerator",
     "description": "CSA CTO Gold Standard Solution Accelerator for Document Generation.\n"
@@ -218,7 +218,7 @@
     },
     "imageTag": {
       "type": "string",
-      "defaultValue": "latest",
+      "defaultValue": "latest_waf",
       "metadata": {
         "description": "Optional. Image Tag."
       }
