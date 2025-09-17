@@ -149,7 +149,7 @@ When you start the deployment, most parameters will have **default values**, but
 | **GPT Model Deployment Capacity**    | Configure the capacity for **GPT model deployments** (in thousands).                          | `30k`                    |
 | **Embedding Model**                  | The embedding model used by the app.                                                          | `text-embedding-ada-002` |
 | **Embedding Model Capacity**         | Configure the capacity for **embedding model deployments** (in thousands).                    | `80k`                    |
-| **Image Tag**                        | Image version for deployment (allowed: `latest`, `dev`, `hotfix`).                            | `latest`                 |
+| **Image Tag**                        | Image version for deployment (allowed: `latest_waf`, `dev`, `hotfix`).                            | `latest_waf`                 |
 | **Existing Log Analytics Workspace** | If reusing a Log Analytics Workspace, specify the ID.                                         | *(none)*                 |
 
 

@@ -116,7 +116,7 @@ param enablePrivateNetworking bool = false
 param acrName string = 'byocgacontainerreg'  // testapwaf
 
 @description('Optional. Image Tag.')
-param imageTag string = 'latest'  // waf
+param imageTag string = 'latest_waf'
 
 @description('Optional. Enable/Disable usage telemetry for module.')
 param enableTelemetry bool = true
