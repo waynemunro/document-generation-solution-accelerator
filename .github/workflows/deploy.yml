@@ -126,13 +126,13 @@ jobs:
           set -e
           # set image tag based on branch
           if [[ "${{ env.BRANCH_NAME }}" == "main" ]]; then
-            IMAGE_TAG="latest"
+            IMAGE_TAG="latest_waf"
           elif [[ "${{ env.BRANCH_NAME }}" == "dev" ]]; then
             IMAGE_TAG="dev"
           elif [[ "${{ env.BRANCH_NAME }}" == "demo" ]]; then
             IMAGE_TAG="demo"
           else
-            IMAGE_TAG="latest"
+            IMAGE_TAG="latest_waf"
           fi
 
           az deployment group create \
@@ -148,7 +148,7 @@ jobs:
                 gptDeploymentCapacity=${{ env.GPT_MIN_CAPACITY }} \
                 embeddingModel="text-embedding-ada-002" \
                 embeddingDeploymentCapacity=${{ env.TEXT_EMBEDDING_MIN_CAPACITY }} \
-                aiDeploymentsLocation=${{ env.AZURE_LOCATION }} \
+                azureAiServiceLocation=${{ env.AZURE_LOCATION }} \
                 imageTag="${IMAGE_TAG}"\
                 createdBy="Pipeline"
 

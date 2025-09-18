@@ -20,7 +20,7 @@ class TemplateAgentFactory(BaseAgentFactory):
         """
         project_client = AIProjectClient(
             endpoint=app_settings.azure_ai.agent_endpoint,
-            credential=await get_azure_credential_async(),
+            credential=await get_azure_credential_async(client_id=app_settings.base_settings.azure_client_id),
             api_version=app_settings.azure_ai.agent_api_version
         )
 
@@ -54,7 +54,7 @@ class TemplateAgentFactory(BaseAgentFactory):
                 "fieldMapping": field_mapping
             }
         )
-
+        print("Project index created or updated.")
         ai_search = AzureAISearchTool(
             index_asset_id=f"{project_index.name}/versions/{project_index.version}",
             index_connection_id=None,
