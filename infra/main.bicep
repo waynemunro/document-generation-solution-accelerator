@@ -14,8 +14,19 @@ param solutionName string = 'docgen'
 @description('Optional. A unique text value for the solution. This is used to ensure resource names are unique for global resources. Defaults to a 5-character substring of the unique string generated from the subscription ID, resource group name, and solution name.')
 param solutionUniqueText string = substring(uniqueString(subscription().id, resourceGroup().name, solutionName), 0, 5)
 
-@description('Optional. Azure location for the solution. If not provided, it defaults to the resource group location.')
-param location string = ''
+@allowed([
+  'australiaeast'
+  'centralus'
+  'eastasia'
+  'eastus2'
+  'japaneast'
+  'northeurope'
+  'southeastasia'
+  'uksouth'
+])
+@metadata({ azd: { type: 'location' } })
+@description('Required. Azure region for all services. Regions are restricted to guarantee compatibility with paired regions and replica locations for data redundancy and failover scenarios based on articles [Azure regions list](https://learn.microsoft.com/azure/reliability/regions-list) and [Azure Database for MySQL Flexible Server - Azure Regions](https://learn.microsoft.com/azure/mysql/flexible-server/overview#azure-regions).')
+param location string
 
 @minLength(3)
 @description('Optional. Secondary location for databases creation(example:uksouth):')
